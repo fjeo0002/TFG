@@ -8,6 +8,8 @@
 
 Para la implementación técnica del proyecto, se utilizará Java / Swing. La elección de Java / Swing se debe al conocimiento previo de la plataforma que tiene el estudiante, a la capacidad de Java / Swing para generar interfaces de usuario complejas de forma flexible (usando el IDE y programandolas en código), a que es multiplataforma y a que puede usarse de forma gratuita.
 
+En concreto, se ha usará NetBeans20 como IDE de programación dada la facilidad que ofrece para diseñar interfaces gráficas Java / Swing y su compatibilidad añadiendo dependencias para la inclusión del gestor de BBDD elegido.
+
 Para la generación y control de la BBDD tengo pensado incluir **Firebase Realtime Database** o **Firebase Firestore** (parte de Firebase, propiedad de Google) como servicio de base de datos en la nube remota, que es gratuito hasta ciertos límites de uso.
 
 - **Ventajas**:
@@ -21,11 +23,17 @@ Adicionalmente, incluiré **Herramientas de gestión y desarrollo** con las que 
 - **Notion**: Utilizado para la recopilación y organización de ideas, planificación de sprints y seguimiento del progreso.
 - **GitHub**: Control de versiones y repositorio principal del código fuente, permitiendo la gestión del ciclo de vida del desarrollo.
 
+En segundo plano, procedemos a explicar cómo se ha hecho uso de estas tecnologías y mis pequeños pasos de iniciación en aquellas que no conocía.
+
+[NetBeans20 + Firebase](NetBeans20_+_Firebase.md)
+
 # Definir requisitos funcionales de la Aplicación
 
 Desarrollaré una metodología de gestión técnica de priorización utilizada para clasificar las funcionalidades o requisitos en función de su importancia llamada **MoSCoW.**
 
 [MoSCoW](MoSCoW.md)
+
+Seguiré los pasos mencionados para establecer correctamente los requisitos funcionales
 
 1. Crear lista requisitos funcionales
 - [ ]  Generación de Facturas: Crear, guardar y gestionar facturas.
@@ -104,3 +112,9 @@ Aquí tienes un ejemplo de cómo podrías estructurar tu backlog inicial usando 
 7. **Almacenamiento Seguro de Datos**
     
     *Historia de Usuario*: Como usuario, quiero que los datos de clientes y facturas estén protegidos, para asegurar la privacidad y evitar accesos no autorizados.
+
+Finalmente, hay que añadir que, estas etapas tempranas del proyecto, se ha decidido investigar a fondo cada pequeña posibilidad con el fin de no retornar en etapas de desarrollo o finales del mismo.
+
+Se emplean 2 semanas de Sprint para, únicamente definir esta lista de tareas y clasificarlas según la prioridad y dar visión al producto dado que, el tiempo es necesario para que las ideas surjan a lo largo del día y de los días, como yendo a la Universidad en autobús, preparando el desayuno en la cocina o en la ducha después de haber ido al gimnasio. En definitiva, mi mente me ha dado muchas buenas perspectivas de cómo dirigir el proceso de la aplicación y, no por ello, deben de ocurrir delante del ordenador cuando más te has propuesto realizar el sprint.
+
+De igual forma, se ha establecido un dialogo importante sobre, qué visión de producto he pensado para mi cliente y, con su realimentación, continuar fructíferamente con ese prisma de posibilidades o bien, descartar aquello que pensé que era bueno y, quizás, sustituirlo por ventajas que, quien va a usar activamente la app, pueda aprovechar.

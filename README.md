@@ -17,7 +17,7 @@ Los elementos clave de SCRUM son:
 
 Al ser un equipo de una sola persona, puedes simplificar y automatizar algunos pasos, pero aún puedes beneficiarte de la estructura que SCRUM ofrece. Aquí te dejo algunas sugerencias:
 
-1. **Product Owner**: Serás tú, como la persona que establece las prioridades del proyecto. Define las características esenciales del producto, mejoras y correcciones.
+1. **Product Owner**: Será tu cliente, como la persona que establece las prioridades del proyecto. Define las características esenciales del producto, mejoras y correcciones.
 2. **Scrum Master**: También serás tú, como el facilitador del proceso. Te encargas de mantener la productividad y asegurarte de seguir los principios del proceso.
 3. **Equipo de Desarrollo**: Nuevamente, serás tú quien realiza todo el trabajo de diseño, desarrollo y pruebas.
 
