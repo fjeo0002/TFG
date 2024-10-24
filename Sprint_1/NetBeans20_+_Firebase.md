@@ -6,7 +6,7 @@ Comencemos por gestionar la BBDD con Firebase
 
 Googleamos “Firebase” y entramos en el primer enlace. 
 
-![image.png](imgs/image.png)
+![image.png](imgs/image_0.png)
 
 Vamos a seleccionar la cuenta TIC de la UJA y pichamos en “Comenzar”
 
