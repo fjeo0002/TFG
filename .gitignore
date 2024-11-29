@@ -38,9 +38,41 @@ hs_err_pid*
 target/
 
 # Root Folder
+.idea
+*.iml
 APDescription.txt
 LICENSE
 MTPs-Main-Container.txt
 tfg-fjeo0002-firebase-adminsdk-6jhmx-69c2bce12f.json
+
+### IntelliJ IDEA ###
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
 
 # End of https://www.gitignore.io/api/code-java,java,java-web

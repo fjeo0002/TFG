@@ -1,5 +1,10 @@
 # Sprint 1: Investigación Inicial
 
+> *Montañero: Un montañero es una persona que sale a la montaña para disfrutar de la misma, no necesita ningún motivo más.
+No importa qué tipo de actividad vaya a realizar, sea lo que fuere no es lo importante.
+Lo que importa es estar en el monte y disfrutar del mero hecho de estar ahí*
+**Francisco Beltrán**
+
 - [x]  Investigación sobre herramientas y tecnologías que utilizarás (frameworks, lenguajes, bases de datos).
 - [x]  Definir los requisitos funcionales de la aplicación.
 - [x]  Crear una visión del producto y el backlog inicial.
@@ -51,7 +56,7 @@ Seguiré los pasos mencionados para establecer correctamente los requisitos func
 - [ ]  Almacenamiento seguro de datos: Surge la necesidad de proteger los datos financieros de clientes con seguridad básica en la BBDD
 - [ ]  Control de Anticipos: en correlación con la contabilidad Individual, se podría barajar la posibilidad de controlar monederos de cuentas pagadas/pendientes por cliente por si alguno te hace ingresos de los próximos ‘x’ meses
     - Tendría que generar una especie de recibo notificando al cliente que he recibido la cantidad correspondiente y, de su monedero virtual, cada mes que se factura, ir quitando dinero de su cuenta y ver si me debe dinero o, genéricamente, ‘x-n’ meses.
-1. Asignar Prioridades MoSCoW
+2. Asignar Prioridades MoSCoW
 
 | Must Have | Should Have | Could Have | Won’t Have |
 | --- | --- | --- | --- |

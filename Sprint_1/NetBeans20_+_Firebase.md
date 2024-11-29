@@ -1,5 +1,8 @@
 # NetBeans20 + Firebase
 
+> *Un pequeño paso para el hombre, pero un gran salto para la humanidad*
+**Neil Armstrong**
+
 Comencemos por gestionar la BBDD con Firebase
 
 ## Firebase
@@ -81,7 +84,7 @@ Ya creado, añadiremos las dependencias necesarias para que podamos conectarnos 
 
 Se añadirán automáticamente las dependencias necesarias para la compilación
 
-1. Descargar de Firebase el archivo de claves de cuenta de servicio
+2. Descargar de Firebase el archivo de claves de cuenta de servicio
 - **Descargar el archivo correcto de claves de cuenta de servicio (Service Account Key):**
     - Ve a la consola de Firebase:
         - Accede a Firebase Console.
@@ -96,7 +99,7 @@ Se descargará un archivo `.json` con las credenciales correctas para usar con e
 
 - **Colocar el archivo en tu proyecto:**
     - Guarda el archivo `.json` que descargaste en la carpeta raíz de tu proyecto (o cualquier otra ruta que prefieras, pero asegúrate de especificar esa ruta correctamente en tu código más tarde).
-1. Crear Clases para la conexión con la BBDD
+3. Crear Clases para la conexión con la BBDD
 
 ```jsx
 import com.google.auth.oauth2.GoogleCredentials;

@@ -1,5 +1,10 @@
 # SCRUM
 
+> *Si conoces a tu enemigo y te conoces a ti mismo, no deberías temer el resultado de mil batallas.
+Si te conoces a ti mismo pero no a tu enemigo, por cada batalla que ganes sufrirás una derrota*
+**Szun Tsu - El arte de la guerra**
+>
+
 ### Nociones Básicas de SCRUM
 
 SCRUM es un marco ágil que permite a los equipos entregar valor en pequeñas iteraciones llamadas **sprints**. Cada sprint es un ciclo de trabajo corto, usualmente de 2 a 4 semanas, en el que el equipo (en tu caso, tú) entrega un producto **incremental** que mejora con cada iteración.
@@ -32,12 +37,15 @@ A continuación, te doy una guía sobre cómo podrías organizar los sprints par
     - Definir los requisitos funcionales de la aplicación.
     - Crear una visión del producto y el backlog inicial.
         
-        [Sprint 1: Investigación Inicial](Sprint_1/Sprint_1.md)
+    [Sprint 1: Investigación Inicial](Sprint_1/Sprint_1.md)
         
 2. **Sprint 2: Diseño de la arquitectura**
     - Diseño de la arquitectura general de la aplicación (estructura del código, módulos). MVC y DAO
     - Definición de la base de datos (tablas de clientes, facturas, productos).
     - Bocetos de interfaces (UI/UX).
+
+    [Sprint 2: Diseño de la arquitectura](Sprint_2/Sprint_2_Diseño_de_la_arquitectura.md)
+
 3. **Sprint 3: Prototipo básico**
     - Desarrollo de un prototipo básico de la interfaz de usuario (pantallas principales como creación de facturas).
     - Asegúrate de que el flujo de la aplicación es coherente y fácil de usar.

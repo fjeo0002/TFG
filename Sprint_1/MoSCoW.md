@@ -1,5 +1,8 @@
 # MoSCoW
 
+> *He haka te mana, he mana te haka (El respeto es poder, el poder es respeto)*
+**Proverbio de la Isla de Pascua**
+
 ### ¿Qué es la metodología **MoSCoW**?
 
 **MoSCoW** es una técnica de priorización utilizada en la gestión de proyectos para clasificar las funcionalidades o requisitos en función de su importancia. El nombre es un acrónimo que representa cuatro niveles de prioridad:
