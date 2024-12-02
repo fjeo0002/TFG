@@ -17,7 +17,7 @@ Vamos a seleccionar la cuenta TIC de la UJA y pichamos en “Comenzar”
 
 Pulsamos en “+ Crear un proyecto” e ingresamos el nombre de tu proyecto.
 
-![image.png](imgs/image1.png)
+![image.png](imgs/image_1.png)
 
 En el siguiente paso, en mi caso no habilitaré Google Analytics dado que es una extensión más de Google que, aunque facilite registros, informes y orientación… prefiero focalizarme en gestionar mi propia base de datos a pequeña escala
 
