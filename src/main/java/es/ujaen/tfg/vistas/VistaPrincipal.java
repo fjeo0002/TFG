@@ -4,11 +4,11 @@
  */
 package es.ujaen.tfg.vistas;
 
-import javax.swing.*;
-
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-
-import java.awt.*;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
+import java.awt.BorderLayout;
+import javax.swing.*;
 
 /**
  *
@@ -16,12 +16,27 @@ import java.awt.*;
  */
 public class VistaPrincipal extends javax.swing.JFrame {
 
+    private VistaPreferencias vistaPreferencias;
+    private VistaCrearFactura vistaCrearFactura;
+    private VistaCrearAnticipo vistaCrearAnticipo;
+
+    private VistaRegistroAnticipos vistaRegistroAnticipos;
+
+    private VistaClientes vistaClientes;
+    private VistaLocales vistaLocales;
+
     /**
      * Creates new form VistaCrearModificarCliente2
      */
     public VistaPrincipal() {
-        setTitle("Sistema de Facturación y Contabilidad");
         initComponents();
+        
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
+
+        cargarVistaRegistroAnticipos();
+
+        cargarVistaClientes();
+        cargarVistaLocales();
     }
 
     /**
@@ -35,18 +50,14 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
         jPanelPrincipal = new javax.swing.JPanel();
         jPanelCabecera = new javax.swing.JPanel();
+        jPanelTitulo = new javax.swing.JPanel();
         jLabelTitulo = new javax.swing.JLabel();
         jPanelBotonesPrincipales = new javax.swing.JPanel();
         jButtonPreferencias = new javax.swing.JButton();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         jButtonCrearFactura = new javax.swing.JButton();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         jButtonCrearAnticipo = new javax.swing.JButton();
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         jButtonPlanFacturacion = new javax.swing.JButton();
-        filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         jButtonDeshacer = new javax.swing.JButton();
-        filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         jButtonRehacer = new javax.swing.JButton();
         jTabbedPaneCategorias = new javax.swing.JTabbedPane();
         jPanelContabilidad = new javax.swing.JPanel();
@@ -56,40 +67,63 @@ public class VistaPrincipal extends javax.swing.JFrame {
         jPanelLocales = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setBounds(new java.awt.Rectangle(10, 10, 10, 10));
+        setTitle("Sistema de Facturación y Contabilidad");
+        setBounds(new java.awt.Rectangle(0, 0, 0, 0));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        setLocation(new java.awt.Point(0, 0));
+        setLocationByPlatform(true);
+        setMinimumSize(new java.awt.Dimension(900, 700));
+        setName("VistaPrincipal"); // NOI18N
+        setSize(new java.awt.Dimension(0, 0));
 
-        jPanelPrincipal.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         jPanelPrincipal.setName(""); // NOI18N
 
         jPanelCabecera.setToolTipText("");
         jPanelCabecera.setName(""); // NOI18N
         jPanelCabecera.setPreferredSize(new java.awt.Dimension(676, 74));
-        jPanelCabecera.setLayout(new java.awt.GridLayout(2, 3, 10, 10));
+        jPanelCabecera.setLayout(new java.awt.GridLayout(2, 1, 10, 10));
+
+        jPanelTitulo.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jLabelTitulo.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabelTitulo.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabelTitulo.setText("Sistema de Facturación y Contabilidad");
-        jPanelCabecera.add(jLabelTitulo);
+        jPanelTitulo.add(jLabelTitulo);
 
-        jPanelBotonesPrincipales.setLayout(new javax.swing.BoxLayout(jPanelBotonesPrincipales, javax.swing.BoxLayout.X_AXIS));
+        jPanelCabecera.add(jPanelTitulo);
+
+        java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT);
+        flowLayout1.setAlignOnBaseline(true);
+        jPanelBotonesPrincipales.setLayout(flowLayout1);
 
         jButtonPreferencias.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonPreferencias.setText("Preferencias");
         jButtonPreferencias.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jButtonPreferencias.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonPreferenciasActionPerformed(evt);
+            }
+        });
         jPanelBotonesPrincipales.add(jButtonPreferencias);
-        jPanelBotonesPrincipales.add(filler1);
 
         jButtonCrearFactura.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonCrearFactura.setText("Crear Factura");
+        jButtonCrearFactura.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonCrearFacturaActionPerformed(evt);
+            }
+        });
         jPanelBotonesPrincipales.add(jButtonCrearFactura);
-        jPanelBotonesPrincipales.add(filler2);
 
         jButtonCrearAnticipo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonCrearAnticipo.setText("Crear Anticipo");
+        jButtonCrearAnticipo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonCrearAnticipoActionPerformed(evt);
+            }
+        });
         jPanelBotonesPrincipales.add(jButtonCrearAnticipo);
-        jPanelBotonesPrincipales.add(filler3);
 
         jButtonPlanFacturacion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonPlanFacturacion.setText("Plan Facturacion");
@@ -99,7 +133,6 @@ public class VistaPrincipal extends javax.swing.JFrame {
             }
         });
         jPanelBotonesPrincipales.add(jButtonPlanFacturacion);
-        jPanelBotonesPrincipales.add(filler4);
 
         jButtonDeshacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonDeshacer.setText("Deshacer");
@@ -109,7 +142,6 @@ public class VistaPrincipal extends javax.swing.JFrame {
             }
         });
         jPanelBotonesPrincipales.add(jButtonDeshacer);
-        jPanelBotonesPrincipales.add(filler5);
 
         jButtonRehacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonRehacer.setText("Rehacer");
@@ -125,11 +157,11 @@ public class VistaPrincipal extends javax.swing.JFrame {
         jPanelContabilidad.setLayout(jPanelContabilidadLayout);
         jPanelContabilidadLayout.setHorizontalGroup(
             jPanelContabilidadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 758, Short.MAX_VALUE)
+            .addGap(0, 1119, Short.MAX_VALUE)
         );
         jPanelContabilidadLayout.setVerticalGroup(
             jPanelContabilidadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 326, Short.MAX_VALUE)
+            .addGap(0, 321, Short.MAX_VALUE)
         );
 
         jTabbedPaneCategorias.addTab("Contabilidad", jPanelContabilidad);
@@ -140,16 +172,16 @@ public class VistaPrincipal extends javax.swing.JFrame {
         jPanelAnticipos.setLayout(jPanelAnticiposLayout);
         jPanelAnticiposLayout.setHorizontalGroup(
             jPanelAnticiposLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 758, Short.MAX_VALUE)
+            .addGap(0, 1119, Short.MAX_VALUE)
         );
         jPanelAnticiposLayout.setVerticalGroup(
             jPanelAnticiposLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 326, Short.MAX_VALUE)
+            .addGap(0, 321, Short.MAX_VALUE)
         );
 
         jTabbedPaneCategorias.addTab("Anticipos", jPanelAnticipos);
 
-        jPanelPiePagina.setLayout(new java.awt.GridLayout(1, 2, 10, 10));
+        jPanelPiePagina.setLayout(new java.awt.GridLayout(1, 2));
 
         jPanelClientes.setBackground(new java.awt.Color(204, 204, 255));
 
@@ -157,11 +189,11 @@ public class VistaPrincipal extends javax.swing.JFrame {
         jPanelClientes.setLayout(jPanelClientesLayout);
         jPanelClientesLayout.setHorizontalGroup(
             jPanelClientesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 374, Short.MAX_VALUE)
+            .addGap(0, 559, Short.MAX_VALUE)
         );
         jPanelClientesLayout.setVerticalGroup(
             jPanelClientesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 194, Short.MAX_VALUE)
+            .addGap(0, 193, Short.MAX_VALUE)
         );
 
         jPanelPiePagina.add(jPanelClientes);
@@ -172,11 +204,11 @@ public class VistaPrincipal extends javax.swing.JFrame {
         jPanelLocales.setLayout(jPanelLocalesLayout);
         jPanelLocalesLayout.setHorizontalGroup(
             jPanelLocalesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 374, Short.MAX_VALUE)
+            .addGap(0, 559, Short.MAX_VALUE)
         );
         jPanelLocalesLayout.setVerticalGroup(
             jPanelLocalesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 194, Short.MAX_VALUE)
+            .addGap(0, 193, Short.MAX_VALUE)
         );
 
         jPanelPiePagina.add(jPanelLocales);
@@ -187,15 +219,13 @@ public class VistaPrincipal extends javax.swing.JFrame {
             jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jTabbedPaneCategorias)
             .addComponent(jPanelPiePagina, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelPrincipalLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanelCabecera, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(jPanelCabecera, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanelPrincipalLayout.setVerticalGroup(
             jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                .addComponent(jPanelCabecera, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addComponent(jPanelCabecera, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTabbedPaneCategorias)
                 .addGap(0, 0, 0)
                 .addComponent(jPanelPiePagina, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -215,13 +245,67 @@ public class VistaPrincipal extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButtonDeshacerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeshacerActionPerformed
+    private void jButtonPreferenciasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPreferenciasActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButtonDeshacerActionPerformed
+        vistaPreferencias = new VistaPreferencias(this, true);
+        vistaPreferencias.setVisible(true);
+    }//GEN-LAST:event_jButtonPreferenciasActionPerformed
+
+    private void jButtonCrearFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearFacturaActionPerformed
+        // TODO add your handling code here:
+        vistaCrearFactura = new VistaCrearFactura();
+        vistaCrearFactura.setVisible(true);
+    }//GEN-LAST:event_jButtonCrearFacturaActionPerformed
 
     private void jButtonPlanFacturacionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlanFacturacionActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButtonPlanFacturacionActionPerformed
+
+    private void jButtonDeshacerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeshacerActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButtonDeshacerActionPerformed
+
+    private void jButtonCrearAnticipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearAnticipoActionPerformed
+        // TODO add your handling code here:
+        vistaCrearAnticipo = new VistaCrearAnticipo(this, true);
+        vistaCrearAnticipo.setVisible(true);
+    }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
+
+    private void cargarVistaRegistroAnticipos() {
+        vistaRegistroAnticipos = new VistaRegistroAnticipos(this);
+        vistaRegistroAnticipos.setSize(jPanelAnticipos.getWidth(), jPanelAnticipos.getHeight());
+        vistaRegistroAnticipos.setLocation(0, 0);
+
+        jPanelAnticipos.setLayout(new BorderLayout());
+        jPanelAnticipos.removeAll();
+        jPanelAnticipos.add(vistaRegistroAnticipos, BorderLayout.CENTER);
+        jPanelAnticipos.revalidate();
+        jPanelAnticipos.repaint();
+    }
+
+    private void cargarVistaClientes() {
+        vistaClientes = new VistaClientes(this);
+        vistaClientes.setSize(jPanelClientes.getWidth(), jPanelClientes.getHeight());
+        vistaClientes.setLocation(0, 0);
+
+        jPanelClientes.setLayout(new BorderLayout());
+        jPanelClientes.removeAll();
+        jPanelClientes.add(vistaClientes, BorderLayout.CENTER);
+        jPanelClientes.revalidate();
+        jPanelClientes.repaint();
+    }
+
+    private void cargarVistaLocales() {
+        vistaLocales = new VistaLocales(this);
+        vistaLocales.setSize(jPanelLocales.getWidth(), jPanelLocales.getHeight());
+        vistaLocales.setLocation(0, 0);
+
+        jPanelLocales.setLayout(new BorderLayout());
+        jPanelLocales.removeAll();
+        jPanelLocales.add(vistaLocales, BorderLayout.CENTER);
+        jPanelLocales.revalidate();
+        jPanelLocales.repaint();
+    }
 
     /**
      * @param args the command line arguments
@@ -236,22 +320,27 @@ public class VistaPrincipal extends javax.swing.JFrame {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    /*
+                    //Modo Noche Nimbus
+                    javax.swing.UIManager.put("control", new java.awt.Color(50, 50, 50)); // Fondo de componentes
+                    javax.swing.UIManager.put("info", new java.awt.Color(50, 50, 50)); // Fondo de tooltips
+                    javax.swing.UIManager.put("nimbusBase", new java.awt.Color(35, 35, 35)); // Base del tema
+                    javax.swing.UIManager.put("nimbusFocus", new java.awt.Color(60, 60, 60)); // Color de enfoque
+                    javax.swing.UIManager.put("nimbusLightBackground", new java.awt.Color(60, 60, 60)); // Fondo de entrada de texto
+                    javax.swing.UIManager.put("nimbusSelectedText", new java.awt.Color(240, 240, 240)); // Texto seleccionado
+                    javax.swing.UIManager.put("nimbusSelectionBackground", new java.awt.Color(80, 80, 80)); // Fondo de selección
+                    javax.swing.UIManager.put("text", new java.awt.Color(230, 230, 230)); // Texto estándar
+                     */
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(VistaPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(VistaPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(VistaPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(VistaPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        
+
+        //Aplicar LookAndFell FlatLaf
         try {
-            // Activar el tema moderno
             UIManager.setLookAndFeel(new FlatLightLaf());
         } catch (Exception e) {
             e.printStackTrace();
@@ -265,11 +354,6 @@ public class VistaPrincipal extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.Box.Filler filler1;
-    private javax.swing.Box.Filler filler2;
-    private javax.swing.Box.Filler filler3;
-    private javax.swing.Box.Filler filler4;
-    private javax.swing.Box.Filler filler5;
     private javax.swing.JButton jButtonCrearAnticipo;
     private javax.swing.JButton jButtonCrearFactura;
     private javax.swing.JButton jButtonDeshacer;
@@ -285,6 +369,8 @@ public class VistaPrincipal extends javax.swing.JFrame {
     private javax.swing.JPanel jPanelLocales;
     private javax.swing.JPanel jPanelPiePagina;
     private javax.swing.JPanel jPanelPrincipal;
+    private javax.swing.JPanel jPanelTitulo;
     private javax.swing.JTabbedPane jTabbedPaneCategorias;
     // End of variables declaration//GEN-END:variables
+
 }
