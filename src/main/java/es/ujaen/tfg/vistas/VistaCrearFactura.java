@@ -350,7 +350,7 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         jPanelPiePagina.setLayout(new java.awt.GridLayout(1, 2));
 
         jLabelTotal.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabelTotal.setText("Total: ");
+        jLabelTotal.setText("Total: 0,00€");
         jPanelLabelTotal.add(jLabelTotal);
 
         jPanelPiePagina.add(jPanelLabelTotal);

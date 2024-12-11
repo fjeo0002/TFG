@@ -4,7 +4,13 @@
  */
 package es.ujaen.tfg.vistas;
 
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarPlaceHolder;
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarSufijo;
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarPlaceHolder;
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarSufijo;
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.validarCampo;
 import java.awt.Frame;
+import javax.swing.border.Border;
 
 /**
  *
@@ -12,21 +18,34 @@ import java.awt.Frame;
  */
 public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
+    private final Border originalBorder;
+
+    private boolean campoPrecioBaseCorrecto = false;
+    
+    private final String placeHolderNombre = "Introduzca Nombre de Local";
+    private final String placeHolderAlias = "Introduzca Alias de Local";
+    private final String placeHolderPrecioBase = "0,00 €";
+    private final String sufijoPrecioBase = " €";
+
     /**
      * Creates new form VistaCrearModificarCliente
+     *
      * @param parent
      * @param modal
-     * @param anadir: true -> VistaAñadirLocal
-     *                false -> VistaModificarLocal
+     * @param anadir: true -> VistaAñadirLocal false -> VistaModificarLocal
      */
     public VistaAnadirModificarLocal(Frame parent, boolean modal, boolean anadir) {
         super(parent, modal);
         initComponents();
-        
-        if(anadir) {
+
+        this.originalBorder = jTextFieldNombre.getBorder();
+
+        if (anadir) {
             jLabelTitulo.setText("Añadir Nuevo Local");
+            setTitle("Añadir Nuevo Local");
         } else {
             jLabelTitulo.setText("Modificar Local");
+            setTitle("Modificar Local");
         }
     }
 
@@ -50,12 +69,12 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         jTextFieldAlias = new javax.swing.JTextField();
         jLabelPrecioBase = new javax.swing.JLabel();
         jTextFieldPrecioBase = new javax.swing.JTextField();
+        jLabelAdvertenciaPrecioBase = new javax.swing.JLabel();
         jPanelPiePagina = new javax.swing.JPanel();
         jButtonCancelar = new javax.swing.JButton();
         jButtonAceptar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setLocationByPlatform(true);
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -75,13 +94,28 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 25.0;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelNombre, gridBagConstraints);
 
         jTextFieldNombre.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldNombre.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldNombre.setText("Introduzca Nombre de Local");
         jTextFieldNombre.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldNombre.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldNombre.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldNombreFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldNombreFocusLost(evt);
+            }
+        });
+        jTextFieldNombre.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldNombreKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -97,13 +131,28 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weightx = 25.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelAlias, gridBagConstraints);
 
         jTextFieldAlias.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldAlias.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldAlias.setText("Introduzca Alias de Local");
         jTextFieldAlias.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldAlias.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldAlias.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldAliasFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldAliasFocusLost(evt);
+            }
+        });
+        jTextFieldAlias.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldAliasKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -114,7 +163,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         jPanelCuerpo.add(jTextFieldAlias, gridBagConstraints);
 
         jLabelPrecioBase.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelPrecioBase.setText("Precio base");
+        jLabelPrecioBase.setText("Precio Base");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
@@ -124,8 +173,23 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         jPanelCuerpo.add(jLabelPrecioBase, gridBagConstraints);
 
         jTextFieldPrecioBase.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldPrecioBase.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldPrecioBase.setText("0,00 €");
         jTextFieldPrecioBase.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldPrecioBase.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldPrecioBase.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldPrecioBaseFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldPrecioBaseFocusLost(evt);
+            }
+        });
+        jTextFieldPrecioBase.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldPrecioBaseKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -134,6 +198,17 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jTextFieldPrecioBase, gridBagConstraints);
+
+        jLabelAdvertenciaPrecioBase.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaPrecioBase.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaPrecioBase, gridBagConstraints);
 
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
 
@@ -151,6 +226,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
         jButtonAceptar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonAceptar.setText("Aceptar");
+        jButtonAceptar.setEnabled(false);
         jButtonAceptar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonAceptarActionPerformed(evt);
@@ -164,11 +240,11 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 308, Short.MAX_VALUE)
         );
 
         pack();
@@ -184,9 +260,77 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         dispose();
     }//GEN-LAST:event_jButtonAceptarActionPerformed
 
+    private void jTextFieldPrecioBaseKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldPrecioBaseKeyReleased
+        // TODO add your handling code here:
+        campoPrecioBaseCorrecto = validarCampo(
+                jTextFieldPrecioBase,
+                jLabelAdvertenciaPrecioBase,
+                "* Introduce un número con 2 decimales",
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches("(?!0,00)(?!0)([1-9]\\d{0,9}|0)(,\\d{2})?")
+                // Permitir números con exactamente 2 decimales y enteros != de 0,00 y 0
+        );
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldPrecioBaseKeyReleased
+
+    private void jTextFieldPrecioBaseFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldPrecioBaseFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldPrecioBase, placeHolderPrecioBase);
+        quitarSufijo(jTextFieldPrecioBase, sufijoPrecioBase);
+    }//GEN-LAST:event_jTextFieldPrecioBaseFocusGained
+
+    private void jTextFieldPrecioBaseFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldPrecioBaseFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldPrecioBase, placeHolderPrecioBase);
+        agregarSufijo(jTextFieldPrecioBase, sufijoPrecioBase, campoPrecioBaseCorrecto);
+    }//GEN-LAST:event_jTextFieldPrecioBaseFocusLost
+
+    private void jTextFieldAliasFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+    }//GEN-LAST:event_jTextFieldAliasFocusGained
+
+    private void jTextFieldAliasFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+    }//GEN-LAST:event_jTextFieldAliasFocusLost
+
+    private void jTextFieldNombreFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldNombre, placeHolderNombre);
+    }//GEN-LAST:event_jTextFieldNombreFocusGained
+
+    private void jTextFieldNombreFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldNombre, placeHolderNombre);
+    }//GEN-LAST:event_jTextFieldNombreFocusLost
+
+    private void jTextFieldNombreKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldNombreKeyReleased
+        // TODO add your handling code here:
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldNombreKeyReleased
+
+    private void jTextFieldAliasKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldAliasKeyReleased
+        // TODO add your handling code here:
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldAliasKeyReleased
+
+    private void habilitarBotonAceptar() {
+        if (!jTextFieldNombre.getText().trim().equals(placeHolderNombre) && !jTextFieldNombre.getText().trim().isEmpty()) {
+            if (!jTextFieldAlias.getText().trim().equals(placeHolderAlias) && !jTextFieldAlias.getText().trim().isEmpty()) {
+                if (campoPrecioBaseCorrecto && !jTextFieldPrecioBase.getText().trim().isEmpty()) {
+                    jButtonAceptar.setEnabled(true);
+                    return;
+                }
+            }
+        }
+        jButtonAceptar.setEnabled(false);
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAceptar;
     private javax.swing.JButton jButtonCancelar;
+    private javax.swing.JLabel jLabelAdvertenciaPrecioBase;
     private javax.swing.JLabel jLabelAlias;
     private javax.swing.JLabel jLabelNombre;
     private javax.swing.JLabel jLabelPrecioBase;

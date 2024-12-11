@@ -17,14 +17,17 @@ public class Anticipo {
     private Integer mesesCubiertos;
     private Date fecha;
 
+    private Cliente cliente;
+
     public Anticipo() {
     }
 
-    public Anticipo(String id, Double monto, Integer mesesCubiertos, Date fecha) {
+    public Anticipo(String id, Double monto, Integer mesesCubiertos, Date fecha, Cliente cliente) {
         this.id = id;
         this.monto = monto;
         this.mesesCubiertos = mesesCubiertos;
         this.fecha = fecha;
+        this.cliente = cliente;
     }
 
     public String getId() {
@@ -57,6 +60,14 @@ public class Anticipo {
 
     public void setFecha(Date fecha) {
         this.fecha = fecha;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 
     @Override

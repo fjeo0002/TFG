@@ -4,7 +4,9 @@
  */
 package es.ujaen.tfg.vistas;
 
+import es.ujaen.tfg.utils.Constantes;
 import javax.swing.JFrame;
+import javax.swing.table.DefaultTableModel;
 
 
 /**
@@ -15,12 +17,21 @@ public class VistaLocales extends javax.swing.JPanel {
 
     private VistaAnadirModificarLocal vistaAnadirModificarLocal;
     private JFrame parent;
+    
+    private final DefaultTableModel dtm;
+    private final Object[] o;
     /**
      * Creates new form VistaClientes
+     * @param parent
      */
     public VistaLocales(JFrame parent) {
         initComponents();
         parent = this.parent;
+        dtm = (DefaultTableModel) jTable.getModel();
+        
+        o = new Object[jTable.getColumnCount()];
+        
+        cargarTablaLocales();
     }
 
     /**
@@ -177,6 +188,43 @@ public class VistaLocales extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
+    private void cargarTablaLocales(){
+        o[0] = Constantes.local1.getArticulo().trim();
+        o[1] = Constantes.local1.getAlias().trim();
+        o[2] = Constantes.local1.getPrecio();
+        
+        dtm.addRow(o);
+        
+        o[0] = Constantes.local2.getArticulo().trim();
+        o[1] = Constantes.local2.getAlias().trim();
+        o[2] = Constantes.local2.getPrecio();
+        
+        dtm.addRow(o);
+        
+        o[0] = Constantes.local3.getArticulo().trim();
+        o[1] = Constantes.local3.getAlias().trim();
+        o[2] = Constantes.local3.getPrecio();
+        
+        dtm.addRow(o);
+        
+        o[0] = Constantes.local4.getArticulo().trim();
+        o[1] = Constantes.local4.getAlias().trim();
+        o[2] = Constantes.local4.getPrecio();
+        
+        dtm.addRow(o);
+        
+        o[0] = Constantes.local5.getArticulo().trim();
+        o[1] = Constantes.local5.getAlias().trim();
+        o[2] = Constantes.local5.getPrecio();
+        
+        dtm.addRow(o);
+        
+        o[0] = Constantes.local6.getArticulo().trim();
+        o[1] = Constantes.local6.getAlias().trim();
+        o[2] = Constantes.local6.getPrecio();
+        
+        dtm.addRow(o);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAnadir;

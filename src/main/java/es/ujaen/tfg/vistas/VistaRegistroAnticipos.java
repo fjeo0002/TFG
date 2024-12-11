@@ -16,6 +16,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
     private JFrame parent;
     /**
      * Creates new form VistaRegistroAnticipos
+     * @param parent
      */
     public VistaRegistroAnticipos(JFrame parent) {
         initComponents();
@@ -36,8 +37,8 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
         jPanelTitulo = new javax.swing.JPanel();
         jLabelTitulo = new javax.swing.JLabel();
         jPanelFiltro = new javax.swing.JPanel();
-        jLabelDNI = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        jLabelFiltrarBusqueda = new javax.swing.JLabel();
+        jButtonFiltrarBusqueda = new javax.swing.JButton();
         jPanelCuerpo = new javax.swing.JPanel();
         jScrollPaneTabla = new javax.swing.JScrollPane();
         jTable = new javax.swing.JTable();
@@ -60,20 +61,20 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
 
         jPanelFiltro.setLayout(new java.awt.GridBagLayout());
 
-        jLabelDNI.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelDNI.setText("Filtrar Búsqueda");
+        jLabelFiltrarBusqueda.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelFiltrarBusqueda.setText("Filtrar Búsqueda");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelFiltro.add(jLabelDNI, gridBagConstraints);
+        jPanelFiltro.add(jLabelFiltrarBusqueda, gridBagConstraints);
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButton1.setText("F.B.");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jButtonFiltrarBusqueda.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonFiltrarBusqueda.setText("F.B.");
+        jButtonFiltrarBusqueda.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jButtonFiltrarBusquedaActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -82,7 +83,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 25.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelFiltro.add(jButton1, gridBagConstraints);
+        jPanelFiltro.add(jButtonFiltrarBusqueda, gridBagConstraints);
 
         jPanelCabecera.add(jPanelFiltro);
 
@@ -121,16 +122,16 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
         add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButtonFiltrarBusquedaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFiltrarBusquedaActionPerformed
         // TODO add your handling code here:
         vistaRegistroAnticiposFiltrarBusqueda = new VistaRegistroAnticiposFiltrarBusqueda(parent, true);
         vistaRegistroAnticiposFiltrarBusqueda.setVisible(true);
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_jButtonFiltrarBusquedaActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabelDNI;
+    private javax.swing.JButton jButtonFiltrarBusqueda;
+    private javax.swing.JLabel jLabelFiltrarBusqueda;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelCabecera;
     private javax.swing.JPanel jPanelCuerpo;

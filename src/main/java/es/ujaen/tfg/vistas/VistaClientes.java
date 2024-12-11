@@ -17,6 +17,7 @@ public class VistaClientes extends javax.swing.JPanel {
     private JFrame parent;
     /**
      * Creates new form VistaClientes
+     * @param parent
      */
     public VistaClientes(JFrame parent) {
         initComponents();

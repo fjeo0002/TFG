@@ -7,7 +7,11 @@ package es.ujaen.tfg.vistas;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
+import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Local;
 import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 
 /**
@@ -19,12 +23,14 @@ public class VistaPrincipal extends javax.swing.JFrame {
     private VistaPreferencias vistaPreferencias;
     private VistaCrearFactura vistaCrearFactura;
     private VistaCrearAnticipo vistaCrearAnticipo;
+    private VistaPlanFacturacion vistaPlanFacturacion;
 
     private VistaRegistroAnticipos vistaRegistroAnticipos;
+    private VistaContabilidad vistaContabilidad;
 
     private VistaClientes vistaClientes;
     private VistaLocales vistaLocales;
-
+    
     /**
      * Creates new form VistaCrearModificarCliente2
      */
@@ -33,6 +39,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
         
         setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
 
+        cargarVistaContabilidad();
         cargarVistaRegistroAnticipos();
 
         cargarVistaClientes();
@@ -259,6 +266,8 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private void jButtonPlanFacturacionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlanFacturacionActionPerformed
         // TODO add your handling code here:
+        vistaPlanFacturacion = new VistaPlanFacturacion();
+        vistaPlanFacturacion.setVisible(true);
     }//GEN-LAST:event_jButtonPlanFacturacionActionPerformed
 
     private void jButtonDeshacerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeshacerActionPerformed
@@ -271,6 +280,18 @@ public class VistaPrincipal extends javax.swing.JFrame {
         vistaCrearAnticipo.setVisible(true);
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
 
+    private void cargarVistaContabilidad() {
+        vistaContabilidad = new VistaContabilidad();
+        vistaContabilidad.setSize(jPanelContabilidad.getWidth(), jPanelContabilidad.getHeight());
+        vistaContabilidad.setLocation(0, 0);
+
+        jPanelContabilidad.setLayout(new BorderLayout());
+        jPanelContabilidad.removeAll();
+        jPanelContabilidad.add(vistaContabilidad, BorderLayout.CENTER);
+        jPanelContabilidad.revalidate();
+        jPanelContabilidad.repaint();
+    }
+    
     private void cargarVistaRegistroAnticipos() {
         vistaRegistroAnticipos = new VistaRegistroAnticipos(this);
         vistaRegistroAnticipos.setSize(jPanelAnticipos.getWidth(), jPanelAnticipos.getHeight());
@@ -340,6 +361,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
         //</editor-fold>
 
         //Aplicar LookAndFell FlatLaf
+        
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
         } catch (Exception e) {

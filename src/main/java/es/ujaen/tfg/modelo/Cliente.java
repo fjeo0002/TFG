@@ -4,6 +4,8 @@
  */
 package es.ujaen.tfg.modelo;
 
+import java.util.List;
+
 /**
  *
  * @author jota
@@ -20,10 +22,12 @@ public class Cliente {
     private String descripcion;
     private Boolean tipo;
 
+    private List<Local> locales;
+
     public Cliente() {
     }
 
-    public Cliente(String DNI, String nombre, String alias, String correo, String direccion, String codigoPostal, String ciudad, String descripcion, Boolean tipo) {
+    public Cliente(String DNI, String nombre, String alias, String correo, String direccion, String codigoPostal, String ciudad, String descripcion, Boolean tipo, List<Local> locales) {
         this.DNI = DNI;
         this.nombre = nombre;
         this.alias = alias;
@@ -33,6 +37,7 @@ public class Cliente {
         this.ciudad = ciudad;
         this.descripcion = descripcion;
         this.tipo = tipo;
+        this.locales = locales;
     }
 
     public String getDNI() {
@@ -105,6 +110,14 @@ public class Cliente {
 
     public void setTipo(Boolean tipo) {
         this.tipo = tipo;
+    }
+
+    public List<Local> getLocales() {
+        return locales;
+    }
+
+    public void setLocales(List<Local> locales) {
+        this.locales = locales;
     }
 
     @Override

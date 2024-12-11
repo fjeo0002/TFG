@@ -4,28 +4,53 @@
  */
 package es.ujaen.tfg.vistas;
 
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarPlaceHolder;
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarPlaceHolder;
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.validarCampo;
+import javax.swing.border.Border;
+
 /**
  *
  * @author jota
  */
 public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
+    private final Border originalBorder;
+
+    private boolean campoDNICorrecto = false;
+    private boolean campoNombreCorrecto = false;
+    private boolean campoEmailCorrecto = false;
+    private boolean campoCodigoPostalCorrecto = false;
+
+    private final String placeHolderDNI = "12345678X";
+    private final String placeHolderNombre = "Nombre Apellido1 Apellido2";
+    private final String placeHolderAlias = "Introduzca Alias de Cliente";
+    private final String placeHolderEmail = "nombre.123@gmail.com";
+    private final String placeHolderDireccion = "C/ Mirabueno, 9, 9ºB";
+    private final String placeHolderLocalidad = "Jaén, Jaén";
+    private final String placeHolderCodigoPostal = "12345";
+
     /**
      * Creates new form VistaCrearModificarCliente
+     *
      * @param parent
      * @param modal
-     * @param anadir: true -> VistaAñadirCliente
-     *                false -> VistaModificarCliente
+     * @param anadir: true -> VistaAñadirCliente false -> VistaModificarCliente
      */
     public VistaAnadirModificarCliente(java.awt.Frame parent, boolean modal, boolean anadir) {
         super(parent, modal);
         initComponents();
-        
-        if(anadir) {
+
+        this.originalBorder = jTextFieldDNI.getBorder();
+
+        if (anadir) {
             jLabelTitulo.setText("Añadir Nuevo Cliente");
+            setTitle("Añadir Nuevo Cliente");
         } else {
             jLabelTitulo.setText("Modificar Cliente");
+            setTitle("Modificar Cliente");
         }
+
     }
 
     /**
@@ -45,18 +70,22 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jPanelCuerpo = new javax.swing.JPanel();
         jLabelDNI = new javax.swing.JLabel();
         jTextFieldDNI = new javax.swing.JTextField();
+        jLabelAdvertenciaDNI = new javax.swing.JLabel();
         jLabelNombre = new javax.swing.JLabel();
         jTextFieldNombre = new javax.swing.JTextField();
+        jLabelAdvertenciaNombre = new javax.swing.JLabel();
         jLabelAlias = new javax.swing.JLabel();
         jTextFieldAlias = new javax.swing.JTextField();
         jLabelEmail = new javax.swing.JLabel();
         jTextFieldEmail = new javax.swing.JTextField();
+        jLabelAdvertenciaEmail = new javax.swing.JLabel();
         jLabelDireccion = new javax.swing.JLabel();
         jTextFieldDireccion = new javax.swing.JTextField();
         jLabelLocalidad = new javax.swing.JLabel();
         jTextFieldLocalidad = new javax.swing.JTextField();
         jLabelCodigoPostal = new javax.swing.JLabel();
         jTextFieldCodigoPostal = new javax.swing.JTextField();
+        jLabelAdvertenciaCodigoPostal = new javax.swing.JLabel();
         jLabelTipo = new javax.swing.JLabel();
         jPanelRadioButtons = new javax.swing.JPanel();
         jRadioButtonTipoA = new javax.swing.JRadioButton();
@@ -66,7 +95,6 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jButtonAceptar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setLocationByPlatform(true);
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -91,8 +119,23 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jPanelCuerpo.add(jLabelDNI, gridBagConstraints);
 
         jTextFieldDNI.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldDNI.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldDNI.setText("12345678X");
         jTextFieldDNI.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldDNI.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldDNI.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldDNIFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldDNIFocusLost(evt);
+            }
+        });
+        jTextFieldDNI.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldDNIKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -102,44 +145,96 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jTextFieldDNI, gridBagConstraints);
 
+        jLabelAdvertenciaDNI.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaDNI.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaDNI, gridBagConstraints);
+
         jLabelNombre.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelNombre.setText("Nombre");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 25.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelNombre, gridBagConstraints);
 
         jTextFieldNombre.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldNombre.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldNombre.setText("Nombre Apellido1 Apellido2");
         jTextFieldNombre.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldNombre.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldNombre.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldNombreFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldNombreFocusLost(evt);
+            }
+        });
+        jTextFieldNombre.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldNombreKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jTextFieldNombre, gridBagConstraints);
 
+        jLabelAdvertenciaNombre.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaNombre.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaNombre, gridBagConstraints);
+
         jLabelAlias.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelAlias.setText("Alias");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelAlias, gridBagConstraints);
 
         jTextFieldAlias.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldAlias.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldAlias.setText("Introduzca Alias de Cliente");
         jTextFieldAlias.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldAlias.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldAlias.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldAliasFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldAliasFocusLost(evt);
+            }
+        });
+        jTextFieldAlias.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldAliasKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -150,40 +245,81 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jLabelEmail.setText("E-mail");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelEmail, gridBagConstraints);
 
         jTextFieldEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldEmail.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldEmail.setText("nombre.123@gmail.com");
         jTextFieldEmail.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldEmail.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldEmail.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldEmailFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldEmailFocusLost(evt);
+            }
+        });
+        jTextFieldEmail.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldEmailKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jTextFieldEmail, gridBagConstraints);
 
+        jLabelAdvertenciaEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaEmail.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaEmail, gridBagConstraints);
+
         jLabelDireccion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelDireccion.setText("Dirección");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelDireccion, gridBagConstraints);
 
         jTextFieldDireccion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldDireccion.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldDireccion.setText("C/ Mirabueno, 9, 9ºB");
         jTextFieldDireccion.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldDireccion.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldDireccion.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldDireccionFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldDireccionFocusLost(evt);
+            }
+        });
+        jTextFieldDireccion.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldDireccionKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -194,18 +330,33 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jLabelLocalidad.setText("Localidad");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelLocalidad, gridBagConstraints);
 
         jTextFieldLocalidad.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldLocalidad.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldLocalidad.setText("Jaén, Jaén");
         jTextFieldLocalidad.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldLocalidad.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldLocalidad.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldLocalidadFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldLocalidadFocusLost(evt);
+            }
+        });
+        jTextFieldLocalidad.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldLocalidadKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -216,29 +367,55 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jLabelCodigoPostal.setText("Código Postal");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelCodigoPostal, gridBagConstraints);
 
         jTextFieldCodigoPostal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldCodigoPostal.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldCodigoPostal.setText("12345");
         jTextFieldCodigoPostal.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldCodigoPostal.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldCodigoPostal.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldCodigoPostalFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldCodigoPostalFocusLost(evt);
+            }
+        });
+        jTextFieldCodigoPostal.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldCodigoPostalKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jTextFieldCodigoPostal, gridBagConstraints);
 
+        jLabelAdvertenciaCodigoPostal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaCodigoPostal.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 17;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaCodigoPostal, gridBagConstraints);
+
         jLabelTipo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelTipo.setText("Tipo");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
@@ -247,16 +424,26 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         buttonGroupTipo.add(jRadioButtonTipoA);
         jRadioButtonTipoA.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jRadioButtonTipoA.setText("A");
+        jRadioButtonTipoA.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jRadioButtonTipoAMouseClicked(evt);
+            }
+        });
         jPanelRadioButtons.add(jRadioButtonTipoA);
 
         buttonGroupTipo.add(jRadioButtonTipoB);
         jRadioButtonTipoB.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jRadioButtonTipoB.setText("B");
+        jRadioButtonTipoB.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jRadioButtonTipoBMouseClicked(evt);
+            }
+        });
         jPanelRadioButtons.add(jRadioButtonTipoB);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridy = 19;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jPanelRadioButtons, gridBagConstraints);
@@ -277,6 +464,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
         jButtonAceptar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonAceptar.setText("Aceptar");
+        jButtonAceptar.setEnabled(false);
         jButtonAceptar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonAceptarActionPerformed(evt);
@@ -290,11 +478,11 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 731, Short.MAX_VALUE)
         );
 
         pack();
@@ -310,10 +498,179 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         dispose();
     }//GEN-LAST:event_jButtonAceptarActionPerformed
 
+    private void jTextFieldDNIFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldDNI, placeHolderDNI);
+    }//GEN-LAST:event_jTextFieldDNIFocusLost
+
+    private void jTextFieldDNIFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldDNI, placeHolderDNI);
+    }//GEN-LAST:event_jTextFieldDNIFocusGained
+
+    private void jTextFieldDNIKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldDNIKeyReleased
+        // TODO add your handling code here:
+        campoDNICorrecto = validarCampo(
+                jTextFieldDNI,
+                jLabelAdvertenciaDNI,
+                "* Introduce un DNI válido (8 números y 1 letra mayúscula)",
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches("\\d{8}[A-Z]")
+        );
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldDNIKeyReleased
+
+    private void jTextFieldNombreFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldNombre, placeHolderNombre);
+    }//GEN-LAST:event_jTextFieldNombreFocusGained
+
+    private void jTextFieldNombreFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldNombre, placeHolderNombre);
+    }//GEN-LAST:event_jTextFieldNombreFocusLost
+
+    private void jTextFieldNombreKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldNombreKeyReleased
+        // TODO add your handling code here:
+        campoNombreCorrecto = validarCampo(
+                jTextFieldNombre,
+                jLabelAdvertenciaNombre,
+                "* Introduce un nombre válido (sin números ni caracteres especiales)",
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches("[a-zA-ZÁÉÍÓÚáéíóúÑñ\\s'-]+")
+        );
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldNombreKeyReleased
+
+    private void jTextFieldAliasFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+    }//GEN-LAST:event_jTextFieldAliasFocusGained
+
+    private void jTextFieldAliasFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+    }//GEN-LAST:event_jTextFieldAliasFocusLost
+
+    private void jTextFieldAliasKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldAliasKeyReleased
+        // TODO add your handling code here:
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldAliasKeyReleased
+
+    private void jTextFieldEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldEmail, placeHolderEmail);
+    }//GEN-LAST:event_jTextFieldEmailFocusGained
+
+    private void jTextFieldEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldEmail, placeHolderEmail);
+    }//GEN-LAST:event_jTextFieldEmailFocusLost
+
+    private void jTextFieldEmailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldEmailKeyReleased
+        // TODO add your handling code here:
+        campoEmailCorrecto = validarCampo(
+                jTextFieldEmail,
+                jLabelAdvertenciaEmail,
+                "* Introduce un correo electrónico válido",
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
+        );
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldEmailKeyReleased
+
+    private void jTextFieldDireccionFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldDireccion, placeHolderDireccion);
+    }//GEN-LAST:event_jTextFieldDireccionFocusGained
+
+    private void jTextFieldDireccionFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldDireccion, placeHolderDireccion);
+    }//GEN-LAST:event_jTextFieldDireccionFocusLost
+
+    private void jTextFieldDireccionKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldDireccionKeyReleased
+        // TODO add your handling code here:
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldDireccionKeyReleased
+
+    private void jTextFieldLocalidadFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldLocalidad, placeHolderLocalidad);
+    }//GEN-LAST:event_jTextFieldLocalidadFocusGained
+
+    private void jTextFieldLocalidadFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldLocalidad, placeHolderLocalidad);
+    }//GEN-LAST:event_jTextFieldLocalidadFocusLost
+
+    private void jTextFieldLocalidadKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadKeyReleased
+        // TODO add your handling code here:
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldLocalidadKeyReleased
+
+    private void jTextFieldCodigoPostalFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldCodigoPostal, placeHolderCodigoPostal);
+    }//GEN-LAST:event_jTextFieldCodigoPostalFocusGained
+
+    private void jTextFieldCodigoPostalFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldCodigoPostal, placeHolderCodigoPostal);
+    }//GEN-LAST:event_jTextFieldCodigoPostalFocusLost
+
+    private void jTextFieldCodigoPostalKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalKeyReleased
+        // TODO add your handling code here:
+        campoCodigoPostalCorrecto = validarCampo(
+                jTextFieldCodigoPostal,
+                jLabelAdvertenciaCodigoPostal,
+                "* Introduce un código postal válido (5 dígitos)",
+                originalBorder,
+                texto -> texto.matches("^\\d{5}$")
+        );
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldCodigoPostalKeyReleased
+
+    private void jRadioButtonTipoAMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButtonTipoAMouseClicked
+        // TODO add your handling code here:
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jRadioButtonTipoAMouseClicked
+
+    private void jRadioButtonTipoBMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButtonTipoBMouseClicked
+        // TODO add your handling code here:
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jRadioButtonTipoBMouseClicked
+
+    private void habilitarBotonAceptar() {
+        if (campoDNICorrecto) {
+            if (campoNombreCorrecto) {
+                if (!jTextFieldAlias.getText().trim().equals(placeHolderAlias) && !jTextFieldAlias.getText().trim().isEmpty()) {
+                    if (campoEmailCorrecto) {
+                        if (!jTextFieldDireccion.getText().trim().equals(placeHolderDireccion) && !jTextFieldDireccion.getText().trim().isEmpty()) {
+                            if (!jTextFieldLocalidad.getText().trim().equals(placeHolderLocalidad) && !jTextFieldLocalidad.getText().trim().isEmpty()) {
+                                if (campoCodigoPostalCorrecto) {
+                                    if (jRadioButtonTipoA.isSelected() || jRadioButtonTipoB.isSelected()) {
+                                        jButtonAceptar.setEnabled(true);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        jButtonAceptar.setEnabled(false);
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupTipo;
     private javax.swing.JButton jButtonAceptar;
     private javax.swing.JButton jButtonCancelar;
+    private javax.swing.JLabel jLabelAdvertenciaCodigoPostal;
+    private javax.swing.JLabel jLabelAdvertenciaDNI;
+    private javax.swing.JLabel jLabelAdvertenciaEmail;
+    private javax.swing.JLabel jLabelAdvertenciaNombre;
     private javax.swing.JLabel jLabelAlias;
     private javax.swing.JLabel jLabelCodigoPostal;
     private javax.swing.JLabel jLabelDNI;

@@ -17,14 +17,17 @@ public class Factura {
     private Boolean pagado;
     private Boolean facturado;
 
+    private Cliente cliente;
+
     public Factura() {
     }
 
-    public Factura(String numero, Date fecha, Boolean pagado, Boolean facturado) {
+    public Factura(String numero, Date fecha, Boolean pagado, Boolean facturado, Cliente cliente) {
         this.numero = numero;
         this.fecha = fecha;
         this.pagado = pagado;
         this.facturado = facturado;
+        this.cliente = cliente;
     }
 
     public String getNumero() {
@@ -57,6 +60,14 @@ public class Factura {
 
     public void setFacturado(Boolean facturado) {
         this.facturado = facturado;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 
     @Override
