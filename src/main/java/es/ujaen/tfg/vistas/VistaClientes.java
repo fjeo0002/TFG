@@ -4,24 +4,51 @@
  */
 package es.ujaen.tfg.vistas;
 
+import com.mxrck.autocompleter.TextAutoCompleter;
+import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.observer.Observador;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JFrame;
-
+import javax.swing.RowFilter;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
  * @author jota
  */
-public class VistaClientes extends javax.swing.JPanel {
+public class VistaClientes extends javax.swing.JPanel implements Observador {
+
+    private final ClienteControlador clienteControlador;
+    private TextAutoCompleter autoCompleterBuscadorClientes;
 
     private VistaAnadirModificarCliente vistaAnadirModificarCliente;
-    private JFrame parent;
+    private final JFrame parent;
+
+    private final DefaultTableModel dtm;
+    private final Object[] o;
+    private TableRowSorter<DefaultTableModel> rowSorter;
+
     /**
      * Creates new form VistaClientes
+     *
      * @param parent
+     * @param clienteControlador
      */
-    public VistaClientes(JFrame parent) {
+    public VistaClientes(JFrame parent, ClienteControlador clienteControlador) {
         initComponents();
-        parent = this.parent;
+        this.parent = parent;
+        this.clienteControlador = clienteControlador;
+        this.clienteControlador.agregarObservador(this);
+        this.dtm = (DefaultTableModel) jTable.getModel();
+        this.o = new Object[jTable.getColumnCount()];
+
+        addTableSelectionListener();
+        cargarTablaClientes();
+        cargarAutocompletarBuscadorClientes();
     }
 
     /**
@@ -38,6 +65,7 @@ public class VistaClientes extends javax.swing.JPanel {
         jPanelTitulo = new javax.swing.JPanel();
         jLabelTitulo = new javax.swing.JLabel();
         jPanelFiltro = new javax.swing.JPanel();
+        jLabelBuscarCliente = new javax.swing.JLabel();
         jTextFieldBuscadorClientes = new javax.swing.JTextField();
         jComboBoxEstado = new javax.swing.JComboBox<>();
         jPanelCuerpo = new javax.swing.JPanel();
@@ -66,11 +94,27 @@ public class VistaClientes extends javax.swing.JPanel {
 
         jPanelFiltro.setLayout(new java.awt.GridBagLayout());
 
-        jTextFieldBuscadorClientes.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jTextFieldBuscadorClientes.setMinimumSize(new java.awt.Dimension(125, 26));
-        jTextFieldBuscadorClientes.setPreferredSize(new java.awt.Dimension(125, 26));
+        jLabelBuscarCliente.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelBuscarCliente.setText("Busca un Cliente por Nombre o Alias:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelFiltro.add(jLabelBuscarCliente, gridBagConstraints);
+
+        jTextFieldBuscadorClientes.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldBuscadorClientes.setForeground(new java.awt.Color(0, 0, 0));
+        jTextFieldBuscadorClientes.setMinimumSize(new java.awt.Dimension(125, 26));
+        jTextFieldBuscadorClientes.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldBuscadorClientes.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldBuscadorClientesKeyReleased(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.ipadx = 58;
@@ -82,8 +126,13 @@ public class VistaClientes extends javax.swing.JPanel {
         jComboBoxEstado.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jComboBoxEstado.setMaximumRowCount(4);
         jComboBoxEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Estado", "Al día", "Debe", "Anticipa" }));
+        jComboBoxEstado.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxEstadoActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -115,6 +164,7 @@ public class VistaClientes extends javax.swing.JPanel {
 
         jButtonModificar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonModificar.setText("Modificar");
+        jButtonModificar.setEnabled(false);
         jButtonModificar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonModificarActionPerformed(evt);
@@ -129,6 +179,7 @@ public class VistaClientes extends javax.swing.JPanel {
 
         jButtonEliminar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonEliminar.setText("Eliminar");
+        jButtonEliminar.setEnabled(false);
         jButtonEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonEliminarActionPerformed(evt);
@@ -153,7 +204,7 @@ public class VistaClientes extends javax.swing.JPanel {
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Double.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
                 false, false, false, false
@@ -176,26 +227,96 @@ public class VistaClientes extends javax.swing.JPanel {
 
     private void jButtonAnadirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAnadirActionPerformed
         // TODO add your handling code here:
-        vistaAnadirModificarCliente = new VistaAnadirModificarCliente(parent, true, true);
+        vistaAnadirModificarCliente = new VistaAnadirModificarCliente(parent, true, null, clienteControlador);
         vistaAnadirModificarCliente.setVisible(true);
     }//GEN-LAST:event_jButtonAnadirActionPerformed
 
     private void jButtonModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonModificarActionPerformed
         // TODO add your handling code here:
-        vistaAnadirModificarCliente = new VistaAnadirModificarCliente(parent, true, false);
+        int selectedRow = jTable.getSelectedRow();
+        Cliente clienteOriginal = null;
+        if (selectedRow != -1) { // Verificar que haya una fila seleccionada
+            clienteOriginal = clienteControlador.leerTodos().get(selectedRow);
+        }
+
+        vistaAnadirModificarCliente = new VistaAnadirModificarCliente(parent, true, clienteOriginal, clienteControlador);
         vistaAnadirModificarCliente.setVisible(true);
     }//GEN-LAST:event_jButtonModificarActionPerformed
 
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         // TODO add your handling code here:
+        int selectedRow = jTable.getSelectedRow();
+        if (selectedRow != -1) { // Verificar que haya una fila seleccionada
+            // Eliminar la fila del modelo de la tabla
+            dtm.removeRow(selectedRow);
+
+            // Eliminar fila de BBDD: Esto me hace que tenga que tenerlos SIEMPRE ordenados
+            Cliente clienteEliminado = clienteControlador.leerTodos().get(selectedRow);
+
+            clienteControlador.borrar(clienteEliminado);
+        }
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
+    private void jTextFieldBuscadorClientesKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldBuscadorClientesKeyReleased
+        // TODO add your handling code here:
+        actualizarFiltro();
+    }//GEN-LAST:event_jTextFieldBuscadorClientesKeyReleased
+
+    private void jComboBoxEstadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxEstadoActionPerformed
+        // TODO add your handling code here:
+        actualizarFiltro();
+    }//GEN-LAST:event_jComboBoxEstadoActionPerformed
+
+    private void addTableSelectionListener() {
+        jTable.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = jTable.getSelectedRow();
+                boolean isRowSelected = selectedRow != -1;
+                jButtonModificar.setEnabled(isRowSelected);
+                jButtonEliminar.setEnabled(isRowSelected);
+            }
+        });
+    }
+
+    private void cargarTablaClientes() {
+
+        dtm.setRowCount(0); //Limpiar la tabla
+
+        List<Cliente> clientes = clienteControlador.leerTodos();
+
+        for (Cliente cliente : clientes) {
+            o[0] = cliente.getNombre().trim();
+            o[1] = cliente.getAlias().trim();
+            o[2] = cliente.getEstado().trim();
+            o[3] = cliente.getSaldo().trim() + " €";
+
+            dtm.addRow(o);
+        }
+
+        rowSorter = new TableRowSorter<>(dtm);
+        jTable.setRowSorter(rowSorter);
+    }
+
+    private void cargarAutocompletarBuscadorClientes() {
+        //Iniciamos el Autocompletes con el Buscador de Clientes
+        autoCompleterBuscadorClientes = new TextAutoCompleter(jTextFieldBuscadorClientes);
+
+        //Esto hace que también se pueda buscar por en medio del String
+        autoCompleterBuscadorClientes.setMode(0);
+
+        for (Cliente cliente : clienteControlador.leerTodos()) {
+            autoCompleterBuscadorClientes.addItem(cliente.getNombre());
+            autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+        }
+
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAnadir;
     private javax.swing.JButton jButtonEliminar;
     private javax.swing.JButton jButtonModificar;
     private javax.swing.JComboBox<String> jComboBoxEstado;
+    private javax.swing.JLabel jLabelBuscarCliente;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelBotonesPrincipales;
     private javax.swing.JPanel jPanelCabecera;
@@ -206,4 +327,56 @@ public class VistaClientes extends javax.swing.JPanel {
     private javax.swing.JTable jTable;
     private javax.swing.JTextField jTextFieldBuscadorClientes;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void actualizar() {
+        cargarTablaClientes();
+        actualizarAutocompleter();
+    }
+
+    private void actualizarAutocompleter() {
+        autoCompleterBuscadorClientes.removeAllItems();
+        cargarAutocompletarBuscadorClientes();
+    }
+
+    private void actualizarFiltro() {
+        String estadoSeleccionado = (String) jComboBoxEstado.getSelectedItem();
+        String texto = jTextFieldBuscadorClientes.getText();
+
+        // Filtro por estado
+        RowFilter<DefaultTableModel, Object> estadoFilter = null;
+        if (estadoSeleccionado != null && !estadoSeleccionado.equals("Estado")) {
+            switch (estadoSeleccionado) {
+                case "Al día" ->
+                    estadoFilter = RowFilter.regexFilter("Al día", 2);
+                case "Debe" ->
+                    estadoFilter = RowFilter.regexFilter("Debe", 2);
+                case "Anticipa" ->
+                    estadoFilter = RowFilter.regexFilter("Anticipa", 2);
+            }
+        }
+
+        // Filtro por nombre y alias
+        RowFilter<DefaultTableModel, Object> nombreFilter = null;
+        if (!texto.trim().isEmpty()) {
+            nombreFilter = RowFilter.regexFilter("(?i)" + texto, 0, 1);  // Busca en las columnas Nombre y Alias
+        }
+
+        // Lista de filtros a combinar
+        List<RowFilter<DefaultTableModel, Object>> filters = new ArrayList<>();
+
+        // Añadir filtros si existen
+        if (nombreFilter != null) {
+            filters.add(nombreFilter);
+        }
+        if (estadoFilter != null) {
+            filters.add(estadoFilter);
+        }
+
+        // Combinación de filtros
+        RowFilter<DefaultTableModel, Object> combinedFilter = RowFilter.andFilter(filters);
+
+        // Aplica el filtro combinado
+        rowSorter.setRowFilter(combinedFilter);
+    }
 }

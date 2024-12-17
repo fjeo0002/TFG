@@ -4,34 +4,50 @@
  */
 package es.ujaen.tfg.vistas;
 
-import es.ujaen.tfg.utils.Constantes;
+import com.mxrck.autocompleter.TextAutoCompleter;
+import es.ujaen.tfg.controlador.LocalControlador;
+import es.ujaen.tfg.modelo.Local;
+import es.ujaen.tfg.observer.Observador;
+import java.util.List;
 import javax.swing.JFrame;
+import javax.swing.RowFilter;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
-
+import javax.swing.table.TableRowSorter;
 
 /**
  *
  * @author jota
  */
-public class VistaLocales extends javax.swing.JPanel {
+public class VistaLocales extends javax.swing.JPanel implements Observador {
+
+    private final LocalControlador localControlador;
+    private TextAutoCompleter autoCompleterBuscadorLocales;
 
     private VistaAnadirModificarLocal vistaAnadirModificarLocal;
-    private JFrame parent;
-    
+    private final JFrame parent;
+
     private final DefaultTableModel dtm;
     private final Object[] o;
+    private TableRowSorter<DefaultTableModel> rowSorter;
+
     /**
      * Creates new form VistaClientes
+     *
      * @param parent
+     * @param localControlador
      */
-    public VistaLocales(JFrame parent) {
+    public VistaLocales(JFrame parent, LocalControlador localControlador) {
         initComponents();
-        parent = this.parent;
-        dtm = (DefaultTableModel) jTable.getModel();
-        
-        o = new Object[jTable.getColumnCount()];
-        
+        this.localControlador = localControlador;
+        this.localControlador.agregarObservador(this);
+        this.parent = parent;
+        this.dtm = (DefaultTableModel) jTable.getModel();
+        this.o = new Object[jTable.getColumnCount()];
+
+        addTableSelectionListener();
         cargarTablaLocales();
+        cargarAutocompletarBuscadorLocales();
     }
 
     /**
@@ -49,6 +65,7 @@ public class VistaLocales extends javax.swing.JPanel {
         jLabelTitulo = new javax.swing.JLabel();
         jPanelFiltro = new javax.swing.JPanel();
         jTextFieldBuscadorLocales = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
         jPanelCuerpo = new javax.swing.JPanel();
         jPanelBotonesPrincipales = new javax.swing.JPanel();
         jButtonAnadir = new javax.swing.JButton();
@@ -76,10 +93,16 @@ public class VistaLocales extends javax.swing.JPanel {
         jPanelFiltro.setLayout(new java.awt.GridBagLayout());
 
         jTextFieldBuscadorLocales.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldBuscadorLocales.setForeground(new java.awt.Color(0, 0, 0));
         jTextFieldBuscadorLocales.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldBuscadorLocales.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldBuscadorLocales.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldBuscadorLocalesKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.ipadx = 58;
@@ -87,6 +110,16 @@ public class VistaLocales extends javax.swing.JPanel {
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelFiltro.add(jTextFieldBuscadorLocales, gridBagConstraints);
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel1.setText("Busca un Local por Nombre o Alias:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelFiltro.add(jLabel1, gridBagConstraints);
 
         jPanelCabecera.add(jPanelFiltro);
 
@@ -113,6 +146,7 @@ public class VistaLocales extends javax.swing.JPanel {
 
         jButtonModificar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonModificar.setText("Modificar");
+        jButtonModificar.setEnabled(false);
         jButtonModificar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonModificarActionPerformed(evt);
@@ -127,6 +161,7 @@ public class VistaLocales extends javax.swing.JPanel {
 
         jButtonEliminar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonEliminar.setText("Eliminar");
+        jButtonEliminar.setEnabled(false);
         jButtonEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonEliminarActionPerformed(evt);
@@ -151,7 +186,7 @@ public class VistaLocales extends javax.swing.JPanel {
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.Double.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
                 false, false, false
@@ -174,62 +209,96 @@ public class VistaLocales extends javax.swing.JPanel {
 
     private void jButtonAnadirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAnadirActionPerformed
         // TODO add your handling code here:
-        vistaAnadirModificarLocal = new VistaAnadirModificarLocal(parent, true, true);
+        vistaAnadirModificarLocal = new VistaAnadirModificarLocal(parent, true, null, localControlador);
         vistaAnadirModificarLocal.setVisible(true);
     }//GEN-LAST:event_jButtonAnadirActionPerformed
 
     private void jButtonModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonModificarActionPerformed
         // TODO add your handling code here:
-        vistaAnadirModificarLocal = new VistaAnadirModificarLocal(parent, true, false);
+        int selectedRow = jTable.getSelectedRow();
+        Local localOriginal = null;
+        if (selectedRow != -1) { // Verificar que haya una fila seleccionada
+            localOriginal = localControlador.leerTodos().get(selectedRow);
+        }
+
+        vistaAnadirModificarLocal = new VistaAnadirModificarLocal(parent, true, localOriginal, localControlador);
         vistaAnadirModificarLocal.setVisible(true);
     }//GEN-LAST:event_jButtonModificarActionPerformed
 
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         // TODO add your handling code here:
+        int selectedRow = jTable.getSelectedRow();
+        if (selectedRow != -1) { // Verificar que haya una fila seleccionada
+            // Eliminar la fila del modelo de la tabla
+            dtm.removeRow(selectedRow);
+
+            // Eliminar fila de BBDD: Esto me hace que tenga que tenerlos SIEMPRE ordenados
+            Local localEliminado = localControlador.leerTodos().get(selectedRow);
+
+            localControlador.borrar(localEliminado);
+        }
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
-    private void cargarTablaLocales(){
-        o[0] = Constantes.local1.getArticulo().trim();
-        o[1] = Constantes.local1.getAlias().trim();
-        o[2] = Constantes.local1.getPrecio();
-        
-        dtm.addRow(o);
-        
-        o[0] = Constantes.local2.getArticulo().trim();
-        o[1] = Constantes.local2.getAlias().trim();
-        o[2] = Constantes.local2.getPrecio();
-        
-        dtm.addRow(o);
-        
-        o[0] = Constantes.local3.getArticulo().trim();
-        o[1] = Constantes.local3.getAlias().trim();
-        o[2] = Constantes.local3.getPrecio();
-        
-        dtm.addRow(o);
-        
-        o[0] = Constantes.local4.getArticulo().trim();
-        o[1] = Constantes.local4.getAlias().trim();
-        o[2] = Constantes.local4.getPrecio();
-        
-        dtm.addRow(o);
-        
-        o[0] = Constantes.local5.getArticulo().trim();
-        o[1] = Constantes.local5.getAlias().trim();
-        o[2] = Constantes.local5.getPrecio();
-        
-        dtm.addRow(o);
-        
-        o[0] = Constantes.local6.getArticulo().trim();
-        o[1] = Constantes.local6.getAlias().trim();
-        o[2] = Constantes.local6.getPrecio();
-        
-        dtm.addRow(o);
+    private void jTextFieldBuscadorLocalesKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldBuscadorLocalesKeyReleased
+        // TODO add your handling code here:
+        String texto = jTextFieldBuscadorLocales.getText();
+
+        if (texto.trim().isEmpty()) {
+            rowSorter.setRowFilter(null); // No aplicar filtro si el campo está vacío
+        } else {
+            // El filtro buscará en las columnas 0 (Nombre) y 1 (Alias)
+            rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto, 0, 1));
+        }
+    }//GEN-LAST:event_jTextFieldBuscadorLocalesKeyReleased
+
+    private void addTableSelectionListener() {
+        jTable.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = jTable.getSelectedRow();
+                boolean isRowSelected = selectedRow != -1;
+                jButtonModificar.setEnabled(isRowSelected);
+                jButtonEliminar.setEnabled(isRowSelected);
+            }
+        });
+    }
+
+    private void cargarTablaLocales() {
+
+        dtm.setRowCount(0); //Limpiar la tabla
+
+        List<Local> locales = localControlador.leerTodos();
+
+        for (Local local : locales) {
+            o[0] = local.getNombre().trim();
+            o[1] = local.getAlias().trim();
+            o[2] = local.getPrecio().trim() + " €";
+
+            dtm.addRow(o);
+        }
+
+        rowSorter = new TableRowSorter<>(dtm);
+        jTable.setRowSorter(rowSorter);
+    }
+
+    private void cargarAutocompletarBuscadorLocales() {
+        //Iniciamos el Autocompletes con el Buscador de Clientes
+        autoCompleterBuscadorLocales = new TextAutoCompleter(jTextFieldBuscadorLocales);
+
+        //Esto hace que también se pueda buscar por en medio del String
+        autoCompleterBuscadorLocales.setMode(0);
+
+        for (Local cliente : localControlador.leerTodos()) {
+            autoCompleterBuscadorLocales.addItem(cliente.getNombre());
+            autoCompleterBuscadorLocales.addItem(cliente.getAlias());
+        }
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAnadir;
     private javax.swing.JButton jButtonEliminar;
     private javax.swing.JButton jButtonModificar;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelBotonesPrincipales;
     private javax.swing.JPanel jPanelCabecera;
@@ -240,4 +309,16 @@ public class VistaLocales extends javax.swing.JPanel {
     private javax.swing.JTable jTable;
     private javax.swing.JTextField jTextFieldBuscadorLocales;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void actualizar() {
+        cargarTablaLocales();
+        actualizarAutocompleter();
+    }
+
+    private void actualizarAutocompleter() {
+        autoCompleterBuscadorLocales.removeAllItems();
+        cargarAutocompletarBuscadorLocales();
+    }
+
 }

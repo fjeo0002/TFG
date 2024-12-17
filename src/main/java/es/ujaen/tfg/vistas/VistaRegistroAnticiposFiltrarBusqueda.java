@@ -4,12 +4,20 @@
  */
 package es.ujaen.tfg.vistas;
 
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarPlaceHolder;
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarPlaceHolder;
+import static es.ujaen.tfg.utils.HerramientasComunesTextField.validarCampo;
+import javax.swing.border.Border;
+
 /**
  *
  * @author jota
  */
 public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
 
+    private final String placeHolderAnio = "aaaa";
+    private final Border originalBorder;
+    private boolean campoAnioCorrecto = true;
     /**
      * Creates new form VistaRegistroAnticiposFiltrarBusqueda
      * @param parent
@@ -18,6 +26,8 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
     public VistaRegistroAnticiposFiltrarBusqueda(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        setLocationRelativeTo(null);
+        this.originalBorder = jTextFieldAnio.getBorder();
     }
 
     /**
@@ -37,18 +47,18 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         jLabelFiltrarCliente = new javax.swing.JLabel();
         jTextFieldBuscadorClientes = new javax.swing.JTextField();
         jLabelFiltrarAnio = new javax.swing.JLabel();
-        jTextFieldFiltrarAnio = new javax.swing.JTextField();
+        jTextFieldAnio = new javax.swing.JTextField();
+        jLabelAdvertenciaAnio = new javax.swing.JLabel();
         jLabelFiltrarSaldo = new javax.swing.JLabel();
-        jComboBoxFiltrarSaldo = new javax.swing.JComboBox<>();
+        jComboBoxSaldo = new javax.swing.JComboBox<>();
         jLabelFiltrarMes = new javax.swing.JLabel();
-        jComboBoxFiltrarMes = new javax.swing.JComboBox<>();
+        jComboBoxMes = new javax.swing.JComboBox<>();
         jPanelPiePagina = new javax.swing.JPanel();
         jButtonCancelar = new javax.swing.JButton();
         jButtonAceptar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Filtar Búsqueda");
-        setLocationByPlatform(true);
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -63,7 +73,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         jPanelCuerpo.setLayout(new java.awt.GridBagLayout());
 
         jLabelFiltrarCliente.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelFiltrarCliente.setText("Filtrar Cliente");
+        jLabelFiltrarCliente.setText("Filtrar Cliente por Nombre o Alias");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -96,9 +106,24 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelFiltrarAnio, gridBagConstraints);
 
-        jTextFieldFiltrarAnio.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jTextFieldFiltrarAnio.setMinimumSize(new java.awt.Dimension(125, 26));
-        jTextFieldFiltrarAnio.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldAnio.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldAnio.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldAnio.setText("aaaa");
+        jTextFieldAnio.setMinimumSize(new java.awt.Dimension(125, 26));
+        jTextFieldAnio.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldAnio.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldAnioFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldAnioFocusLost(evt);
+            }
+        });
+        jTextFieldAnio.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldAnioKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -106,7 +131,17 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jTextFieldFiltrarAnio, gridBagConstraints);
+        jPanelCuerpo.add(jTextFieldAnio, gridBagConstraints);
+
+        jLabelAdvertenciaAnio.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaAnio.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaAnio, gridBagConstraints);
 
         jLabelFiltrarSaldo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelFiltrarSaldo.setText("Filtrar Saldo");
@@ -119,8 +154,8 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelFiltrarSaldo, gridBagConstraints);
 
-        jComboBoxFiltrarSaldo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jComboBoxFiltrarSaldo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Todos", "Anticipos Activos", "Anticipos Finalizados" }));
+        jComboBoxSaldo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jComboBoxSaldo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Todos", "Anticipos Activos", "Anticipos Finalizados" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -128,7 +163,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jComboBoxFiltrarSaldo, gridBagConstraints);
+        jPanelCuerpo.add(jComboBoxSaldo, gridBagConstraints);
 
         jLabelFiltrarMes.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelFiltrarMes.setText("Filtrar Mes");
@@ -141,8 +176,8 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelFiltrarMes, gridBagConstraints);
 
-        jComboBoxFiltrarMes.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jComboBoxFiltrarMes.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" }));
+        jComboBoxMes.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jComboBoxMes.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
@@ -150,7 +185,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jComboBoxFiltrarMes, gridBagConstraints);
+        jPanelCuerpo.add(jComboBoxMes, gridBagConstraints);
 
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
 
@@ -185,7 +220,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 248, Short.MAX_VALUE)
         );
 
         pack();
@@ -201,11 +236,42 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         dispose();
     }//GEN-LAST:event_jButtonAceptarActionPerformed
 
+    private void jTextFieldAnioFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAnioFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldAnio, placeHolderAnio);
+    }//GEN-LAST:event_jTextFieldAnioFocusLost
+
+    private void jTextFieldAnioFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAnioFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldAnio, placeHolderAnio);
+    }//GEN-LAST:event_jTextFieldAnioFocusGained
+
+    private void jTextFieldAnioKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldAnioKeyReleased
+        // TODO add your handling code here:
+        campoAnioCorrecto = validarCampo(
+                jTextFieldAnio,
+                jLabelAdvertenciaAnio,
+                "* Introduce un año válido (4 dígitos)",
+                originalBorder,
+                texto -> texto.isEmpty() || texto.matches("^\\d{4}") || texto.equals(placeHolderAnio)
+        );
+        habilitarBotonAceptar();
+    }//GEN-LAST:event_jTextFieldAnioKeyReleased
+
+    private void habilitarBotonAceptar() {
+        if (campoAnioCorrecto) {
+            jButtonAceptar.setEnabled(true);
+            return;
+        }
+        jButtonAceptar.setEnabled(false);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAceptar;
     private javax.swing.JButton jButtonCancelar;
-    private javax.swing.JComboBox<String> jComboBoxFiltrarMes;
-    private javax.swing.JComboBox<String> jComboBoxFiltrarSaldo;
+    private javax.swing.JComboBox<String> jComboBoxMes;
+    private javax.swing.JComboBox<String> jComboBoxSaldo;
+    private javax.swing.JLabel jLabelAdvertenciaAnio;
     private javax.swing.JLabel jLabelFiltrarAnio;
     private javax.swing.JLabel jLabelFiltrarCliente;
     private javax.swing.JLabel jLabelFiltrarMes;
@@ -215,7 +281,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
     private javax.swing.JPanel jPanelCuerpo;
     private javax.swing.JPanel jPanelPiePagina;
     private javax.swing.JPanel jPanelPrincipal;
+    private javax.swing.JTextField jTextFieldAnio;
     private javax.swing.JTextField jTextFieldBuscadorClientes;
-    private javax.swing.JTextField jTextFieldFiltrarAnio;
     // End of variables declaration//GEN-END:variables
 }

@@ -7,11 +7,12 @@ package es.ujaen.tfg.vistas;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
+import es.ujaen.tfg.controlador.AnticipoControlador;
+import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Local;
 import java.awt.BorderLayout;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.*;
 
 /**
@@ -30,20 +31,29 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private VistaClientes vistaClientes;
     private VistaLocales vistaLocales;
-    
+
+    private final ClienteControlador clienteControlador;
+    private final LocalControlador localControlador;
+    private final AnticipoControlador anticipoControlador;
+
     /**
      * Creates new form VistaCrearModificarCliente2
      */
     public VistaPrincipal() {
         initComponents();
-        
+        setLocationRelativeTo(null);
         setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
+
+        clienteControlador = new ClienteControlador();
+        localControlador = new LocalControlador();
+        anticipoControlador = new AnticipoControlador();
 
         cargarVistaContabilidad();
         cargarVistaRegistroAnticipos();
 
         cargarVistaClientes();
         cargarVistaLocales();
+
     }
 
     /**
@@ -79,7 +89,6 @@ public class VistaPrincipal extends javax.swing.JFrame {
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         setLocation(new java.awt.Point(0, 0));
-        setLocationByPlatform(true);
         setMinimumSize(new java.awt.Dimension(900, 700));
         setName("VistaPrincipal"); // NOI18N
         setSize(new java.awt.Dimension(0, 0));
@@ -260,13 +269,13 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private void jButtonCrearFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearFacturaActionPerformed
         // TODO add your handling code here:
-        vistaCrearFactura = new VistaCrearFactura();
+        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador);
         vistaCrearFactura.setVisible(true);
     }//GEN-LAST:event_jButtonCrearFacturaActionPerformed
 
     private void jButtonPlanFacturacionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlanFacturacionActionPerformed
         // TODO add your handling code here:
-        vistaPlanFacturacion = new VistaPlanFacturacion();
+        vistaPlanFacturacion = new VistaPlanFacturacion(this);
         vistaPlanFacturacion.setVisible(true);
     }//GEN-LAST:event_jButtonPlanFacturacionActionPerformed
 
@@ -276,7 +285,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private void jButtonCrearAnticipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearAnticipoActionPerformed
         // TODO add your handling code here:
-        vistaCrearAnticipo = new VistaCrearAnticipo(this, true);
+        vistaCrearAnticipo = new VistaCrearAnticipo(this, true, clienteControlador, anticipoControlador);
         vistaCrearAnticipo.setVisible(true);
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
 
@@ -291,9 +300,9 @@ public class VistaPrincipal extends javax.swing.JFrame {
         jPanelContabilidad.revalidate();
         jPanelContabilidad.repaint();
     }
-    
+
     private void cargarVistaRegistroAnticipos() {
-        vistaRegistroAnticipos = new VistaRegistroAnticipos(this);
+        vistaRegistroAnticipos = new VistaRegistroAnticipos(this, anticipoControlador);
         vistaRegistroAnticipos.setSize(jPanelAnticipos.getWidth(), jPanelAnticipos.getHeight());
         vistaRegistroAnticipos.setLocation(0, 0);
 
@@ -305,7 +314,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
     }
 
     private void cargarVistaClientes() {
-        vistaClientes = new VistaClientes(this);
+        vistaClientes = new VistaClientes(this, clienteControlador);
         vistaClientes.setSize(jPanelClientes.getWidth(), jPanelClientes.getHeight());
         vistaClientes.setLocation(0, 0);
 
@@ -317,7 +326,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
     }
 
     private void cargarVistaLocales() {
-        vistaLocales = new VistaLocales(this);
+        vistaLocales = new VistaLocales(this, localControlador);
         vistaLocales.setSize(jPanelLocales.getWidth(), jPanelLocales.getHeight());
         vistaLocales.setLocation(0, 0);
 
@@ -361,7 +370,6 @@ public class VistaPrincipal extends javax.swing.JFrame {
         //</editor-fold>
 
         //Aplicar LookAndFell FlatLaf
-        
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
         } catch (Exception e) {
@@ -373,6 +381,10 @@ public class VistaPrincipal extends javax.swing.JFrame {
                 new VistaPrincipal().setVisible(true);
             }
         });
+    }
+
+    public LocalControlador getLocalControlador() {
+        return localControlador;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

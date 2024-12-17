@@ -5,25 +5,56 @@
 package es.ujaen.tfg.vistas;
 
 import com.mxrck.autocompleter.TextAutoCompleter;
-import es.ujaen.tfg.modelo.Local;
+import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.controlador.LocalControlador;
+import es.ujaen.tfg.observer.Observador;
+import javax.swing.JFrame;
 import javax.swing.table.DefaultTableModel;
 
 /**
  *
  * @author jota
  */
-public class VistaCrearFactura extends javax.swing.JFrame {
+public class VistaCrearFactura extends javax.swing.JFrame implements Observador {
 
+    private final ClienteControlador clienteControlador;
+    private final LocalControlador localControlador;
     private TextAutoCompleter autoCompleterBuscadorClientes;
     private TextAutoCompleter autoCompleterBuscadorLocales;
 
-    private Local local = new Local("1", "Calle Campanas", "Panadería Ramoni", 300.0);
+    private boolean campoBuscadorClientesCorrecto;
+    private boolean campoFechaCorrecto;
+    private boolean campoBuscadorLocalesCorrecto;
+
+    private final DefaultTableModel dtm;
+    private final Object[] o;
+    
+    private final JFrame parent;
 
     /**
      * Creates new form VistaCrearFactura
+     *
+     * @param parent
+     * @param clienteControlador
+     * @param localControlador
      */
-    public VistaCrearFactura() {
+    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador) {
         initComponents();
+        setLocationRelativeTo(null);
+        this.parent = parent;
+
+        this.clienteControlador = clienteControlador;
+        this.clienteControlador.agregarObservador(this);
+
+        this.localControlador = localControlador;
+        this.localControlador.agregarObservador(this);
+
+        this.campoBuscadorClientesCorrecto = false;
+        this.campoFechaCorrecto = false;
+        this.campoBuscadorLocalesCorrecto = false;
+        
+        this.dtm = (DefaultTableModel) jTable.getModel();
+        this.o = new Object[jTable.getColumnCount()];
 
         cargarAutocompletarBuscadorClientes();
         cargarAutocompletarBuscadorLocales();
@@ -80,7 +111,14 @@ public class VistaCrearFactura extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Crear Factura");
-        setLocationByPlatform(true);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -96,7 +134,7 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         jPanelDetallesFactura.add(jLabelTitulo, gridBagConstraints);
 
         jLabelBuscarCliente.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelBuscarCliente.setText("Buscar Cliente");
+        jLabelBuscarCliente.setText("Buscar Cliente por Nombre o Alias");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -106,12 +144,13 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         jPanelDetallesFactura.add(jLabelBuscarCliente, gridBagConstraints);
 
         jTextFieldBuscadorClientes.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldBuscadorClientes.setForeground(new java.awt.Color(0, 0, 0));
         jTextFieldBuscadorClientes.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldBuscadorClientes.setPreferredSize(new java.awt.Dimension(125, 26));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.ipadx = 58;
+        gridBagConstraints.ipadx = 200;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
@@ -183,7 +222,7 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         jPanelSeleccionarLocal.setLayout(new java.awt.GridBagLayout());
 
         jLabelBuscarLocal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelBuscarLocal.setText("Buscar Local");
+        jLabelBuscarLocal.setText("Buscar Local por Nombre o Alias");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -229,20 +268,17 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         jPanelSeleccionarLocal.add(jLabelRetencion, gridBagConstraints);
 
         jTextFieldBuscadorLocales.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldBuscadorLocales.setForeground(new java.awt.Color(0, 0, 0));
         jTextFieldBuscadorLocales.setPreferredSize(new java.awt.Dimension(180, 26));
         jTextFieldBuscadorLocales.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 jTextFieldBuscadorLocalesFocusLost(evt);
             }
         });
-        jTextFieldBuscadorLocales.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextFieldBuscadorLocalesKeyReleased(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.ipadx = 200;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 5, 2, 0);
         jPanelSeleccionarLocal.add(jTextFieldBuscadorLocales, gridBagConstraints);
@@ -383,7 +419,7 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 776, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 810, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -403,12 +439,6 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         dispose();
     }//GEN-LAST:event_jButtonGenerarFacturaActionPerformed
 
-    private void jTextFieldBuscadorLocalesKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldBuscadorLocalesKeyReleased
-        // TODO add your handling code here:
-        //Cada vez que soltamos la tecla en el buscador, se actualiza el valor del precio
-        actualizarLabelPrecioUnitarioValor();
-    }//GEN-LAST:event_jTextFieldBuscadorLocalesKeyReleased
-
     private void jTextFieldBuscadorLocalesFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldBuscadorLocalesFocusLost
         // TODO add your handling code here:
         //Cada vez que perdemos el enfoque del buscador, se actualiza el valor del precio
@@ -419,22 +449,32 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         // TODO add your handling code here:
         DefaultTableModel modelo = (DefaultTableModel) jTable.getModel();
 
-        modelo.addRow(new Object[]{jSpinnerCantidad.getValue(), local.getArticulo(), local.getPrecio(), 21.0, 19.0});
-
+        //modelo.addRow(new Object[]{jSpinnerCantidad.getValue(), local.getArticulo(), local.getPrecio(), 21.0, 19.0});
         calcularTotal();
     }//GEN-LAST:event_jButtonAgregarLocalActionPerformed
 
     private void jButtonEliminarLocalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarLocalActionPerformed
         // TODO add your handling code here:
         DefaultTableModel modelo = (DefaultTableModel) jTable.getModel();
-        
+
         modelo.removeRow(jTable.getSelectedRow());
 
         calcularTotal();
     }//GEN-LAST:event_jButtonEliminarLocalActionPerformed
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        // TODO add your handling code here:
+        parent.setEnabled(true);
+    }//GEN-LAST:event_formWindowClosing
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        // TODO add your handling code here:
+        parent.setEnabled(false);
+    }//GEN-LAST:event_formWindowOpened
+
     private void cargarAutocompletarBuscadorClientes() {
         //Iniciamos el Autocompletes con el Buscador de Clientes
+
         autoCompleterBuscadorClientes = new TextAutoCompleter(jTextFieldBuscadorClientes);
 
         //Esto hace que también se pueda buscar por en medio del String
@@ -445,6 +485,7 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         autoCompleterBuscadorClientes.addItem("Juani");
         autoCompleterBuscadorClientes.addItem("Juana");
         autoCompleterBuscadorClientes.addItem("Ramona");
+
     }
 
     private void cargarAutocompletarBuscadorLocales() {
@@ -455,17 +496,19 @@ public class VistaCrearFactura extends javax.swing.JFrame {
         autoCompleterBuscadorLocales.setMode(0);
 
         //Añadimos las palabras clave (opciones) al Autocompleter
-        autoCompleterBuscadorLocales.addItem(local.getArticulo());
-        autoCompleterBuscadorLocales.addItem(local.getAlias());
+        //autoCompleterBuscadorLocales.addItem(local.getArticulo());
+        //autoCompleterBuscadorLocales.addItem(local.getAlias());
     }
 
     private void actualizarLabelPrecioUnitarioValor() {
+        /*
         if (jTextFieldBuscadorLocales.getText().equals(local.getAlias())
                 || jTextFieldBuscadorLocales.getText().equals(local.getArticulo())) {
             jLabelPrecioUnitarioValor.setText(local.getPrecio() + " €");
         } else {
             jLabelPrecioUnitarioValor.setText("");
         }
+         */
     }
 
     private void calcularTotal() {
@@ -522,4 +565,8 @@ public class VistaCrearFactura extends javax.swing.JFrame {
     private javax.swing.JTextField jTextFieldBuscadorClientes;
     private javax.swing.JTextField jTextFieldBuscadorLocales;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void actualizar() {
+    }
 }

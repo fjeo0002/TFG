@@ -32,6 +32,13 @@
             <version>3.5.2</version>
             <type>jar</type>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.jtattoo/JTattoo -->
+        <dependency>
+            <groupId>com.jtattoo</groupId>
+            <artifactId>JTattoo</artifactId>
+            <version>1.6.13</version>
+            <type>jar</type>
+        </dependency>
         <dependency>
             <groupId>es.ujaen.tfg.AutoCompleter</groupId>
             <artifactId>AutoCompleter</artifactId>

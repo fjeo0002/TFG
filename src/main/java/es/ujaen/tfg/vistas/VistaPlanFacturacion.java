@@ -9,6 +9,7 @@ import java.awt.Component;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.AbstractCellEditor;
+import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.TableCellEditor;
@@ -19,12 +20,16 @@ import javax.swing.table.TableCellEditor;
  */
 public class VistaPlanFacturacion extends javax.swing.JFrame {
 
+    private final JFrame parent;
     /**
      * Creates new form VistaPlanFacturacion
+     * @param parent
      */
-    public VistaPlanFacturacion() {
+    public VistaPlanFacturacion(JFrame parent) {
         initComponents();
-        //configurarTabla();
+        setLocationRelativeTo(null);
+        this.parent = parent;
+        configurarTabla();
     }
 
     /**
@@ -45,7 +50,14 @@ public class VistaPlanFacturacion extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Plan de Facturación");
-        setLocationByPlatform(true);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -107,7 +119,17 @@ public class VistaPlanFacturacion extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-/*
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        // TODO add your handling code here:
+        parent.setEnabled(false);
+    }//GEN-LAST:event_formWindowOpened
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        // TODO add your handling code here:
+        parent.setEnabled(true);
+    }//GEN-LAST:event_formWindowClosing
+
     private void configurarTabla() {
         // Supongamos que la tabla se llama jTable1
         List<String> localesDisponibles = Arrays.asList("Calle Campanas", "Panadería Ramoni");
@@ -115,7 +137,7 @@ public class VistaPlanFacturacion extends javax.swing.JFrame {
         // Configurar el editor personalizado
         jTable.getColumnModel().getColumn(1).setCellEditor(new LocalesCellEditor(localesDisponibles));
     }
-     */
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelCuerpo;
@@ -124,7 +146,7 @@ public class VistaPlanFacturacion extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPaneTabla;
     private javax.swing.JTable jTable;
     // End of variables declaration//GEN-END:variables
-/*
+
     private class LocalesCellEditor extends AbstractCellEditor implements TableCellEditor {
 
         private final JTextField textField = new JTextField();
@@ -151,5 +173,5 @@ public class VistaPlanFacturacion extends javax.swing.JFrame {
             return textField;
         }
     }
-     */
+    
 }
