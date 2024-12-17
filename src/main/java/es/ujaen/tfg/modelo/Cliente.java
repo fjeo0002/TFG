@@ -4,8 +4,6 @@
  */
 package es.ujaen.tfg.modelo;
 
-import java.util.List;
-
 /**
  *
  * @author jota
@@ -15,29 +13,44 @@ public class Cliente {
     private String DNI;
     private String nombre;
     private String alias;
-    private String correo;
+    private String email;
     private String direccion;
+    private String localidad;
     private String codigoPostal;
-    private String ciudad;
     private String descripcion;
-    private Boolean tipo;
-
-    private List<Local> locales;
+    private String estado;
+    private String saldo;
+    private String tipo;
 
     public Cliente() {
     }
 
-    public Cliente(String DNI, String nombre, String alias, String correo, String direccion, String codigoPostal, String ciudad, String descripcion, Boolean tipo, List<Local> locales) {
+    public Cliente(String DNI, String nombre, String alias, String email, String direccion, String localidad, String codigoPostal, String descripcion, String estado, String saldo, String tipo) {
         this.DNI = DNI;
         this.nombre = nombre;
         this.alias = alias;
-        this.correo = correo;
+        this.email = email;
         this.direccion = direccion;
+        this.localidad = localidad;
         this.codigoPostal = codigoPostal;
-        this.ciudad = ciudad;
         this.descripcion = descripcion;
+        this.estado = estado;
+        this.saldo = saldo;
         this.tipo = tipo;
-        this.locales = locales;
+    }
+    
+    public Cliente(Cliente c) {
+        this.DNI = c.DNI;
+        this.nombre = c.nombre;
+        this.alias = c.alias;
+        this.email = c.email;
+        this.direccion = c.direccion;
+        this.codigoPostal = c.codigoPostal;
+        this.localidad = c.localidad;
+        this.descripcion = c.descripcion;
+        this.estado = c.estado;
+        this.saldo = c.saldo;
+        this.tipo = c.tipo;
     }
 
     public String getDNI() {
@@ -64,12 +77,12 @@ public class Cliente {
         this.alias = alias;
     }
 
-    public String getCorreo() {
-        return correo;
+    public String getEmail() {
+        return email;
     }
 
-    public void setCorreo(String correo) {
-        this.correo = correo;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getDireccion() {
@@ -88,12 +101,12 @@ public class Cliente {
         this.codigoPostal = codigoPostal;
     }
 
-    public String getCiudad() {
-        return ciudad;
+    public String getLocalidad() {
+        return localidad;
     }
 
-    public void setCiudad(String ciudad) {
-        this.ciudad = ciudad;
+    public void setLocalidad(String localidad) {
+        this.localidad = localidad;
     }
 
     public String getDescripcion() {
@@ -104,24 +117,33 @@ public class Cliente {
         this.descripcion = descripcion;
     }
 
-    public Boolean getTipo() {
+    public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(Boolean tipo) {
+    public void setTipo(String tipo) {
         this.tipo = tipo;
     }
 
-    public List<Local> getLocales() {
-        return locales;
+    public String getEstado() {
+        return estado;
     }
 
-    public void setLocales(List<Local> locales) {
-        this.locales = locales;
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(String saldo) {
+        this.saldo = saldo;
     }
 
     @Override
     public String toString() {
-        return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", correo=" + correo + ", direccion=" + direccion + ", codigoPostal=" + codigoPostal + ", ciudad=" + ciudad + ", descripcion=" + descripcion + ", tipo=" + tipo + '}';
+        return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", correo=" + email + ", direccion=" + direccion + ", codigoPostal=" + codigoPostal + ", ciudad=" + localidad + ", descripcion=" + descripcion + ", estado=" + estado + ", saldo=" + saldo + ", tipo=" + tipo + '}';
     }
+
 }

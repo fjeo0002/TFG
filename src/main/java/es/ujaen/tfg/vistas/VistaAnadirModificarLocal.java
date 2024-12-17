@@ -4,12 +4,16 @@
  */
 package es.ujaen.tfg.vistas;
 
+import es.ujaen.tfg.controlador.LocalControlador;
+import es.ujaen.tfg.modelo.Local;
 import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarSufijo;
 import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarSufijo;
 import static es.ujaen.tfg.utils.HerramientasComunesTextField.validarCampo;
+import java.awt.Color;
 import java.awt.Frame;
+import java.util.UUID;
 import javax.swing.border.Border;
 
 /**
@@ -18,12 +22,18 @@ import javax.swing.border.Border;
  */
 public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
+    private final boolean esEdicion;
+    private Local localOriginal;
+    private Local localModificado;
+
+    private final LocalControlador localControlador;
+
     private final Border originalBorder;
 
-    private boolean campoPrecioBaseCorrecto = false;
-    
+    private boolean campoPrecioBaseCorrecto;
+
     private final String placeHolderNombre = "Introduzca Nombre de Local";
-    private final String placeHolderAlias = "Introduzca Alias de Local";
+    private final String placeHolderAlias = "Introduzca Alias de Local (opcional)";
     private final String placeHolderPrecioBase = "0,00 €";
     private final String sufijoPrecioBase = " €";
 
@@ -32,20 +42,46 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
      *
      * @param parent
      * @param modal
-     * @param anadir: true -> VistaAñadirLocal false -> VistaModificarLocal
+     * @param local: null -> VistaAñadirLocal local -> VistaModificarLocal
+     * @param localControlador
      */
-    public VistaAnadirModificarLocal(Frame parent, boolean modal, boolean anadir) {
+    public VistaAnadirModificarLocal(Frame parent, boolean modal, Local local, LocalControlador localControlador) {
         super(parent, modal);
         initComponents();
-
+        setLocationRelativeTo(null);
+        
         this.originalBorder = jTextFieldNombre.getBorder();
 
-        if (anadir) {
+        this.localControlador = localControlador;
+
+        if (local == null) {
             jLabelTitulo.setText("Añadir Nuevo Local");
             setTitle("Añadir Nuevo Local");
+
+            jButtonAceptar.setEnabled(false);
+
+            esEdicion = false;
+            campoPrecioBaseCorrecto = false;
+            localOriginal = null;
+            localModificado = null;
         } else {
             jLabelTitulo.setText("Modificar Local");
             setTitle("Modificar Local");
+
+            jTextFieldNombre.setText(local.getNombre().trim());
+            jTextFieldAlias.setText(local.getAlias().trim());
+            jTextFieldPrecioBase.setText(local.getPrecio().trim() + sufijoPrecioBase);
+
+            jTextFieldNombre.setForeground(new Color(0, 0, 0));
+            jTextFieldAlias.setForeground(new Color(0, 0, 0));
+            jTextFieldPrecioBase.setForeground(new Color(0, 0, 0));
+
+            jButtonAceptar.setEnabled(true);
+
+            esEdicion = true;
+            campoPrecioBaseCorrecto = true;
+            localOriginal = new Local(local);
+            localModificado = new Local(local);
         }
     }
 
@@ -137,7 +173,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
         jTextFieldAlias.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jTextFieldAlias.setForeground(new java.awt.Color(153, 153, 153));
-        jTextFieldAlias.setText("Introduzca Alias de Local");
+        jTextFieldAlias.setText("Introduzca Alias de Local (opcional)");
         jTextFieldAlias.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldAlias.setPreferredSize(new java.awt.Dimension(125, 26));
         jTextFieldAlias.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -146,11 +182,6 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
                 jTextFieldAliasFocusLost(evt);
-            }
-        });
-        jTextFieldAlias.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextFieldAliasKeyReleased(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -257,6 +288,35 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
     private void jButtonAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAceptarActionPerformed
         // TODO add your handling code here:
+        String aliasFinal = jTextFieldAlias.getText().trim();
+        if (aliasFinal.equals(placeHolderAlias)) {
+            aliasFinal = ""; // Sustituir el placeholder por cadena vacía
+        }
+
+        if (!esEdicion) {
+            UUID uuid = UUID.randomUUID();
+            String codigo = uuid.toString().trim();
+
+            quitarSufijo(jTextFieldPrecioBase, sufijoPrecioBase);
+
+            localOriginal = new Local(
+                    codigo,
+                    jTextFieldNombre.getText().trim(),
+                    aliasFinal,
+                    jTextFieldPrecioBase.getText().trim()
+            );
+
+            localControlador.crear(localOriginal);
+        } else {
+            localModificado.setNombre(jTextFieldNombre.getText().trim());
+            localModificado.setAlias(aliasFinal);
+            quitarSufijo(jTextFieldPrecioBase, sufijoPrecioBase);
+            localModificado.setPrecio(jTextFieldPrecioBase.getText().trim());
+
+            if (!localOriginal.equals(localControlador)) {
+                localControlador.actualizar(localModificado);
+            }
+        }
         dispose();
     }//GEN-LAST:event_jButtonAceptarActionPerformed
 
@@ -268,7 +328,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
                 "* Introduce un número con 2 decimales",
                 originalBorder,
                 texto -> !texto.isEmpty() && texto.matches("(?!0,00)(?!0)([1-9]\\d{0,9}|0)(,\\d{2})?")
-                // Permitir números con exactamente 2 decimales y enteros != de 0,00 y 0
+        // Permitir números con exactamente 2 decimales y enteros != de 0,00 y 0
         );
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldPrecioBaseKeyReleased
@@ -293,6 +353,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
     private void jTextFieldAliasFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusLost
         // TODO add your handling code here:
         agregarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+        habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldAliasFocusLost
 
     private void jTextFieldNombreFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusGained
@@ -310,21 +371,15 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldNombreKeyReleased
 
-    private void jTextFieldAliasKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldAliasKeyReleased
-        // TODO add your handling code here:
-        habilitarBotonAceptar();
-    }//GEN-LAST:event_jTextFieldAliasKeyReleased
-
     private void habilitarBotonAceptar() {
         if (!jTextFieldNombre.getText().trim().equals(placeHolderNombre) && !jTextFieldNombre.getText().trim().isEmpty()) {
-            if (!jTextFieldAlias.getText().trim().equals(placeHolderAlias) && !jTextFieldAlias.getText().trim().isEmpty()) {
-                if (campoPrecioBaseCorrecto && !jTextFieldPrecioBase.getText().trim().isEmpty()) {
-                    jButtonAceptar.setEnabled(true);
-                    return;
-                }
+            if (campoPrecioBaseCorrecto && !jTextFieldPrecioBase.getText().trim().isEmpty()) {
+                jButtonAceptar.setEnabled(true);
+                return;
             }
         }
         jButtonAceptar.setEnabled(false);
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

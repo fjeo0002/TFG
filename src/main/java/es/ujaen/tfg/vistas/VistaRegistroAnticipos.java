@@ -4,23 +4,46 @@
  */
 package es.ujaen.tfg.vistas;
 
+import es.ujaen.tfg.controlador.AnticipoControlador;
+import es.ujaen.tfg.modelo.Anticipo;
+import es.ujaen.tfg.observer.Observador;
+import java.util.List;
 import javax.swing.JFrame;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
  * @author jota
  */
-public class VistaRegistroAnticipos extends javax.swing.JPanel {
+public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observador{
 
+    private final AnticipoControlador anticipoControlador;
+    
     private VistaRegistroAnticiposFiltrarBusqueda vistaRegistroAnticiposFiltrarBusqueda;
-    private JFrame parent;
+    private final JFrame parent;
+    
+    private final DefaultTableModel dtm;
+    private final Object[] o;
+    private TableRowSorter<DefaultTableModel> rowSorter;
     /**
      * Creates new form VistaRegistroAnticipos
      * @param parent
+     * @param anticipoControlador
      */
-    public VistaRegistroAnticipos(JFrame parent) {
+    public VistaRegistroAnticipos(JFrame parent, AnticipoControlador anticipoControlador) {
         initComponents();
-        parent = this.parent;
+        this.parent = parent;
+        
+        this.anticipoControlador = anticipoControlador;
+        this.anticipoControlador.agregarObservador(this);
+        
+        this.dtm = (DefaultTableModel) jTable.getModel();
+        this.o = new Object[jTable.getColumnCount()];
+        
+        addTableSelectionListener();
+        cargarTablaAnticipos();
     }
 
     /**
@@ -31,14 +54,17 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
 
         jPanelCabecera = new javax.swing.JPanel();
         jPanelTitulo = new javax.swing.JPanel();
         jLabelTitulo = new javax.swing.JLabel();
+        jPanelMenu = new javax.swing.JPanel();
         jPanelFiltro = new javax.swing.JPanel();
         jLabelFiltrarBusqueda = new javax.swing.JLabel();
         jButtonFiltrarBusqueda = new javax.swing.JButton();
+        jPanelBotones = new javax.swing.JPanel();
+        jButtonModificar = new javax.swing.JButton();
+        jButtonEliminar = new javax.swing.JButton();
         jPanelCuerpo = new javax.swing.JPanel();
         jScrollPaneTabla = new javax.swing.JScrollPane();
         jTable = new javax.swing.JTable();
@@ -59,33 +85,40 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
 
         jPanelCabecera.add(jPanelTitulo);
 
-        jPanelFiltro.setLayout(new java.awt.GridBagLayout());
+        jPanelMenu.setLayout(new java.awt.GridLayout(1, 2));
+
+        jPanelFiltro.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jLabelFiltrarBusqueda.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelFiltrarBusqueda.setText("Filtrar Búsqueda");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelFiltro.add(jLabelFiltrarBusqueda, gridBagConstraints);
+        jPanelFiltro.add(jLabelFiltrarBusqueda);
 
         jButtonFiltrarBusqueda.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonFiltrarBusqueda.setText("F.B.");
+        jButtonFiltrarBusqueda.setIcon(new javax.swing.ImageIcon("C:\\Users\\jota\\Pictures\\carta.png")); // NOI18N
         jButtonFiltrarBusqueda.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonFiltrarBusquedaActionPerformed(evt);
             }
         });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 25.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelFiltro.add(jButtonFiltrarBusqueda, gridBagConstraints);
+        jPanelFiltro.add(jButtonFiltrarBusqueda);
 
-        jPanelCabecera.add(jPanelFiltro);
+        jPanelMenu.add(jPanelFiltro);
+
+        jPanelBotones.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+
+        jButtonModificar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonModificar.setText("Modificar");
+        jButtonModificar.setEnabled(false);
+        jPanelBotones.add(jButtonModificar);
+
+        jButtonEliminar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonEliminar.setText("Eliminar");
+        jButtonEliminar.setEnabled(false);
+        jPanelBotones.add(jButtonEliminar);
+
+        jPanelMenu.add(jPanelBotones);
+
+        jPanelCabecera.add(jPanelMenu);
 
         add(jPanelCabecera, java.awt.BorderLayout.PAGE_START);
 
@@ -101,7 +134,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Object.class, java.lang.Double.class, java.lang.Integer.class, java.lang.Double.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
                 false, false, false, false, true
@@ -128,16 +161,55 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel {
         vistaRegistroAnticiposFiltrarBusqueda.setVisible(true);
     }//GEN-LAST:event_jButtonFiltrarBusquedaActionPerformed
 
+    private void cargarTablaAnticipos() {
+
+        dtm.setRowCount(0); //Limpiar la tabla
+
+        List<Anticipo> anticipos = anticipoControlador.leerTodos();
+
+        for (Anticipo anticipo : anticipos) {
+            o[0] = anticipo.getCliente().getNombre().trim();
+            o[1] = anticipo.getFecha().trim();
+            o[2] = anticipo.getMonto().trim() + " €";
+            o[3] = anticipo.getMesesCubiertos().trim();
+            o[4] = anticipo.getMonto().trim() + " €";   // ¿Nuevo campo Saldo en Anticipo o en Cliente?
+
+            dtm.addRow(o);
+        }
+
+        rowSorter = new TableRowSorter<>(dtm);
+        jTable.setRowSorter(rowSorter);
+    }
+    
+    private void addTableSelectionListener() {
+        jTable.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = jTable.getSelectedRow();
+                boolean isRowSelected = selectedRow != -1;
+                jButtonModificar.setEnabled(isRowSelected);
+                jButtonEliminar.setEnabled(isRowSelected);
+            }
+        });
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonEliminar;
     private javax.swing.JButton jButtonFiltrarBusqueda;
+    private javax.swing.JButton jButtonModificar;
     private javax.swing.JLabel jLabelFiltrarBusqueda;
     private javax.swing.JLabel jLabelTitulo;
+    private javax.swing.JPanel jPanelBotones;
     private javax.swing.JPanel jPanelCabecera;
     private javax.swing.JPanel jPanelCuerpo;
     private javax.swing.JPanel jPanelFiltro;
+    private javax.swing.JPanel jPanelMenu;
     private javax.swing.JPanel jPanelTitulo;
     private javax.swing.JScrollPane jScrollPaneTabla;
     private javax.swing.JTable jTable;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void actualizar() {
+        cargarTablaAnticipos();
+    }
 }

@@ -4,8 +4,6 @@
  */
 package es.ujaen.tfg.modelo;
 
-import java.util.Date;
-
 /**
  *
  * @author jota
@@ -13,16 +11,15 @@ import java.util.Date;
 public class Anticipo {
 
     private String id;
-    private Double monto;
-    private Integer mesesCubiertos;
-    private Date fecha;
-
+    private String monto;
+    private String mesesCubiertos;
+    private String fecha;
     private Cliente cliente;
 
     public Anticipo() {
     }
 
-    public Anticipo(String id, Double monto, Integer mesesCubiertos, Date fecha, Cliente cliente) {
+    public Anticipo(String id, String monto, String mesesCubiertos, String fecha, Cliente cliente) {
         this.id = id;
         this.monto = monto;
         this.mesesCubiertos = mesesCubiertos;
@@ -38,27 +35,27 @@ public class Anticipo {
         this.id = id;
     }
 
-    public Double getMonto() {
+    public String getMonto() {
         return monto;
     }
 
-    public void setMonto(Double monto) {
+    public void setMonto(String monto) {
         this.monto = monto;
     }
 
-    public Integer getMesesCubiertos() {
+    public String getMesesCubiertos() {
         return mesesCubiertos;
     }
 
-    public void setMesesCubiertos(Integer mesesCubiertos) {
+    public void setMesesCubiertos(String mesesCubiertos) {
         this.mesesCubiertos = mesesCubiertos;
     }
 
-    public Date getFecha() {
+    public String getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
+    public void setFecha(String fecha) {
         this.fecha = fecha;
     }
 
@@ -72,7 +69,9 @@ public class Anticipo {
 
     @Override
     public String toString() {
-        return "Anticipo{" + "id=" + id + ", monto=" + monto + ", mesesCubiertos=" + mesesCubiertos + ", fecha=" + fecha + '}';
+        return "Anticipo{" + "id=" + id + ", monto=" + monto + ", mesesCubiertos=" + mesesCubiertos + ", fecha=" + fecha + ", cliente=" + cliente.getNombre() + '}';
     }
+    
+    
 
 }

@@ -4,6 +4,8 @@
  */
 package es.ujaen.tfg.modelo;
 
+import java.util.Objects;
+
 /**
  *
  * @author jota
@@ -11,18 +13,25 @@ package es.ujaen.tfg.modelo;
 public class Local {
 
     private String codigo;
-    private String articulo;
+    private String nombre;
     private String alias;
-    private Double precio;
+    private String precio;
 
     public Local() {
     }
 
-    public Local(String codigo, String articulo, String alias, Double precio) {
+    public Local(String codigo, String articulo, String alias, String precio) {
         this.codigo = codigo;
-        this.articulo = articulo;
+        this.nombre = articulo;
         this.alias = alias;
         this.precio = precio;
+    }
+    
+    public Local(Local local){
+        this.codigo = local.codigo;
+        this.nombre = local.nombre;
+        this.alias = local.alias;
+        this.precio = local.precio;
     }
 
     public String getCodigo() {
@@ -33,12 +42,12 @@ public class Local {
         this.codigo = codigo;
     }
 
-    public String getArticulo() {
-        return articulo;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setArticulo(String articulo) {
-        this.articulo = articulo;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
     public String getAlias() {
@@ -49,17 +58,51 @@ public class Local {
         this.alias = alias;
     }
 
-    public Double getPrecio() {
+    public String getPrecio() {
         return precio;
     }
 
-    public void setPrecio(Double precio) {
+    public void setPrecio(String precio) {
         this.precio = precio;
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Local other = (Local) obj;
+        if (!Objects.equals(this.codigo, other.codigo)) {
+            return false;
+        }
+        if (!Objects.equals(this.nombre, other.nombre)) {
+            return false;
+        }
+        if (!Objects.equals(this.alias, other.alias)) {
+            return false;
+        }
+        return Objects.equals(this.precio, other.precio);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode(this.codigo);
+        hash = 67 * hash + Objects.hashCode(this.nombre);
+        hash = 67 * hash + Objects.hashCode(this.alias);
+        hash = 67 * hash + Objects.hashCode(this.precio);
+        return hash;
+    }
+
+    @Override
     public String toString() {
-        return "Local{" + "codigo=" + codigo + ", articulo=" + articulo + ", alias=" + alias + ", precio=" + precio + '}';
+        return "Local{" + "codigo=" + codigo + ", nombre=" + nombre + ", alias=" + alias + ", precio=" + precio + '}';
     }
 
 }

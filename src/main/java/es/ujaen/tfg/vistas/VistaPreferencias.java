@@ -18,6 +18,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
     public VistaPreferencias(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -44,7 +45,6 @@ public class VistaPreferencias extends javax.swing.JDialog {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Preferencias");
-        setLocationByPlatform(true);
         setName("VistaPreferencias"); // NOI18N
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
