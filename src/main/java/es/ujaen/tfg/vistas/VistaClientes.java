@@ -2,12 +2,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
+
 package es.ujaen.tfg.vistas;
 
 import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
+import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
@@ -29,7 +32,6 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
     private final JFrame parent;
 
     private final DefaultTableModel dtm;
-    private final Object[] o;
     private TableRowSorter<DefaultTableModel> rowSorter;
 
     /**
@@ -41,10 +43,11 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
     public VistaClientes(JFrame parent, ClienteControlador clienteControlador) {
         initComponents();
         this.parent = parent;
+
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
+
         this.dtm = (DefaultTableModel) jTable.getModel();
-        this.o = new Object[jTable.getColumnCount()];
 
         addTableSelectionListener();
         cargarTablaClientes();
@@ -200,14 +203,14 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
 
             },
             new String [] {
-                "Nombre", "Alias", "Estado", "Saldo"
+                "DNI", "Nombre", "Alias", "Estado", "Saldo"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false
+                false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -233,27 +236,24 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
 
     private void jButtonModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonModificarActionPerformed
         // TODO add your handling code here:
-        int selectedRow = jTable.getSelectedRow();
-        Cliente clienteOriginal = null;
-        if (selectedRow != -1) { // Verificar que haya una fila seleccionada
-            clienteOriginal = clienteControlador.leerTodos().get(selectedRow);
+        String DNI = obtenerIdDeFilaSeleccionada(jTable, dtm);
+        if (DNI != null) {
+            Cliente clienteModificado = clienteControlador.leer(DNI);
+            if (clienteModificado != null) {
+                vistaAnadirModificarCliente = new VistaAnadirModificarCliente(parent, true, clienteModificado, clienteControlador);
+                vistaAnadirModificarCliente.setVisible(true);
+            }
         }
-
-        vistaAnadirModificarCliente = new VistaAnadirModificarCliente(parent, true, clienteOriginal, clienteControlador);
-        vistaAnadirModificarCliente.setVisible(true);
     }//GEN-LAST:event_jButtonModificarActionPerformed
 
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         // TODO add your handling code here:
-        int selectedRow = jTable.getSelectedRow();
-        if (selectedRow != -1) { // Verificar que haya una fila seleccionada
-            // Eliminar la fila del modelo de la tabla
-            dtm.removeRow(selectedRow);
-
-            // Eliminar fila de BBDD: Esto me hace que tenga que tenerlos SIEMPRE ordenados
-            Cliente clienteEliminado = clienteControlador.leerTodos().get(selectedRow);
-
-            clienteControlador.borrar(clienteEliminado);
+        String DNI = obtenerIdDeFilaSeleccionada(jTable, dtm);
+        if (DNI != null) {
+            Cliente clienteEliminado = clienteControlador.leer(DNI);
+            if (clienteEliminado != null) {
+                clienteControlador.borrar(clienteEliminado);
+            }
         }
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
@@ -285,13 +285,19 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         List<Cliente> clientes = clienteControlador.leerTodos();
 
         for (Cliente cliente : clientes) {
-            o[0] = cliente.getNombre().trim();
-            o[1] = cliente.getAlias().trim();
-            o[2] = cliente.getEstado().trim();
-            o[3] = cliente.getSaldo().trim() + " €";
-
-            dtm.addRow(o);
+            dtm.addRow(new Object[]{
+                cliente.getDNI().trim(), // Columna DNI
+                cliente.getNombre().trim(), // Columna Nombre
+                cliente.getAlias().trim(), // Columna Alias
+                cliente.getEstado(), // Columna Estado
+                cliente.getSaldo().trim() + sufijoPrecios // Columna Saldo
+            });
         }
+
+        //Ocultar la columna del DNI
+        jTable.getColumnModel().getColumn(0).setMinWidth(0);
+        jTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
 
         rowSorter = new TableRowSorter<>(dtm);
         jTable.setRowSorter(rowSorter);

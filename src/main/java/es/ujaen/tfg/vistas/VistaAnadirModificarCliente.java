@@ -6,11 +6,11 @@ package es.ujaen.tfg.vistas;
 
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Cliente;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarPlaceHolder;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarPlaceHolder;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.validarCampo;
+import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import java.awt.Color;
 import javax.swing.border.Border;
+import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 
 /**
  *
@@ -151,6 +151,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jButtonAceptar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -533,7 +534,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 731, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 737, Short.MAX_VALUE)
         );
 
         pack();
@@ -601,7 +602,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jTextFieldDNIKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldDNIKeyReleased
         // TODO add your handling code here:
-        campoDNICorrecto = validarCampo(
+        campoDNICorrecto = validarCampoFormulario(
                 jTextFieldDNI,
                 jLabelAdvertenciaDNI,
                 "* Introduce un DNI válido (8 números y 1 letra mayúscula)",
@@ -623,7 +624,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jTextFieldNombreKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldNombreKeyReleased
         // TODO add your handling code here:
-        campoNombreCorrecto = validarCampo(
+        campoNombreCorrecto = validarCampoFormulario(
                 jTextFieldNombre,
                 jLabelAdvertenciaNombre,
                 "* Introduce un nombre válido (sin números ni caracteres especiales)",
@@ -655,7 +656,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jTextFieldEmailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldEmailKeyReleased
         // TODO add your handling code here:
-        campoEmailCorrecto = validarCampo(
+        campoEmailCorrecto = validarCampoFormulario(
                 jTextFieldEmail,
                 jLabelAdvertenciaEmail,
                 "* Introduce un correo electrónico válido",
@@ -707,7 +708,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jTextFieldCodigoPostalKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalKeyReleased
         // TODO add your handling code here:
-        campoCodigoPostalCorrecto = validarCampo(
+        campoCodigoPostalCorrecto = validarCampoFormulario(
                 jTextFieldCodigoPostal,
                 jLabelAdvertenciaCodigoPostal,
                 "* Introduce un código postal válido (5 dígitos)",

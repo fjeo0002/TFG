@@ -6,15 +6,16 @@ package es.ujaen.tfg.vistas;
 
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Local;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarPlaceHolder;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarSufijo;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarPlaceHolder;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarSufijo;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.validarCampo;
+import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.agregarSufijo;
+import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.quitarSufijo;
 import java.awt.Color;
 import java.awt.Frame;
 import java.util.UUID;
 import javax.swing.border.Border;
+import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
+import static es.ujaen.tfg.utils.Utils.validarMonto;
 
 /**
  *
@@ -111,6 +112,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         jButtonAceptar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -322,7 +324,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
     private void jTextFieldPrecioBaseKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldPrecioBaseKeyReleased
         // TODO add your handling code here:
-        campoPrecioBaseCorrecto = validarCampo(
+        campoPrecioBaseCorrecto = validarCampoFormulario(
                 jTextFieldPrecioBase,
                 jLabelAdvertenciaPrecioBase,
                 "* Introduce un número con 2 decimales",
@@ -342,7 +344,9 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
     private void jTextFieldPrecioBaseFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldPrecioBaseFocusLost
         // TODO add your handling code here:
         agregarPlaceHolder(jTextFieldPrecioBase, placeHolderPrecioBase);
-        agregarSufijo(jTextFieldPrecioBase, sufijoPrecioBase, campoPrecioBaseCorrecto);
+        if(validarMonto(jTextFieldPrecioBase.getText().trim())){
+            agregarSufijo(jTextFieldPrecioBase, sufijoPrecioBase);
+        }
     }//GEN-LAST:event_jTextFieldPrecioBaseFocusLost
 
     private void jTextFieldAliasFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusGained

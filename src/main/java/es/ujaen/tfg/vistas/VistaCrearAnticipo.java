@@ -10,6 +10,7 @@ import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.validarFecha;
 import java.util.UUID;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -81,6 +82,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Crear Anticipo");
+        setResizable(false);
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -216,11 +218,11 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 347, Short.MAX_VALUE)
         );
 
         pack();
@@ -244,6 +246,8 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
         String fecha = dateField.getText().trim();
 
+        String saldo = monto;
+
         String nombreCliente = jTextFieldBuscadorClientes.getText().trim();
         Cliente cliente = clienteControlador.leer(nombreCliente);
 
@@ -252,8 +256,13 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
                 monto,
                 mesesCubiertos,
                 fecha,
+                saldo,
                 cliente
         );
+
+        cliente.setSaldo(saldo);
+        cliente.setEstado("Anticipa");
+        clienteControlador.actualizar(cliente);
 
         anticipoControlador.crear(anticipo);
 
@@ -304,18 +313,10 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         String textoFecha = dateField.getText().trim();
 
         // Validar si el texto cumple con el formato "dd/MM/yyyy"
-        campoFechaCorrecto = !textoFecha.isEmpty() && validarFormatoFecha(textoFecha);
+        campoFechaCorrecto = !textoFecha.isEmpty() && validarFecha(textoFecha);
 
         // Actualizar el estado del botón
         habilitarBotonCrearAnticipo();
-    }
-
-    private boolean validarFormatoFecha(String fecha) {
-        // Expresión regular para "dd/MM/yyyy"
-        String regex = "^\\d{2}/\\d{2}/\\d{4}$";
-
-        // Validar si la fecha cumple el formato esperado
-        return fecha.matches(regex);
     }
 
     private void cargarAutocompletarBuscadorClientes() {

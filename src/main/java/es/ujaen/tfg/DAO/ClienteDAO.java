@@ -51,9 +51,9 @@ public class ClienteDAO implements InterfazDAO<Cliente> {
     }
 
     @Override
-    public Cliente leer(String nombre) {
+    public Cliente leer(String DNI) {
         for (Cliente cliente : clientes) {
-            if (cliente.getNombre().equals(nombre) || cliente.getAlias().equals(nombre)) {
+            if (cliente.getDNI().equals(DNI)) {
                 return cliente;
             }
         }

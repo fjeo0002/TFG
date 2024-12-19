@@ -136,9 +136,18 @@ public class Cliente {
     public String getSaldo() {
         return saldo;
     }
+    
+    public Double getSaldoDouble() {
+        String saldoDouble = this.saldo.replace(" €", "").replace(",", ".");
+        return Double.valueOf(saldoDouble);
+    }
 
     public void setSaldo(String saldo) {
         this.saldo = saldo;
+    }
+    
+    public void setSaldo(double saldo) {
+        this.saldo = String.format("%.2f", saldo);
     }
 
     @Override

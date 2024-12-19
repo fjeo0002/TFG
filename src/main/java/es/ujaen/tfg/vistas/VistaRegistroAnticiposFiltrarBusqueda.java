@@ -4,17 +4,24 @@
  */
 package es.ujaen.tfg.vistas;
 
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.agregarPlaceHolder;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.quitarPlaceHolder;
-import static es.ujaen.tfg.utils.HerramientasComunesTextField.validarCampo;
+import com.mxrck.autocompleter.TextAutoCompleter;
+import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 import javax.swing.border.Border;
 
 /**
  *
  * @author jota
  */
-public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
+public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog implements Observador {
 
+    private final ClienteControlador clienteControlador;
+    private TextAutoCompleter autoCompleterBuscadorClientes;
+    
     private final String placeHolderAnio = "aaaa";
     private final Border originalBorder;
     private boolean campoAnioCorrecto = true;
@@ -22,12 +29,18 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
      * Creates new form VistaRegistroAnticiposFiltrarBusqueda
      * @param parent
      * @param modal
+     * @param clienteControlador
      */
-    public VistaRegistroAnticiposFiltrarBusqueda(java.awt.Frame parent, boolean modal) {
+    public VistaRegistroAnticiposFiltrarBusqueda(java.awt.Frame parent, boolean modal, ClienteControlador clienteControlador) {
         super(parent, modal);
         initComponents();
         setLocationRelativeTo(null);
         this.originalBorder = jTextFieldAnio.getBorder();
+        
+        this.clienteControlador = clienteControlador;
+        this.clienteControlador.agregarObservador(this);
+        
+        cargarAutocompletarBuscadorClientes();
     }
 
     /**
@@ -216,7 +229,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 535, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -248,7 +261,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
 
     private void jTextFieldAnioKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldAnioKeyReleased
         // TODO add your handling code here:
-        campoAnioCorrecto = validarCampo(
+        campoAnioCorrecto = validarCampoFormulario(
                 jTextFieldAnio,
                 jLabelAdvertenciaAnio,
                 "* Introduce un año válido (4 dígitos)",
@@ -258,6 +271,20 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldAnioKeyReleased
 
+    private void cargarAutocompletarBuscadorClientes() {
+        //Iniciamos el Autocompletes con el Buscador de Clientes
+        autoCompleterBuscadorClientes = new TextAutoCompleter(jTextFieldBuscadorClientes);
+
+        //Esto hace que también se pueda buscar por en medio del String
+        autoCompleterBuscadorClientes.setMode(0);
+
+        for (Cliente cliente : clienteControlador.leerTodos()) {
+            autoCompleterBuscadorClientes.addItem(cliente.getNombre());
+            autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+        }
+
+    }
+    
     private void habilitarBotonAceptar() {
         if (campoAnioCorrecto) {
             jButtonAceptar.setEnabled(true);
@@ -284,4 +311,14 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog {
     private javax.swing.JTextField jTextFieldAnio;
     private javax.swing.JTextField jTextFieldBuscadorClientes;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void actualizar() {
+        actualizarAutocompleter();
+    }
+    
+    private void actualizarAutocompleter() {
+        autoCompleterBuscadorClientes.removeAllItems();
+        cargarAutocompletarBuscadorClientes();
+    }
 }

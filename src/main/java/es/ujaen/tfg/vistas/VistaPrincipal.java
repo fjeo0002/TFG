@@ -302,7 +302,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
     }
 
     private void cargarVistaRegistroAnticipos() {
-        vistaRegistroAnticipos = new VistaRegistroAnticipos(this, anticipoControlador);
+        vistaRegistroAnticipos = new VistaRegistroAnticipos(this, clienteControlador, anticipoControlador);
         vistaRegistroAnticipos.setSize(jPanelAnticipos.getWidth(), jPanelAnticipos.getHeight());
         vistaRegistroAnticipos.setLocation(0, 0);
 

@@ -8,6 +8,8 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
+import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.RowFilter;
@@ -28,7 +30,6 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
     private final JFrame parent;
 
     private final DefaultTableModel dtm;
-    private final Object[] o;
     private TableRowSorter<DefaultTableModel> rowSorter;
 
     /**
@@ -39,11 +40,12 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
      */
     public VistaLocales(JFrame parent, LocalControlador localControlador) {
         initComponents();
+        this.parent = parent;
+
         this.localControlador = localControlador;
         this.localControlador.agregarObservador(this);
-        this.parent = parent;
+
         this.dtm = (DefaultTableModel) jTable.getModel();
-        this.o = new Object[jTable.getColumnCount()];
 
         addTableSelectionListener();
         cargarTablaLocales();
@@ -182,14 +184,14 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
 
             },
             new String [] {
-                "Nombre", "Alias", "Precio"
+                "Codigo", "Nombre", "Alias", "Precio"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false
+                false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -215,27 +217,24 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
 
     private void jButtonModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonModificarActionPerformed
         // TODO add your handling code here:
-        int selectedRow = jTable.getSelectedRow();
-        Local localOriginal = null;
-        if (selectedRow != -1) { // Verificar que haya una fila seleccionada
-            localOriginal = localControlador.leerTodos().get(selectedRow);
+        String codigo = obtenerIdDeFilaSeleccionada(jTable, dtm);
+        if (codigo != null) {
+            Local localModificado = localControlador.leer(codigo);
+            if (localModificado != null) {
+                vistaAnadirModificarLocal = new VistaAnadirModificarLocal(parent, true, localModificado, localControlador);
+                vistaAnadirModificarLocal.setVisible(true);
+            }
         }
-
-        vistaAnadirModificarLocal = new VistaAnadirModificarLocal(parent, true, localOriginal, localControlador);
-        vistaAnadirModificarLocal.setVisible(true);
     }//GEN-LAST:event_jButtonModificarActionPerformed
 
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         // TODO add your handling code here:
-        int selectedRow = jTable.getSelectedRow();
-        if (selectedRow != -1) { // Verificar que haya una fila seleccionada
-            // Eliminar la fila del modelo de la tabla
-            dtm.removeRow(selectedRow);
-
-            // Eliminar fila de BBDD: Esto me hace que tenga que tenerlos SIEMPRE ordenados
-            Local localEliminado = localControlador.leerTodos().get(selectedRow);
-
-            localControlador.borrar(localEliminado);
+        String codigo = obtenerIdDeFilaSeleccionada(jTable, dtm);
+        if (codigo != null) {
+            Local localEliminado = localControlador.leer(codigo);
+            if (localEliminado != null) {
+                localControlador.borrar(localEliminado);
+            }
         }
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
@@ -269,13 +268,19 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
         List<Local> locales = localControlador.leerTodos();
 
         for (Local local : locales) {
-            o[0] = local.getNombre().trim();
-            o[1] = local.getAlias().trim();
-            o[2] = local.getPrecio().trim() + " €";
-
-            dtm.addRow(o);
+            dtm.addRow(new Object[]{
+                local.getCodigo().trim(), // Columna Codigo
+                local.getNombre().trim(), // Columna Nombre
+                local.getAlias().trim(), // Columna Alias
+                local.getPrecio().trim() + sufijoPrecios // Columna Precio
+            });
         }
 
+        //Ocultar la columna del Codigo
+        jTable.getColumnModel().getColumn(0).setMinWidth(0);
+        jTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+        
         rowSorter = new TableRowSorter<>(dtm);
         jTable.setRowSorter(rowSorter);
     }
@@ -287,9 +292,9 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorLocales.setMode(0);
 
-        for (Local cliente : localControlador.leerTodos()) {
-            autoCompleterBuscadorLocales.addItem(cliente.getNombre());
-            autoCompleterBuscadorLocales.addItem(cliente.getAlias());
+        for (Local local : localControlador.leerTodos()) {
+            autoCompleterBuscadorLocales.addItem(local.getNombre());
+            autoCompleterBuscadorLocales.addItem(local.getAlias());
         }
 
     }

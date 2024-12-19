@@ -61,9 +61,18 @@ public class Local {
     public String getPrecio() {
         return precio;
     }
+    
+    public Double getPrecioDouble() {
+        String precioDouble = this.precio.replace(" €", "").replace(",", ".");
+        return Double.valueOf(precioDouble);
+    }
 
     public void setPrecio(String precio) {
         this.precio = precio;
+    }
+    
+    public void setPrecio(double precio) {
+        this.precio = String.format("%.2f", precio);
     }
 
     @Override
