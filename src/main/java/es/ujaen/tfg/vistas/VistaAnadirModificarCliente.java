@@ -8,9 +8,9 @@ import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 import java.awt.Color;
 import javax.swing.border.Border;
-import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 
 /**
  *

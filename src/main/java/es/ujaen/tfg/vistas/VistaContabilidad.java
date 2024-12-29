@@ -290,58 +290,62 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
 
         List<Cliente> clientes = clienteControlador.leerTodos();
 
-        for (Cliente cliente : clientes) {
-            // 1º Crear filas a todos los Clientes (vacias)
-            dtm.addRow(new Object[]{
-                cliente.getDNI().trim(), // Columna DNI
-                cliente.getNombre().trim(), // Columna Nombre
-                "", // Columna Enero
-                "", // Columna Febrero
-                "", // Columna Marzo
-                "", // Columna Abril
-                "", // Columna Mayo
-                "", // Columna Junio
-                "", // Columna Julio
-                "", // Columna Agosto
-                "", // Columna Septiembre
-                "", // Columna Octubre
-                "", // Columna Diciembre
-                "" // Columna Diciembre
-            });
-        }
+        if (clientes != null) {
+            for (Cliente cliente : clientes) {
+                // 1º Crear filas a todos los Clientes (vacias)
+                dtm.addRow(new Object[]{
+                    cliente.getDNI().trim(), // Columna DNI
+                    cliente.getNombre().trim(), // Columna Nombre
+                    "", // Columna Enero
+                    "", // Columna Febrero
+                    "", // Columna Marzo
+                    "", // Columna Abril
+                    "", // Columna Mayo
+                    "", // Columna Junio
+                    "", // Columna Julio
+                    "", // Columna Agosto
+                    "", // Columna Septiembre
+                    "", // Columna Octubre
+                    "", // Columna Diciembre
+                    "" // Columna Diciembre
+                });
+            }
 
-        // 2º Rellenar uno a uno las facturas de los clientes
-        for (int i = 0; i < clientes.size(); i++) {   // Necesito la fila del cliente
-            Cliente cliente = clientes.get(i);
-            List<Factura> facturasCliente = facturaControlador.facturasCliente(cliente);    // Cojo todas las facturas del cliente
+            // 2º Rellenar uno a uno las facturas de los clientes
+            for (int i = 0; i < clientes.size(); i++) {   // Necesito la fila del cliente
+                Cliente cliente = clientes.get(i);
+                List<Factura> facturasCliente = facturaControlador.facturasCliente(cliente);    // Cojo todas las facturas del cliente
 
-            for (Factura factura : facturasCliente) {
-                String[] diaMesAnio = factura.getFecha().split("/");
-                // Hacer coincidir el Año con el spinner
-                String anio = diaMesAnio[2];
-                String spinner = (String) jSpinnerAnio.getValue().toString();
-                if (spinner.equals(anio)) {
-                    // 2º hacer coincidir el Mes con la columna y poner su monto
-                    String mes = diaMesAnio[1];
-                    String mesTexto = convertirNumeroATextoMes(mes);
-                    int columna = jTable.getColumnModel().getColumnIndex(mesTexto);
+                if (facturasCliente != null) {
+                    for (Factura factura : facturasCliente) {
+                        String[] diaMesAnio = factura.getFecha().split("/");
+                        // Hacer coincidir el Año con el spinner
+                        String anio = diaMesAnio[2];
+                        String spinner = (String) jSpinnerAnio.getValue().toString();
+                        if (spinner.equals(anio)) {
+                            // 2º hacer coincidir el Mes con la columna y poner su monto
+                            String mes = diaMesAnio[1];
+                            String mesTexto = convertirNumeroATextoMes(mes);
+                            int columna = jTable.getColumnModel().getColumnIndex(mesTexto);
 
-                    String claveFactura = anio + "_" + factura.getNumero();
-                    // 3º Asociar celda con número de factura
-                    celdaFacturaMap.computeIfAbsent(i, k -> new HashMap<>()).put(columna, claveFactura);
+                            String claveFactura = anio + "_" + factura.getNumero();
+                            // 3º Asociar celda con número de factura
+                            celdaFacturaMap.computeIfAbsent(i, k -> new HashMap<>()).put(columna, claveFactura);
 
-                    dtm.setValueAt(factura.getMonto() + sufijoPrecios, i, columna);
+                            dtm.setValueAt(factura.getMonto() + sufijoPrecios, i, columna);
+                        }
+                    }
                 }
             }
+
+            // Ocultar la columna del DNI
+            jTable.getColumnModel().getColumn(0).setMinWidth(0);
+            jTable.getColumnModel().getColumn(0).setMaxWidth(0);
+            jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+            rowSorter = new TableRowSorter<>(dtm);
+            jTable.setRowSorter(rowSorter);
         }
 
-        // Ocultar la columna del DNI
-        jTable.getColumnModel().getColumn(0).setMinWidth(0);
-        jTable.getColumnModel().getColumn(0).setMaxWidth(0);
-        jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
-
-        rowSorter = new TableRowSorter<>(dtm);
-        jTable.setRowSorter(rowSorter);
     }
-
 }

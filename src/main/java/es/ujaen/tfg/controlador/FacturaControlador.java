@@ -73,12 +73,15 @@ public class FacturaControlador implements Observable {
 
     public List<Factura> facturasCliente(Cliente cliente) {
         List<Factura> facturas = facturaDAO.leerTodos();
-        List<Factura> facturasCliente = new ArrayList<>();
-        for (Factura factura : facturas) {
-            if(factura.getCliente().equals(cliente)){
-                facturasCliente.add(factura);
+        if (facturas != null) {
+            List<Factura> facturasCliente = new ArrayList<>();
+            for (Factura factura : facturas) {
+                if (factura.getCliente().equals(cliente)) {
+                    facturasCliente.add(factura);
+                }
             }
+            return facturasCliente;
         }
-        return facturasCliente;
+        return null;
     }
 }

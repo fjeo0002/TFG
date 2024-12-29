@@ -4,9 +4,16 @@
  */
 package es.ujaen.tfg.DAO;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import es.ujaen.tfg.modelo.Cliente;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,105 +23,43 @@ import java.util.List;
  */
 public class ClienteDAO implements InterfazDAO<Cliente> {
 
-    private List<Cliente> clientes = new ArrayList<>() {
-        {
-            add(new Cliente("92345678A",
-                    "Juan Pérez",
-                    "Juanito",
-                    "juan.perez@example.com",
-                    "Calle Falsa 123",
-                    "Jaén",
-                    "23001",
-                    "Cliente habitual",
-                    "Al día",
-                    "0,00",
-                    "A"));
-            add(new Cliente("87654321B",
-                    "María López",
-                    "M_Lopez",
-                    "maria.lopez@example.com",
-                    "Avenida Real 45",
-                    "Madrid",
-                    "28001",
-                    "Cliente premium",
-                    "Debe",
-                    "-35,00",
-                    "B"));
-            add(new Cliente("11223344C",
-                    "Carlos García",
-                    "Carlos_G",
-                    "carlos.garcia@example.com",
-                    "Calle del Sol 12",
-                    "Granada",
-                    "18001",
-                    "Cliente ocasional",
-                    "Anticipa",
-                    "15,50",
-                    "A"));
-            add(new Cliente("22334455D",
-                    "Ana Sánchez",
-                    "AnaS",
-                    "ana.sanchez@example.com",
-                    "Calle Nueva 78",
-                    "Sevilla",
-                    "41001",
-                    "Cliente nuevo",
-                    "Debe",
-                    "-10,00",
-                    "B"));
-            add(new Cliente("33445566E",
-                    "Luis Fernández",
-                    "LuisF",
-                    "luis.fernandez@example.com",
-                    "Plaza Mayor 5",
-                    "Córdoba",
-                    "14001",
-                    "Cliente habitual",
-                    "Al día",
-                    "0,00",
-                    "A"));
-            add(new Cliente("44556677F",
-                    "Patricia Jiménez",
-                    "Patricia_J",
-                    "patricia.jimenez@example.com",
-                    "Avenida de la Constitución 90",
-                    "Jaén",
-                    "23002",
-                    "Cliente VIP",
-                    "Anticipa",
-                    "50,00",
-                    "A"));
-            add(new Cliente("55667788G",
-                    "Javier Martínez",
-                    "Javi_M",
-                    "javier.martinez@example.com",
-                    "Calle Real 23",
-                    "Almería",
-                    "04001",
-                    "Cliente regular",
-                    "Anticipa",
-                    "20,00",
-                    "B"));
-            add(new Cliente("66778899H",
-                    "Marta Rodríguez",
-                    "Marta_R",
-                    "marta.rodriguez@example.com",
-                    "Calle de la Luna 45",
-                    "Madrid",
-                    "28002",
-                    "Cliente de empresa",
-                    "Anticipa",
-                    "100,00",
-                    "A"));
-        }
-    };
+    private List<Cliente> clientes;
+    private static final String FILE_PATH = "clientes.json";
 
     public ClienteDAO() {
+        this.clientes = cargarDatosDesdeArchivo();
+    }
+
+    private List<Cliente> cargarDatosDesdeArchivo() {
+        try {
+            if (!Files.exists(Paths.get(FILE_PATH))) {  // Si el archivo no existe
+                return new ArrayList<>();  // Retornar una lista vacía
+            }
+            String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
+            Type listType = new TypeToken<List<Cliente>>() {}.getType();  // Tipo de la lista de Cliente
+            return new Gson().fromJson(jsonData, listType);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ArrayList<>();  // En caso de error, retornar lista vacía
+        }
+    }
+
+    private void guardarDatosEnArchivo() {
+        try (FileWriter writer = new FileWriter(FILE_PATH)) {
+            Gson gson = new Gson();
+            gson.toJson(clientes, writer);  // Guardar la lista de clientes en formato JSON
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public boolean crear(Cliente t) {
+        if(clientes == null){
+            clientes = new ArrayList<>();
+        }
         clientes.add(t);
+        guardarDatosEnArchivo();
         return true;
     }
 
@@ -133,6 +78,7 @@ public class ClienteDAO implements InterfazDAO<Cliente> {
         for (int i = 0; i < clientes.size(); i++) {
             if (clientes.get(i).getDNI().equals(t.getDNI())) {
                 clientes.set(i, t);
+                guardarDatosEnArchivo();
                 return true;
             }
         }
@@ -141,7 +87,11 @@ public class ClienteDAO implements InterfazDAO<Cliente> {
 
     @Override
     public boolean borrar(Cliente t) {
-        return clientes.remove(t);
+        boolean removed = clientes.remove(t);
+        if (removed) {
+            guardarDatosEnArchivo();
+        }
+        return removed;
     }
 
     @Override
@@ -171,38 +121,12 @@ public class ClienteDAO implements InterfazDAO<Cliente> {
         if (cliente == null) {
             return "{}";
         }
-
-        JsonObject json = new JsonObject();
-        json.addProperty("DNI", cliente.getDNI());
-        json.addProperty("nombre", cliente.getNombre());
-        json.addProperty("alias", cliente.getAlias());
-        json.addProperty("correo", cliente.getEmail());
-        json.addProperty("direccion", cliente.getDireccion());
-        json.addProperty("localidad", cliente.getLocalidad());
-        json.addProperty("codigoPostal", cliente.getCodigoPostal());
-        json.addProperty("descripcion", cliente.getDescripcion());
-        json.addProperty("tipo", cliente.getTipo());
-
-        return json.toString();
+        Gson gson = new Gson();
+        return gson.toJson(cliente);  // Convertir el objeto cliente a JSON
     }
 
     public String convertirListaAJSON() {
-        JsonArray jsonArray = new JsonArray();
-
-        for (Cliente cliente : clientes) {
-            JsonObject json = new JsonObject();
-            json.addProperty("DNI", cliente.getDNI());
-            json.addProperty("nombre", cliente.getNombre());
-            json.addProperty("alias", cliente.getAlias());
-            json.addProperty("correo", cliente.getEmail());
-            json.addProperty("direccion", cliente.getDireccion());
-            json.addProperty("ciudad", cliente.getLocalidad());
-            json.addProperty("codigoPostal", cliente.getCodigoPostal());
-            json.addProperty("descripcion", cliente.getDescripcion());
-            json.addProperty("tipo", cliente.getTipo());
-            jsonArray.add(json);
-        }
-
-        return jsonArray.toString();
+        Gson gson = new Gson();
+        return gson.toJson(clientes);  // Convertir la lista de clientes a JSON
     }
 }

@@ -11,6 +11,7 @@ import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
 import static es.ujaen.tfg.utils.Utils.validarFecha;
+import java.util.List;
 import java.util.UUID;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -330,9 +331,13 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorClientes.setMode(0);
 
-        for (Cliente cliente : clienteControlador.leerTodos()) {
-            autoCompleterBuscadorClientes.addItem(cliente.getNombre());
-            autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+        List<Cliente> clientes = clienteControlador.leerTodos();
+
+        if (clientes != null) {
+            for (Cliente cliente : clientes) {
+                autoCompleterBuscadorClientes.addItem(cliente.getNombre());
+                autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+            }
         }
 
     }

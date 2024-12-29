@@ -4,9 +4,16 @@
  */
 package es.ujaen.tfg.DAO;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import es.ujaen.tfg.modelo.Local;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,30 +23,43 @@ import java.util.List;
  */
 public class LocalDAO implements InterfazDAO<Local> {
 
-    private List<Local> locales = new ArrayList<>() {
-        {
-            add(new Local("L001", "Artículo 1", "Alias1", "10,50"));
-            add(new Local("L002", "Artículo 2", "Alias2", "20,00"));
-            add(new Local("L003", "Artículo 3", "Alias3", "15,50"));
-            add(new Local("L004", "Artículo 4", "Alias4", "30,00"));
-            add(new Local("L005", "Artículo 5", "Alias5", "25,99"));
-            add(new Local("L006", "Artículo 6", "Alias6", "40,00"));
-            add(new Local("L007", "Artículo 7", "Alias7", "55,20"));
-            add(new Local("L008", "Artículo 8", "Alias8", "60,00"));
-            add(new Local("L009", "Artículo 9", "Alias9", "75,50"));
-            add(new Local("L010", "Artículo 10", "Alias10", "85,00"));
-
-        }
-    };
-
-    ;
+    private List<Local> locales;
+    private static final String FILE_PATH = "locales.json";
 
     public LocalDAO() {
+        this.locales = cargarDatosDesdeArchivo();
+    }
+
+    private List<Local> cargarDatosDesdeArchivo() {
+        try {
+            if (!Files.exists(Paths.get(FILE_PATH))) {  // Si el archivo no existe
+                return new ArrayList<>();  // Retornar una lista vacía
+            }
+            String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
+            Type listType = new TypeToken<List<Local>>() {}.getType();  // Tipo de la lista de Local
+            return new Gson().fromJson(jsonData, listType);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ArrayList<>();  // En caso de error, retornar lista vacía
+        }
+    }
+
+    private void guardarDatosEnArchivo() {
+        try (FileWriter writer = new FileWriter(FILE_PATH)) {
+            Gson gson = new Gson();
+            gson.toJson(locales, writer);  // Guardar la lista de locales en formato JSON
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public boolean crear(Local local) {
+        if(locales == null){
+            locales = new ArrayList<>();
+        }
         locales.add(local);
+        guardarDatosEnArchivo();
         return true;
     }
 
@@ -58,6 +78,7 @@ public class LocalDAO implements InterfazDAO<Local> {
         for (int i = 0; i < locales.size(); i++) {
             if (locales.get(i).getCodigo().equals(local.getCodigo())) {
                 locales.set(i, local);
+                guardarDatosEnArchivo();
                 return true;
             }
         }
@@ -66,7 +87,11 @@ public class LocalDAO implements InterfazDAO<Local> {
 
     @Override
     public boolean borrar(Local local) {
-        return locales.remove(local);
+        boolean removed = locales.remove(local);
+        if (removed) {
+            guardarDatosEnArchivo();
+        }
+        return removed;
     }
 
     @Override
@@ -74,32 +99,18 @@ public class LocalDAO implements InterfazDAO<Local> {
         return locales;
     }
 
+    // Convertir un local a JSON (para otros usos)
     public String convertirAJSON(Local local) {
         if (local == null) {
             return "{}";
         }
-
-        JsonObject json = new JsonObject();
-        json.addProperty("codigo", local.getCodigo());
-        json.addProperty("articulo", local.getNombre());
-        json.addProperty("alias", local.getAlias());
-        json.addProperty("precio", local.getPrecio());
-
-        return json.toString();
+        Gson gson = new Gson();
+        return gson.toJson(local);  // Convertir el objeto local a JSON
     }
 
+    // Convertir la lista de locales a JSON
     public String convertirListaAJSON() {
-        JsonArray jsonArray = new JsonArray();
-
-        for (Local local : locales) {
-            JsonObject json = new JsonObject();
-            json.addProperty("codigo", local.getCodigo());
-            json.addProperty("articulo", local.getNombre());
-            json.addProperty("alias", local.getAlias());
-            json.addProperty("precio", local.getPrecio());
-            jsonArray.add(json);
-        }
-
-        return jsonArray.toString();
+        Gson gson = new Gson();
+        return gson.toJson(locales);  // Convertir la lista de locales a JSON
     }
 }

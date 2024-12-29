@@ -159,10 +159,18 @@ public class Cliente {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 53 * hash + Objects.hashCode(this.DNI);
-        hash = 53 * hash + Objects.hashCode(this.nombre);
-        hash = 53 * hash + Objects.hashCode(this.alias);
+        int hash = 5;
+        hash = 97 * hash + Objects.hashCode(this.DNI);
+        hash = 97 * hash + Objects.hashCode(this.nombre);
+        hash = 97 * hash + Objects.hashCode(this.alias);
+        hash = 97 * hash + Objects.hashCode(this.email);
+        hash = 97 * hash + Objects.hashCode(this.direccion);
+        hash = 97 * hash + Objects.hashCode(this.localidad);
+        hash = 97 * hash + Objects.hashCode(this.codigoPostal);
+        hash = 97 * hash + Objects.hashCode(this.descripcion);
+        hash = 97 * hash + Objects.hashCode(this.estado);
+        hash = 97 * hash + Objects.hashCode(this.saldo);
+        hash = 97 * hash + Objects.hashCode(this.tipo);
         return hash;
     }
 
@@ -184,9 +192,31 @@ public class Cliente {
         if (!Objects.equals(this.nombre, other.nombre)) {
             return false;
         }
-        return Objects.equals(this.alias, other.alias);
+        if (!Objects.equals(this.alias, other.alias)) {
+            return false;
+        }
+        if (!Objects.equals(this.email, other.email)) {
+            return false;
+        }
+        if (!Objects.equals(this.direccion, other.direccion)) {
+            return false;
+        }
+        if (!Objects.equals(this.localidad, other.localidad)) {
+            return false;
+        }
+        if (!Objects.equals(this.codigoPostal, other.codigoPostal)) {
+            return false;
+        }
+        if (!Objects.equals(this.descripcion, other.descripcion)) {
+            return false;
+        }
+        if (!Objects.equals(this.estado, other.estado)) {
+            return false;
+        }
+        if (!Objects.equals(this.saldo, other.saldo)) {
+            return false;
+        }
+        return Objects.equals(this.tipo, other.tipo);
     }
-    
-    
 
 }

@@ -508,7 +508,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         }
 
         List<Factura> todasFacturas = facturaControlador.leerTodos();
-        if (todasFacturas.isEmpty()) {
+        if (todasFacturas == null) {
             numero += "1";
         } else {
             // Mapa para agrupar el último número por tipo y año
@@ -678,9 +678,13 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorClientes.setMode(0);
 
-        for (Cliente cliente : clienteControlador.leerTodos()) {
-            autoCompleterBuscadorClientes.addItem(cliente.getNombre());
-            autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+        List<Cliente> clientes = clienteControlador.leerTodos();
+
+        if (clientes != null) {
+            for (Cliente cliente : clientes) {
+                autoCompleterBuscadorClientes.addItem(cliente.getNombre());
+                autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+            }
         }
 
     }
@@ -692,9 +696,13 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorLocales.setMode(0);
 
-        for (Local local : localControlador.leerTodos()) {
-            autoCompleterBuscadorLocales.addItem(local.getNombre());
-            autoCompleterBuscadorLocales.addItem(local.getAlias());
+        List<Local> locales = localControlador.leerTodos();
+
+        if (locales != null) {
+            for (Local local : locales) {
+                autoCompleterBuscadorLocales.addItem(local.getNombre());
+                autoCompleterBuscadorLocales.addItem(local.getAlias());
+            }
         }
     }
 

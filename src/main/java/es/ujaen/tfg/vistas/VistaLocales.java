@@ -260,20 +260,21 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
 
         List<Local> locales = localControlador.leerTodos();
 
-        for (Local local : locales) {
-            dtm.addRow(new Object[]{
-                local.getCodigo().trim(), // Columna Codigo
-                local.getNombre().trim(), // Columna Nombre
-                local.getAlias().trim(), // Columna Alias
-                local.getPrecio().trim() + sufijoPrecios // Columna Precio
-            });
+        if (locales != null) {
+            for (Local local : locales) {
+                dtm.addRow(new Object[]{
+                    local.getCodigo().trim(), // Columna Codigo
+                    local.getNombre().trim(), // Columna Nombre
+                    local.getAlias().trim(), // Columna Alias
+                    local.getPrecio().trim() + sufijoPrecios // Columna Precio
+                });
+            }
         }
-
         //Ocultar la columna del Codigo
         jTable.getColumnModel().getColumn(0).setMinWidth(0);
         jTable.getColumnModel().getColumn(0).setMaxWidth(0);
         jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
-        
+
         rowSorter = new TableRowSorter<>(dtm);
         jTable.setRowSorter(rowSorter);
     }
@@ -284,10 +285,13 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
 
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorLocales.setMode(0);
+        List<Local> locales = localControlador.leerTodos();
 
-        for (Local local : localControlador.leerTodos()) {
-            autoCompleterBuscadorLocales.addItem(local.getNombre());
-            autoCompleterBuscadorLocales.addItem(local.getAlias());
+        if (locales != null) {
+            for (Local local : locales) {
+                autoCompleterBuscadorLocales.addItem(local.getNombre());
+                autoCompleterBuscadorLocales.addItem(local.getAlias());
+            }
         }
 
     }

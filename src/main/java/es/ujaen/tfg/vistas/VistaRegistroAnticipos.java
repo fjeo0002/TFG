@@ -201,7 +201,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 anticipoControlador.borrar(anticipoEliminado);
             }
         }
-        
+
         actualizarSaldoCliente(clienteActualizar);
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
@@ -210,27 +210,29 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         dtm.setRowCount(0); //Limpiar la tabla
 
         // Por ahora lo hago aqui en la Vista... quizás en el DAO podría guardarlos directamente por Fecha
-        List<Anticipo> anticipos = anticipoControlador.leerTodos().stream()
-                .sorted((a1, a2) -> {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate fecha1 = LocalDate.parse(a1.getFecha(), formatter);
-                    LocalDate fecha2 = LocalDate.parse(a2.getFecha(), formatter);
-                    return fecha2.compareTo(fecha1); // Orden descendente
-                })
-                .toList();
+        List<Anticipo> anticipos = anticipoControlador.leerTodos();
+        if (anticipos != null) {
 
-        //List<Anticipo> anticipos = anticipoControlador.leerTodos();
-        for (Anticipo anticipo : anticipos) {
-            dtm.addRow(new Object[]{
-                anticipo.getId(), // Columna ID
-                anticipo.getCliente().getNombre().trim(), // Columna Cliente
-                anticipo.getFecha().trim(), // Columna Fecha
-                anticipo.getMonto().trim() + sufijoPrecios, // Columna Monto
-                anticipo.getMesesCubiertos().trim(), // Columna Meses Cubiertos
-                anticipo.getSaldo().trim() + sufijoPrecios // Columna Saldo
-            });
+            anticipos.stream()
+                    .sorted((a1, a2) -> {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                        LocalDate fecha1 = LocalDate.parse(a1.getFecha(), formatter);
+                        LocalDate fecha2 = LocalDate.parse(a2.getFecha(), formatter);
+                        return fecha2.compareTo(fecha1); // Orden descendente
+                    })
+                    .toList();
+
+            for (Anticipo anticipo : anticipos) {
+                dtm.addRow(new Object[]{
+                    anticipo.getId(), // Columna ID
+                    anticipo.getCliente().getNombre().trim(), // Columna Cliente
+                    anticipo.getFecha().trim(), // Columna Fecha
+                    anticipo.getMonto().trim() + sufijoPrecios, // Columna Monto
+                    anticipo.getMesesCubiertos().trim(), // Columna Meses Cubiertos
+                    anticipo.getSaldo().trim() + sufijoPrecios // Columna Saldo
+                });
+            }
         }
-
         //Ocultar la columna del ID
         jTable.getColumnModel().getColumn(0).setMinWidth(0);
         jTable.getColumnModel().getColumn(0).setMaxWidth(0);
@@ -382,7 +384,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 if (nuevoSaldo == 0) {
                     clienteActual.setEstado("Al día");
                 }
-                */
+                 */
                 clienteControlador.actualizar(clienteActual);
 
                 agregarSufijo(saldoTextField, sufijoPrecios);

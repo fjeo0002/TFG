@@ -282,16 +282,17 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
 
         List<Cliente> clientes = clienteControlador.leerTodos();
 
-        for (Cliente cliente : clientes) {
-            dtm.addRow(new Object[]{
-                cliente.getDNI().trim(), // Columna DNI
-                cliente.getNombre().trim(), // Columna Nombre
-                cliente.getAlias().trim(), // Columna Alias
-                cliente.getEstado(), // Columna Estado
-                cliente.getSaldo().trim() + sufijoPrecios // Columna Saldo
-            });
+        if (clientes != null) {
+            for (Cliente cliente : clientes) {
+                dtm.addRow(new Object[]{
+                    cliente.getDNI().trim(), // Columna DNI
+                    cliente.getNombre().trim(), // Columna Nombre
+                    cliente.getAlias().trim(), // Columna Alias
+                    cliente.getEstado(), // Columna Estado
+                    cliente.getSaldo().trim() + sufijoPrecios // Columna Saldo
+                });
+            }
         }
-
         //Ocultar la columna del DNI
         jTable.getColumnModel().getColumn(0).setMinWidth(0);
         jTable.getColumnModel().getColumn(0).setMaxWidth(0);
@@ -308,11 +309,14 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorClientes.setMode(0);
 
-        for (Cliente cliente : clienteControlador.leerTodos()) {
-            autoCompleterBuscadorClientes.addItem(cliente.getNombre());
-            autoCompleterBuscadorClientes.addItem(cliente.getAlias());
-        }
+        List<Cliente> clientes = clienteControlador.leerTodos();
 
+        if (clientes != null) {
+            for (Cliente cliente : clientes) {
+                autoCompleterBuscadorClientes.addItem(cliente.getNombre());
+                autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+            }
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
