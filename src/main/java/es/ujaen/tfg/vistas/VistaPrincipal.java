@@ -9,6 +9,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Local;
@@ -35,6 +36,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
     private final ClienteControlador clienteControlador;
     private final LocalControlador localControlador;
     private final AnticipoControlador anticipoControlador;
+    private final FacturaControlador facturaControlador;
 
     /**
      * Creates new form VistaCrearModificarCliente2
@@ -47,6 +49,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
         clienteControlador = new ClienteControlador();
         localControlador = new LocalControlador();
         anticipoControlador = new AnticipoControlador();
+        facturaControlador = new FacturaControlador();
 
         cargarVistaContabilidad();
         cargarVistaRegistroAnticipos();
@@ -269,7 +272,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private void jButtonCrearFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearFacturaActionPerformed
         // TODO add your handling code here:
-        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador);
+        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador, facturaControlador);
         vistaCrearFactura.setVisible(true);
     }//GEN-LAST:event_jButtonCrearFacturaActionPerformed
 
@@ -290,7 +293,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
 
     private void cargarVistaContabilidad() {
-        vistaContabilidad = new VistaContabilidad();
+        vistaContabilidad = new VistaContabilidad(clienteControlador, facturaControlador);
         vistaContabilidad.setSize(jPanelContabilidad.getWidth(), jPanelContabilidad.getHeight());
         vistaContabilidad.setLocation(0, 0);
 

@@ -6,9 +6,24 @@ package es.ujaen.tfg.vistas;
 
 import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.controlador.LocalControlador;
+import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Factura;
+import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.agregarSufijo;
+import static es.ujaen.tfg.utils.Utils.quitarSufijo;
+import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
+import static es.ujaen.tfg.utils.Utils.validarFecha;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.swing.JFrame;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -17,8 +32,13 @@ import javax.swing.table.DefaultTableModel;
  */
 public class VistaCrearFactura extends javax.swing.JFrame implements Observador {
 
+    private Local localBuscado;
+    private double total;
+
     private final ClienteControlador clienteControlador;
     private final LocalControlador localControlador;
+    private final FacturaControlador facturaControlador;
+
     private TextAutoCompleter autoCompleterBuscadorClientes;
     private TextAutoCompleter autoCompleterBuscadorLocales;
 
@@ -27,8 +47,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private boolean campoBuscadorLocalesCorrecto;
 
     private final DefaultTableModel dtm;
-    private final Object[] o;
-    
+
     private final JFrame parent;
 
     /**
@@ -37,8 +56,9 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
      * @param parent
      * @param clienteControlador
      * @param localControlador
+     * @param facturaControlador
      */
-    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador) {
+    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador) {
         initComponents();
         setLocationRelativeTo(null);
         this.parent = parent;
@@ -49,16 +69,23 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         this.localControlador = localControlador;
         this.localControlador.agregarObservador(this);
 
+        this.facturaControlador = facturaControlador;
+        this.facturaControlador.agregarObservador(this);
+
         this.campoBuscadorClientesCorrecto = false;
         this.campoFechaCorrecto = false;
         this.campoBuscadorLocalesCorrecto = false;
-        
-        this.dtm = (DefaultTableModel) jTable.getModel();
-        this.o = new Object[jTable.getColumnCount()];
 
+        this.jRadioButtonFactura.setSelected(true);
+
+        this.dtm = (DefaultTableModel) jTable.getModel();
+
+        this.total = 0.0;
+
+        addTableSelectionListener();
+        inicializarListenerFecha();
         cargarAutocompletarBuscadorClientes();
         cargarAutocompletarBuscadorLocales();
-
     }
 
     /**
@@ -97,8 +124,10 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         jLabelPrecioUnitarioValor = new javax.swing.JLabel();
         jLabelIVAValor = new javax.swing.JLabel();
         jLabelRetencionValor = new javax.swing.JLabel();
+        jPanelAgregarEliminarLocal = new javax.swing.JPanel();
         jPanelBotonAgregarLocal = new javax.swing.JPanel();
         jButtonAgregarLocal = new javax.swing.JButton();
+        jPanelEliminarLocal = new javax.swing.JPanel();
         jButtonEliminarLocal = new javax.swing.JButton();
         jScrollPaneTabla = new javax.swing.JScrollPane();
         jTable = new javax.swing.JTable();
@@ -147,6 +176,11 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         jTextFieldBuscadorClientes.setForeground(new java.awt.Color(0, 0, 0));
         jTextFieldBuscadorClientes.setMinimumSize(new java.awt.Dimension(125, 26));
         jTextFieldBuscadorClientes.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldBuscadorClientes.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldBuscadorClientesFocusLost(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -284,7 +318,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         jPanelSeleccionarLocal.add(jTextFieldBuscadorLocales, gridBagConstraints);
 
         jSpinnerCantidad.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jSpinnerCantidad.setModel(new javax.swing.SpinnerNumberModel(1, 0, null, 1));
+        jSpinnerCantidad.setModel(new javax.swing.SpinnerNumberModel(1, 1, null, 1));
         jSpinnerCantidad.setPreferredSize(new java.awt.Dimension(75, 26));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -321,10 +355,13 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         jPanelCuerpo.add(jPanelSeleccionarLocal);
 
+        jPanelAgregarEliminarLocal.setLayout(new java.awt.GridLayout(1, 2));
+
         jPanelBotonAgregarLocal.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jButtonAgregarLocal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonAgregarLocal.setText("Agregar Local");
+        jButtonAgregarLocal.setEnabled(false);
         jButtonAgregarLocal.setNextFocusableComponent(jButtonCancelar);
         jButtonAgregarLocal.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -333,16 +370,23 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         });
         jPanelBotonAgregarLocal.add(jButtonAgregarLocal);
 
+        jPanelAgregarEliminarLocal.add(jPanelBotonAgregarLocal);
+
+        jPanelEliminarLocal.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+
         jButtonEliminarLocal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonEliminarLocal.setText("Eliminar Local");
+        jButtonEliminarLocal.setEnabled(false);
         jButtonEliminarLocal.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonEliminarLocalActionPerformed(evt);
             }
         });
-        jPanelBotonAgregarLocal.add(jButtonEliminarLocal);
+        jPanelEliminarLocal.add(jButtonEliminarLocal);
 
-        jPanelCuerpo.add(jPanelBotonAgregarLocal);
+        jPanelAgregarEliminarLocal.add(jPanelEliminarLocal);
+
+        jPanelCuerpo.add(jPanelAgregarEliminarLocal);
 
         jTable.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -354,10 +398,10 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.Object.class, java.lang.Double.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Double.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, true, false
+                false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -404,6 +448,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         jButtonGenerarFactura.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonGenerarFactura.setText("Generar Factura");
+        jButtonGenerarFactura.setEnabled(false);
         jButtonGenerarFactura.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonGenerarFacturaActionPerformed(evt);
@@ -431,35 +476,163 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
     private void jButtonCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelarActionPerformed
         // TODO add your handling code here:
+        parent.setEnabled(true);
         dispose();
     }//GEN-LAST:event_jButtonCancelarActionPerformed
 
     private void jButtonGenerarFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenerarFacturaActionPerformed
         // TODO add your handling code here:
-        dispose();
+        JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
+        String fecha = dateField.getText().trim();
+
+        String nombreAliasCliente = jTextFieldBuscadorClientes.getText().trim();
+        Cliente cliente = clienteControlador.buscarPorNombre(nombreAliasCliente);
+        if (cliente == null) {
+            cliente = clienteControlador.buscarPorAlias(nombreAliasCliente);
+        }
+
+        String monto = String.format("%.2f", total);
+
+        String anio = "";
+        String[] diaMesAnio = fecha.split("/");
+        anio = diaMesAnio[2];
+
+        boolean clienteA = false;
+        String numero = "";
+        if ("A".equals(cliente.getTipo())) {
+            numero += "A/";
+            clienteA = true;
+        } else {
+            numero += "B/";
+            clienteA = false;
+        }
+
+        List<Factura> todasFacturas = facturaControlador.leerTodos();
+        if (todasFacturas.isEmpty()) {
+            numero += "1";
+        } else {
+            // Mapa para agrupar el último número por tipo y año
+            Map<String, Map<String, Integer>> ultimoPorTipoYAno = new HashMap<>();
+
+            for (Factura factura : todasFacturas) {
+                String id = factura.getNumero();
+                String[] partes = id.split("/"); // Ejemplo: "A/1"
+                String tipo = partes[0];
+                int num = Integer.parseInt(partes[1]);
+
+                // Obtener la fecha de la factura
+                String facturaFecha = factura.getFecha();
+                String facturaAnio = facturaFecha.split("/")[2]; // Suponiendo formato "dd/MM/yyyy"
+
+                // Inicializar mapas anidados
+                ultimoPorTipoYAno.putIfAbsent(tipo, new HashMap<>());
+                Map<String, Integer> facturasPorAnio = ultimoPorTipoYAno.get(tipo);
+
+                // Actualizar el último número para el tipo y año
+                facturasPorAnio.put(facturaAnio, Math.max(facturasPorAnio.getOrDefault(facturaAnio, 0), num));
+            }
+
+            // Obtener el último número para el tipo y año actuales
+            Map<String, Integer> facturasDelTipo = ultimoPorTipoYAno.getOrDefault(clienteA ? "A" : "B", new HashMap<>());
+            int ultimoNumero = facturasDelTipo.getOrDefault(anio, 0);
+
+            // Incrementar el número de factura
+            int siguienteNumero = ultimoNumero + 1;
+            numero += String.valueOf(siguienteNumero);
+
+        }
+
+        Factura factura = new Factura(numero, fecha, true, true, cliente, monto);
+        facturaControlador.crear(factura);
+
+        parent.setEnabled(true);
+        
+        // Limpiar Textos de Cliente y Tabla 
+        // Deshabilitar Boton GenerarFactura
+        // Reinciar valor de total
+        jTextFieldBuscadorClientes.setText("");
+        dtm.setRowCount(0);
+        jButtonGenerarFactura.setEnabled(false);
+        total = 0.0;
+        actualizarLabelTotal();
     }//GEN-LAST:event_jButtonGenerarFacturaActionPerformed
 
     private void jTextFieldBuscadorLocalesFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldBuscadorLocalesFocusLost
         // TODO add your handling code here:
-        //Cada vez que perdemos el enfoque del buscador, se actualiza el valor del precio
+        campoBuscadorLocalesCorrecto = false;
+        localBuscado = null;
+
+        if (!jTextFieldBuscadorLocales.getText().trim().isEmpty()) {
+            for (Local local : localControlador.leerTodos()) {
+                if (jTextFieldBuscadorLocales.getText().trim().equals(local.getNombre())
+                        || jTextFieldBuscadorLocales.getText().trim().equals(local.getAlias())) {
+                    campoBuscadorLocalesCorrecto = true;
+                    localBuscado = new Local(local);
+                    break;
+                }
+            }
+        }
+
+        habilitarBotonAgregarLocal();
         actualizarLabelPrecioUnitarioValor();
     }//GEN-LAST:event_jTextFieldBuscadorLocalesFocusLost
 
     private void jButtonAgregarLocalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAgregarLocalActionPerformed
         // TODO add your handling code here:
-        DefaultTableModel modelo = (DefaultTableModel) jTable.getModel();
+        // Limpiar Local + Precio:
+        jTextFieldBuscadorLocales.setText("");
+        jLabelPrecioUnitarioValor.setText("");
 
-        //modelo.addRow(new Object[]{jSpinnerCantidad.getValue(), local.getArticulo(), local.getPrecio(), 21.0, 19.0});
-        calcularTotal();
+        //Insertar nueva fila en la Tabla resumen:
+        String cantidad = jSpinnerCantidad.getValue().toString();
+        String local = localBuscado.getNombre();
+        String precioUnitario = localBuscado.getPrecio() + sufijoPrecios;
+
+        quitarSufijo(jLabelIVAValor, " %");
+        quitarSufijo(jLabelRetencionValor, " %");
+        String IVA = jLabelIVAValor.getText();
+        String retencion = jLabelRetencionValor.getText();
+
+        double IVADouble = Double.parseDouble(IVA) / 100.0 + 1.0;
+        double retencionDouble = Double.parseDouble(retencion) / 100.0 + 1.0;
+        double precioUnitarioDouble = localBuscado.getPrecioDouble();
+        double subtotalDouble = ((precioUnitarioDouble * IVADouble) - (precioUnitarioDouble * retencionDouble) + precioUnitarioDouble) * Integer.parseInt(cantidad);
+        String subtotal = String.format("%.2f", subtotalDouble) + sufijoPrecios;
+
+        agregarSufijo(jLabelIVAValor, " %");
+        agregarSufijo(jLabelRetencionValor, " %");
+        IVA = jLabelIVAValor.getText();
+        retencion = jLabelRetencionValor.getText();
+
+        Object[] nuevaFila = new Object[]{
+            cantidad,
+            local,
+            precioUnitario,
+            IVA,
+            retencion,
+            subtotal
+        };
+
+        dtm.addRow(nuevaFila);
+
+        // Actualizar Total:
+        total += subtotalDouble;
+        actualizarLabelTotal();
+        habilitarBotonGenerarFactura();
     }//GEN-LAST:event_jButtonAgregarLocalActionPerformed
 
     private void jButtonEliminarLocalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarLocalActionPerformed
         // TODO add your handling code here:
-        DefaultTableModel modelo = (DefaultTableModel) jTable.getModel();
-
-        modelo.removeRow(jTable.getSelectedRow());
-
-        calcularTotal();
+        int selectedRow = jTable.getSelectedRow();
+        if (selectedRow != -1) {
+            String subtotal = (String) dtm.getValueAt(selectedRow, dtm.getColumnCount() - 1);
+            double subtotalDouble = Double.parseDouble(subtotal.substring(0, subtotal.length() - 2).replace(",", "."));
+            total -= subtotalDouble;
+            actualizarLabelTotal();
+            dtm.removeRow(selectedRow);
+            jButtonEliminarLocal.setEnabled(false);
+            habilitarBotonGenerarFactura();
+        }
     }//GEN-LAST:event_jButtonEliminarLocalActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
@@ -472,19 +645,43 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         parent.setEnabled(false);
     }//GEN-LAST:event_formWindowOpened
 
+    private void jTextFieldBuscadorClientesFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldBuscadorClientesFocusLost
+        // TODO add your handling code here:
+        campoBuscadorClientesCorrecto = false;
+        if (!jTextFieldBuscadorClientes.getText().trim().isEmpty()) {
+            for (Cliente cliente : clienteControlador.leerTodos()) {
+                if (jTextFieldBuscadorClientes.getText().trim().equals(cliente.getNombre())
+                        || jTextFieldBuscadorClientes.getText().trim().equals(cliente.getAlias())) {
+                    campoBuscadorClientesCorrecto = true;
+                    break;
+                }
+            }
+        }
+
+        habilitarBotonAgregarLocal();
+    }//GEN-LAST:event_jTextFieldBuscadorClientesFocusLost
+
+    private void addTableSelectionListener() {
+        jTable.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = jTable.getSelectedRow();
+                boolean isRowSelected = selectedRow != -1;
+                jButtonEliminarLocal.setEnabled(isRowSelected);
+            }
+        });
+    }
+
     private void cargarAutocompletarBuscadorClientes() {
         //Iniciamos el Autocompletes con el Buscador de Clientes
-
         autoCompleterBuscadorClientes = new TextAutoCompleter(jTextFieldBuscadorClientes);
 
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorClientes.setMode(0);
 
-        //Añadimos las palabras clave (opciones) al Autocompleter
-        autoCompleterBuscadorClientes.addItem("Ramoni");
-        autoCompleterBuscadorClientes.addItem("Juani");
-        autoCompleterBuscadorClientes.addItem("Juana");
-        autoCompleterBuscadorClientes.addItem("Ramona");
+        for (Cliente cliente : clienteControlador.leerTodos()) {
+            autoCompleterBuscadorClientes.addItem(cliente.getNombre());
+            autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+        }
 
     }
 
@@ -495,35 +692,79 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorLocales.setMode(0);
 
-        //Añadimos las palabras clave (opciones) al Autocompleter
-        //autoCompleterBuscadorLocales.addItem(local.getArticulo());
-        //autoCompleterBuscadorLocales.addItem(local.getAlias());
+        for (Local local : localControlador.leerTodos()) {
+            autoCompleterBuscadorLocales.addItem(local.getNombre());
+            autoCompleterBuscadorLocales.addItem(local.getAlias());
+        }
+    }
+
+    private void inicializarListenerFecha() {
+        // Obtener el editor de texto asociado al JDateChooser
+        JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
+
+        // Agregar un DocumentListener al campo de la fecha
+        dateField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                verificarFecha();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                verificarFecha();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                verificarFecha();
+            }
+        });
+    }
+
+    private void verificarFecha() {
+        JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
+        String textoFecha = dateField.getText().trim();
+
+        // Validar si el texto cumple con el formato "dd/MM/yyyy"
+        campoFechaCorrecto = !textoFecha.isEmpty() && validarFecha(textoFecha);
+
+        // Actualizar el estado del botón
+        habilitarBotonAgregarLocal();
+    }
+
+    private void habilitarBotonAgregarLocal() {
+        if (campoBuscadorClientesCorrecto) {
+            if (campoFechaCorrecto) {
+                if (campoBuscadorLocalesCorrecto) {
+                    jButtonAgregarLocal.setEnabled(true);
+                    return;
+                }
+            }
+        }
+        jButtonAgregarLocal.setEnabled(false);
+    }
+
+    private void habilitarBotonGenerarFactura() {
+        if (dtm.getRowCount() != 0) {
+            jButtonGenerarFactura.setEnabled(true);
+            return;
+        }
+        jButtonGenerarFactura.setEnabled(false);
     }
 
     private void actualizarLabelPrecioUnitarioValor() {
-        /*
-        if (jTextFieldBuscadorLocales.getText().equals(local.getAlias())
-                || jTextFieldBuscadorLocales.getText().equals(local.getArticulo())) {
-            jLabelPrecioUnitarioValor.setText(local.getPrecio() + " €");
+        // Comprobamos que haya un local introducido correctamente
+        if (campoBuscadorLocalesCorrecto) {
+            String txt = localBuscado.getPrecio() + sufijoPrecios;
+            jLabelPrecioUnitarioValor.setText(txt);
         } else {
             jLabelPrecioUnitarioValor.setText("");
         }
-         */
     }
 
-    private void calcularTotal() {
-        DefaultTableModel modelo = (DefaultTableModel) jTable.getModel();
-        double total = 0;
-        for (int i = 0; i < modelo.getRowCount(); i++) {
-            int cantidad = Integer.parseInt(modelo.getValueAt(i, 0).toString());
-            double precio = Double.parseDouble(modelo.getValueAt(i, 2).toString());
-            double iva = Double.parseDouble(modelo.getValueAt(i, 3).toString());
-            double retencion = Double.parseDouble(modelo.getValueAt(i, 4).toString());
-            double subtotal = cantidad * precio * (1 + iva / 100) * (1 - retencion / 100);
-            modelo.setValueAt(subtotal, i, 5);
-            total += subtotal;
-        }
-        jLabelTotal.setText("Total: " + String.format("%.2f", total) + " €");
+    private void actualizarLabelTotal() {
+        String subtotal = String.format("%.2f", total);
+        jLabelTotal.setText("Total: " + subtotal + sufijoPrecios);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -547,10 +788,12 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private javax.swing.JLabel jLabelSeleccionarLocal;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JLabel jLabelTotal;
+    private javax.swing.JPanel jPanelAgregarEliminarLocal;
     private javax.swing.JPanel jPanelBotonAgregarLocal;
     private javax.swing.JPanel jPanelBotones;
     private javax.swing.JPanel jPanelCuerpo;
     private javax.swing.JPanel jPanelDetallesFactura;
+    private javax.swing.JPanel jPanelEliminarLocal;
     private javax.swing.JPanel jPanelLabelTotal;
     private javax.swing.JPanel jPanelPiePagina;
     private javax.swing.JPanel jPanelPrincipal;
@@ -568,5 +811,14 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
     @Override
     public void actualizar() {
+        actualizarAutocompleter();
+    }
+
+    private void actualizarAutocompleter() {
+        autoCompleterBuscadorClientes.removeAllItems();
+        cargarAutocompletarBuscadorClientes();
+
+        autoCompleterBuscadorLocales.removeAllItems();
+        cargarAutocompletarBuscadorLocales();
     }
 }

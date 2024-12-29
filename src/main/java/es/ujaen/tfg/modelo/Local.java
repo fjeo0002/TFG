@@ -24,10 +24,10 @@ public class Local {
         this.codigo = codigo;
         this.nombre = articulo;
         this.alias = alias;
-        this.precio = precio;
+        setPrecio(precio);
     }
-    
-    public Local(Local local){
+
+    public Local(Local local) {
         this.codigo = local.codigo;
         this.nombre = local.nombre;
         this.alias = local.alias;
@@ -61,16 +61,18 @@ public class Local {
     public String getPrecio() {
         return precio;
     }
-    
+
     public Double getPrecioDouble() {
         String precioDouble = this.precio.replace(" €", "").replace(",", ".");
         return Double.valueOf(precioDouble);
     }
 
     public void setPrecio(String precio) {
-        this.precio = precio;
+        double x = Double.parseDouble(precio.trim().replace(",", "."));
+        String precioFormatoCorrecto = String.format("%.2f", x);
+        this.precio = precioFormatoCorrecto;
     }
-    
+
     public void setPrecio(double precio) {
         this.precio = String.format("%.2f", precio);
     }

@@ -4,8 +4,9 @@
  */
 package es.ujaen.tfg.controlador;
 
-import es.ujaen.tfg.DAO.ClienteDAO;
+import es.ujaen.tfg.DAO.FacturaDAO;
 import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
 import java.util.ArrayList;
@@ -15,13 +16,13 @@ import java.util.List;
  *
  * @author jota
  */
-public class ClienteControlador implements Observable {
+public class FacturaControlador implements Observable {
 
     private List<Observador> observadores;
-    private final ClienteDAO clienteDAO;
+    private final FacturaDAO facturaDAO;
 
-    public ClienteControlador() {
-        this.clienteDAO = new ClienteDAO();
+    public FacturaControlador() {
+        this.facturaDAO = new FacturaDAO();
         this.observadores = new ArrayList<>();
     }
 
@@ -42,37 +43,42 @@ public class ClienteControlador implements Observable {
         }
     }
 
-    public boolean crear(Cliente cliente) {
-        clienteDAO.crear(cliente);
+    public boolean crear(Factura factura) {
+        facturaDAO.crear(factura);
+        notificarObservadores();
+        return true;
+
+    }
+
+    public Factura leer(String numero, String anio) {
+        return facturaDAO.leer(numero, anio);
+    }
+
+    public boolean actualizar(Factura factura) {
+        facturaDAO.actualizar(factura);
+        notificarObservadores();
+        return true;
+
+    }
+
+    public boolean borrar(Factura factura) {
+        facturaDAO.borrar(factura);
         notificarObservadores();
         return true;
     }
 
-    public Cliente leer(String DNI) {
-        return clienteDAO.leer(DNI);
+    public List<Factura> leerTodos() {
+        return facturaDAO.leerTodos();
     }
 
-    public boolean actualizar(Cliente cliente) {
-        clienteDAO.actualizar(cliente);
-        notificarObservadores();
-        return true;
-    }
-
-    public boolean borrar(Cliente cliente) {
-        clienteDAO.borrar(cliente);
-        notificarObservadores();
-        return true;
-    }
-
-    public List<Cliente> leerTodos() {
-        return clienteDAO.leerTodos();
-    }
-    
-    public Cliente buscarPorNombre(String nombre){
-        return clienteDAO.buscarPorNombre(nombre);
-    }
-    
-    public Cliente buscarPorAlias(String alias){
-        return clienteDAO.buscarPorAlias(alias);
+    public List<Factura> facturasCliente(Cliente cliente) {
+        List<Factura> facturas = facturaDAO.leerTodos();
+        List<Factura> facturasCliente = new ArrayList<>();
+        for (Factura factura : facturas) {
+            if(factura.getCliente().equals(cliente)){
+                facturasCliente.add(factura);
+            }
+        }
+        return facturasCliente;
     }
 }

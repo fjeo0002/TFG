@@ -7,6 +7,7 @@ package es.ujaen.tfg.vistas;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Anticipo;
+import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
 import static es.ujaen.tfg.utils.Utils.mostrarError;
@@ -16,15 +17,20 @@ import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
 import static es.ujaen.tfg.utils.Utils.validarFecha;
 import static es.ujaen.tfg.utils.Utils.validarMesesCubiertos;
 import static es.ujaen.tfg.utils.Utils.validarMonto;
+import static es.ujaen.tfg.utils.Utils.validarSaldo;
 import java.awt.Component;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
+import static es.ujaen.tfg.utils.Utils.convertirTextoANumeroMes;
 
 /**
  *
@@ -34,9 +40,9 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
 
     private final ClienteControlador clienteControlador;
     private final AnticipoControlador anticipoControlador;
-    
+
     private Anticipo anticipoActual;
-    
+
     private VistaRegistroAnticiposFiltrarBusqueda vistaRegistroAnticiposFiltrarBusqueda;
     private final JFrame parent;
 
@@ -179,25 +185,41 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         // TODO add your handling code here:
         vistaRegistroAnticiposFiltrarBusqueda = new VistaRegistroAnticiposFiltrarBusqueda(parent, true, clienteControlador);
         vistaRegistroAnticiposFiltrarBusqueda.setVisible(true);
+
+        List<String> filtros = vistaRegistroAnticiposFiltrarBusqueda.obtenerFiltros();
+        aplicarFiltros(filtros);
     }//GEN-LAST:event_jButtonFiltrarBusquedaActionPerformed
 
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         // TODO add your handling code here:
         String idAnticipo = obtenerIdDeFilaSeleccionada(jTable, dtm);
+        Cliente clienteActualizar = null;
         if (idAnticipo != null) {
             Anticipo anticipoEliminado = anticipoControlador.leer(idAnticipo);
             if (anticipoEliminado != null) {
+                clienteActualizar = anticipoEliminado.getCliente();
                 anticipoControlador.borrar(anticipoEliminado);
             }
         }
+        
+        actualizarSaldoCliente(clienteActualizar);
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
     private void cargarTablaAnticipos() {
 
         dtm.setRowCount(0); //Limpiar la tabla
 
-        List<Anticipo> anticipos = anticipoControlador.leerTodos();
+        // Por ahora lo hago aqui en la Vista... quizás en el DAO podría guardarlos directamente por Fecha
+        List<Anticipo> anticipos = anticipoControlador.leerTodos().stream()
+                .sorted((a1, a2) -> {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    LocalDate fecha1 = LocalDate.parse(a1.getFecha(), formatter);
+                    LocalDate fecha2 = LocalDate.parse(a2.getFecha(), formatter);
+                    return fecha2.compareTo(fecha1); // Orden descendente
+                })
+                .toList();
 
+        //List<Anticipo> anticipos = anticipoControlador.leerTodos();
         for (Anticipo anticipo : anticipos) {
             dtm.addRow(new Object[]{
                 anticipo.getId(), // Columna ID
@@ -273,7 +295,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
             public boolean stopCellEditing() {
                 String value = (String) getCellEditorValue();
                 if (!validarMonto(value)) {
-                    mostrarError(parent, "Monto inválido.", "Debe ser un número con 2 decimales separados por coma (e.g. 150,00 €).");
+                    mostrarError(parent, "Monto inválido.", "Debe ser un número distinto de 0,00 € con 2 decimales separados por coma (e.g. 150,00 €).");
                     //montoTextField.requestFocus();
                     return false;
                 }
@@ -336,7 +358,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
             @Override
             public boolean stopCellEditing() {
                 String value = (String) getCellEditorValue();
-                if (!validarMonto(value)) {
+                if (!validarSaldo(value)) {
                     mostrarError(parent, "Saldo inválido.", "Debe ser un número con 2 decimales separados por coma (e.g. 150,00 €).");
                     saldoTextField.requestFocus();
                     return false;
@@ -352,6 +374,17 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
 
                 anticipoActual.setSaldo(nuevoSaldo); // Actualizar saldo solo si es válido
                 anticipoControlador.actualizar(anticipoActual);
+
+                Cliente clienteActual = anticipoActual.getCliente();
+                actualizarSaldoCliente(clienteActual);
+                /*
+                clienteActual.setSaldo(nuevoSaldo);
+                if (nuevoSaldo == 0) {
+                    clienteActual.setEstado("Al día");
+                }
+                */
+                clienteControlador.actualizar(clienteActual);
+
                 agregarSufijo(saldoTextField, sufijoPrecios);
                 return super.stopCellEditing();
             }
@@ -362,7 +395,86 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
     private void cargarDatosFilaSeleccionada(int row) {
         int modeloFila = jTable.convertRowIndexToModel(row); // Convertir índice de vista a modelo
         String idAnticipo = (String) dtm.getValueAt(modeloFila, 0); // Columna del ID
-        anticipoActual = anticipoControlador.leer(idAnticipo); // Recuperar el objeto Anticipo
+        anticipoActual = anticipoControlador.leer(idAnticipo); // Recuperar el objeto Anticipo        
+    }
+
+    private void aplicarFiltros(List<String> filtros) {
+
+        String nombreAliasClienteFiltro = filtros.get(0);
+        String saldoFiltro = filtros.get(1);
+        String anioFiltro = filtros.get(2);
+        String mesFiltro = filtros.get(3);
+
+        // Filtrar utilizando un RowFilter personalizado
+        rowSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                String ID = (String) entry.getValue(0); // Obtener ID de la fila
+                Anticipo anticipoFiltrado = anticipoControlador.leer(ID); // Obtener el anticipo correspondiente
+
+                // Extraer datos del anticipo
+                String nombreCliente = anticipoFiltrado.getCliente().getNombre().toLowerCase();
+                String aliasCliente = anticipoFiltrado.getCliente().getAlias().toLowerCase();
+                double saldo = anticipoFiltrado.getSaldoDouble();
+                String fecha = anticipoFiltrado.getFecha();
+                String[] fechaSeparada = fecha.split("/");
+                String mes = fechaSeparada[1];
+                String anio = fechaSeparada[2];
+
+                // Filtrar por cliente
+                if (!nombreAliasClienteFiltro.isEmpty()
+                        && !(nombreCliente.contains(nombreAliasClienteFiltro.toLowerCase())
+                        || aliasCliente.contains(nombreAliasClienteFiltro.toLowerCase()))) {
+                    return false;
+                }
+
+                // Filtrar por saldo
+                if (!saldoFiltro.equals("Todos")) {
+                    if (saldoFiltro.equals("Anticipos Activos") && saldo <= 0) {
+                        return false;
+                    } else if (saldoFiltro.equals("Anticipos Finalizados") && saldo > 0) {
+                        return false;
+                    }
+                }
+
+                // Filtrar por año
+                if (!anioFiltro.isEmpty() && !anio.equals(anioFiltro)) {
+                    return false;
+                }
+
+                // Filtrar por mes (convertir mes textual a número si es necesario)
+                if (!mesFiltro.equals("-")) {
+                    String mesTexto = convertirTextoANumeroMes(mesFiltro);
+                    if (mesTexto != null && !mes.equals(mesTexto)) {
+                        return false;
+                    }
+                }
+
+                return true; // Si pasa todos los filtros, incluir la fila
+            }
+        });
+
+    }
+
+    private Anticipo obtenerUltimoAnticipoActivo(Cliente cliente) {
+        return anticipoControlador.leerTodos().stream()
+                .filter(a -> a.getCliente().equals(cliente) && a.getSaldoDouble() > 0)
+                .max((a1, a2) -> a1.getFecha().compareTo(a2.getFecha())) // Comparar por fecha
+                .orElse(null); // Devuelve null si no hay anticipos activos
+    }
+
+    private void actualizarSaldoCliente(Cliente cliente) {
+        Anticipo ultimoAnticipo = obtenerUltimoAnticipoActivo(cliente);
+
+        if (ultimoAnticipo != null) {
+            cliente.setSaldo(ultimoAnticipo.getSaldo());
+            cliente.setEstado("Anticipa");
+        } else {
+            cliente.setSaldo("0,00");
+            cliente.setEstado("Al día");
+        }
+
+        clienteControlador.actualizar(cliente);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

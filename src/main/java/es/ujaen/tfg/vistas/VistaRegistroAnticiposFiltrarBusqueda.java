@@ -11,6 +11,8 @@ import es.ujaen.tfg.observer.Observador;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.border.Border;
 
 /**
@@ -21,12 +23,14 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
 
     private final ClienteControlador clienteControlador;
     private TextAutoCompleter autoCompleterBuscadorClientes;
-    
+
     private final String placeHolderAnio = "aaaa";
     private final Border originalBorder;
     private boolean campoAnioCorrecto = true;
+
     /**
      * Creates new form VistaRegistroAnticiposFiltrarBusqueda
+     *
      * @param parent
      * @param modal
      * @param clienteControlador
@@ -36,10 +40,10 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
         initComponents();
         setLocationRelativeTo(null);
         this.originalBorder = jTextFieldAnio.getBorder();
-        
+
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
-        
+
         cargarAutocompletarBuscadorClientes();
     }
 
@@ -284,7 +288,16 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
         }
 
     }
-    
+
+    public List<String> obtenerFiltros() {
+        List<String> filtros = new ArrayList<>();
+        filtros.add(jTextFieldBuscadorClientes.getText().trim());
+        filtros.add((String) jComboBoxSaldo.getSelectedItem());
+        filtros.add(jTextFieldAnio.getText().trim().equals("aaaa") ? "" : jTextFieldAnio.getText().trim());
+        filtros.add((String) jComboBoxMes.getSelectedItem());
+        return filtros;
+    }
+
     private void habilitarBotonAceptar() {
         if (campoAnioCorrecto) {
             jButtonAceptar.setEnabled(true);
@@ -292,7 +305,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
         }
         jButtonAceptar.setEnabled(false);
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAceptar;
     private javax.swing.JButton jButtonCancelar;
@@ -316,7 +329,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
     public void actualizar() {
         actualizarAutocompleter();
     }
-    
+
     private void actualizarAutocompleter() {
         autoCompleterBuscadorClientes.removeAllItems();
         cargarAutocompletarBuscadorClientes();

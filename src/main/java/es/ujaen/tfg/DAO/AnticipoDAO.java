@@ -17,13 +17,8 @@ import java.util.List;
  */
 public class AnticipoDAO implements InterfazDAO<Anticipo> {
 
-    private List<Anticipo> anticipos = new ArrayList<>();/* {
-        {
-            add(new Anticipo("A001", "50,00", "1", new Date(2024, 3, 4)));
-            add(new Anticipo("A002", "150,00", "3", new Date(2024, 7, 25)));
-        }
-    };
-*/
+    private List<Anticipo> anticipos = new ArrayList<>();
+
     public AnticipoDAO() {
     }
 

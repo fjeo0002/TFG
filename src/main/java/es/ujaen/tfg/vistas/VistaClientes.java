@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-
 package es.ujaen.tfg.vistas;
 
 import com.mxrck.autocompleter.TextAutoCompleter;
@@ -11,7 +10,6 @@ import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.RowFilter;
@@ -347,42 +345,32 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
 
     private void actualizarFiltro() {
         String estadoSeleccionado = (String) jComboBoxEstado.getSelectedItem();
-        String texto = jTextFieldBuscadorClientes.getText();
+        String texto = jTextFieldBuscadorClientes.getText().trim().toLowerCase();
 
-        // Filtro por estado
-        RowFilter<DefaultTableModel, Object> estadoFilter = null;
-        if (estadoSeleccionado != null && !estadoSeleccionado.equals("Estado")) {
-            switch (estadoSeleccionado) {
-                case "Al día" ->
-                    estadoFilter = RowFilter.regexFilter("Al día", 2);
-                case "Debe" ->
-                    estadoFilter = RowFilter.regexFilter("Debe", 2);
-                case "Anticipa" ->
-                    estadoFilter = RowFilter.regexFilter("Anticipa", 2);
+        // Aplicar RowFilter basado en los objetos Cliente
+        rowSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                String DNI = (String) entry.getValue(0); // Obtener DNI de la fila
+                Cliente clienteFiltrado = clienteControlador.leer(DNI); // Recuperar el cliente correspondiente
+
+                // Verificar si cliente cumple el filtro por nombre o alias
+                String nombre = clienteFiltrado.getNombre().toLowerCase();
+                String alias = clienteFiltrado.getAlias().toLowerCase();
+                if (!texto.isEmpty() && !(nombre.contains(texto) || alias.contains(texto))) {
+                    return false;
+                }
+
+                // Verificar si cliente cumple el filtro por estado
+                if (estadoSeleccionado != null && !estadoSeleccionado.equals("Estado")) {
+                    String estado = clienteFiltrado.getEstado();
+                    if (!estado.equals(estadoSeleccionado)) {
+                        return false;
+                    }
+                }
+
+                return true; // Si pasa todos los filtros, incluir la fila
             }
-        }
-
-        // Filtro por nombre y alias
-        RowFilter<DefaultTableModel, Object> nombreFilter = null;
-        if (!texto.trim().isEmpty()) {
-            nombreFilter = RowFilter.regexFilter("(?i)" + texto, 0, 1);  // Busca en las columnas Nombre y Alias
-        }
-
-        // Lista de filtros a combinar
-        List<RowFilter<DefaultTableModel, Object>> filters = new ArrayList<>();
-
-        // Añadir filtros si existen
-        if (nombreFilter != null) {
-            filters.add(nombreFilter);
-        }
-        if (estadoFilter != null) {
-            filters.add(estadoFilter);
-        }
-
-        // Combinación de filtros
-        RowFilter<DefaultTableModel, Object> combinedFilter = RowFilter.andFilter(filters);
-
-        // Aplica el filtro combinado
-        rowSorter.setRowFilter(combinedFilter);
+        });
     }
 }

@@ -24,6 +24,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
     private final ClienteControlador clienteControlador;
     private final AnticipoControlador anticipoControlador;
+
     private TextAutoCompleter autoCompleterBuscadorClientes;
 
     private boolean campoBuscadorClientesCorrecto;
@@ -248,8 +249,11 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
         String saldo = monto;
 
-        String nombreCliente = jTextFieldBuscadorClientes.getText().trim();
-        Cliente cliente = clienteControlador.leer(nombreCliente);
+        String nombreAliasCliente = jTextFieldBuscadorClientes.getText().trim();
+        Cliente cliente = clienteControlador.buscarPorNombre(nombreAliasCliente);
+        if (cliente == null) {
+            cliente = clienteControlador.buscarPorAlias(nombreAliasCliente);
+        }
 
         Anticipo anticipo = new Anticipo(
                 ID,

@@ -4,6 +4,8 @@
  */
 package es.ujaen.tfg.modelo;
 
+import java.util.Objects;
+
 /**
  *
  * @author jota
@@ -154,5 +156,37 @@ public class Cliente {
     public String toString() {
         return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", correo=" + email + ", direccion=" + direccion + ", codigoPostal=" + codigoPostal + ", ciudad=" + localidad + ", descripcion=" + descripcion + ", estado=" + estado + ", saldo=" + saldo + ", tipo=" + tipo + '}';
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(this.DNI);
+        hash = 53 * hash + Objects.hashCode(this.nombre);
+        hash = 53 * hash + Objects.hashCode(this.alias);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Cliente other = (Cliente) obj;
+        if (!Objects.equals(this.DNI, other.DNI)) {
+            return false;
+        }
+        if (!Objects.equals(this.nombre, other.nombre)) {
+            return false;
+        }
+        return Objects.equals(this.alias, other.alias);
+    }
+    
+    
 
 }

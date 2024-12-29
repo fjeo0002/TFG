@@ -4,6 +4,9 @@
  */
 package es.ujaen.tfg.modelo;
 
+import static es.ujaen.tfg.utils.Utils.FORMATO_FECHA;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
 /**
@@ -42,7 +45,7 @@ public class Anticipo {
     public String getMonto() {
         return monto;
     }
-    
+
     public Double getMontoDouble() {
         String montoDouble = this.monto.replace(" €", "").replace(",", ".");
         return Double.valueOf(montoDouble);
@@ -51,7 +54,7 @@ public class Anticipo {
     public void setMonto(String monto) {
         this.monto = monto;
     }
-    
+
     public void setMonto(double monto) {
         this.monto = String.format("%.2f", monto);
     }
@@ -59,7 +62,7 @@ public class Anticipo {
     public String getMesesCubiertos() {
         return mesesCubiertos;
     }
-    
+
     public Integer getMesesCubiertosInteger() {
         return Integer.valueOf(mesesCubiertos);
     }
@@ -67,7 +70,7 @@ public class Anticipo {
     public void setMesesCubiertos(String mesesCubiertos) {
         this.mesesCubiertos = mesesCubiertos;
     }
-    
+
     public void setMesesCubiertos(int mesesCubiertos) {
         this.mesesCubiertos = String.valueOf(mesesCubiertos);
     }
@@ -78,6 +81,23 @@ public class Anticipo {
 
     public void setFecha(String fecha) {
         this.fecha = fecha;
+    }
+
+    public LocalDate getFechaLocalDate() {
+        try {
+            return LocalDate.parse(fecha, FORMATO_FECHA);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    public void setFecha(LocalDate fecha) {
+        if (fecha != null) {
+            // Convertir LocalDate a String en el formato deseado
+            this.fecha = fecha.format(FORMATO_FECHA);
+        } else {
+            this.fecha = null;
+        }
     }
 
     public Cliente getCliente() {
@@ -91,7 +111,7 @@ public class Anticipo {
     public String getSaldo() {
         return saldo;
     }
-    
+
     public Double getSaldoDouble() {
         String saldoDouble = this.saldo.replace(" €", "").replace(",", ".");
         return Double.valueOf(saldoDouble);
@@ -100,7 +120,7 @@ public class Anticipo {
     public void setSaldo(String saldo) {
         this.saldo = saldo;
     }
-    
+
     public void setSaldo(double saldo) {
         this.saldo = String.format("%.2f", saldo);
     }

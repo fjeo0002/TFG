@@ -240,14 +240,7 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
 
     private void jTextFieldBuscadorLocalesKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldBuscadorLocalesKeyReleased
         // TODO add your handling code here:
-        String texto = jTextFieldBuscadorLocales.getText();
-
-        if (texto.trim().isEmpty()) {
-            rowSorter.setRowFilter(null); // No aplicar filtro si el campo está vacío
-        } else {
-            // El filtro buscará en las columnas 0 (Nombre) y 1 (Alias)
-            rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto, 0, 1));
-        }
+        actualizarFiltro();
     }//GEN-LAST:event_jTextFieldBuscadorLocalesKeyReleased
 
     private void addTableSelectionListener() {
@@ -326,4 +319,25 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
         cargarAutocompletarBuscadorLocales();
     }
 
+    private void actualizarFiltro() {
+        String texto = jTextFieldBuscadorLocales.getText().trim().toLowerCase();
+
+        // Aplicar RowFilter basado en los objetos Cliente
+        rowSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                String codigo = (String) entry.getValue(0); // Obtener DNI de la fila
+                Local localFiltrado = localControlador.leer(codigo); // Recuperar el cliente correspondiente
+
+                // Verificar si cliente cumple el filtro por nombre o alias
+                String nombre = localFiltrado.getNombre().toLowerCase();
+                String alias = localFiltrado.getAlias().toLowerCase();
+                if (!texto.isEmpty() && !(nombre.contains(texto) || alias.contains(texto))) {
+                    return false;
+                }
+
+                return true; // Si pasa todos los filtros, incluir la fila
+            }
+        });
+    }
 }

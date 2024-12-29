@@ -10,12 +10,12 @@ import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarSufijo;
+import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
+import static es.ujaen.tfg.utils.Utils.validarMonto;
 import java.awt.Color;
 import java.awt.Frame;
 import java.util.UUID;
 import javax.swing.border.Border;
-import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
-import static es.ujaen.tfg.utils.Utils.validarMonto;
 
 /**
  *
@@ -329,7 +329,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
                 jLabelAdvertenciaPrecioBase,
                 "* Introduce un número con 2 decimales",
                 originalBorder,
-                texto -> !texto.isEmpty() && texto.matches("(?!0,00)(?!0)([1-9]\\d{0,9}|0)(,\\d{2})?")
+                texto -> validarMonto(jTextFieldPrecioBase.getText().trim())
         // Permitir números con exactamente 2 decimales y enteros != de 0,00 y 0
         );
         habilitarBotonAceptar();

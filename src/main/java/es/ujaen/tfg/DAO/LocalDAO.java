@@ -14,12 +14,25 @@ import java.util.List;
  *
  * @author jota
  */
-public class LocalDAO implements InterfazDAO<Local>{
-    
-    private List<Local> locales = new ArrayList<>() {{
-        add(new Local("L001", "Artículo 1", "Alias1", "10,50"));
-        add(new Local("L002", "Artículo 2", "Alias2", "20,00"));
-    }};;
+public class LocalDAO implements InterfazDAO<Local> {
+
+    private List<Local> locales = new ArrayList<>() {
+        {
+            add(new Local("L001", "Artículo 1", "Alias1", "10,50"));
+            add(new Local("L002", "Artículo 2", "Alias2", "20,00"));
+            add(new Local("L003", "Artículo 3", "Alias3", "15,50"));
+            add(new Local("L004", "Artículo 4", "Alias4", "30,00"));
+            add(new Local("L005", "Artículo 5", "Alias5", "25,99"));
+            add(new Local("L006", "Artículo 6", "Alias6", "40,00"));
+            add(new Local("L007", "Artículo 7", "Alias7", "55,20"));
+            add(new Local("L008", "Artículo 8", "Alias8", "60,00"));
+            add(new Local("L009", "Artículo 9", "Alias9", "75,50"));
+            add(new Local("L010", "Artículo 10", "Alias10", "85,00"));
+
+        }
+    };
+
+    ;
 
     public LocalDAO() {
     }
@@ -60,9 +73,11 @@ public class LocalDAO implements InterfazDAO<Local>{
     public List<Local> leerTodos() {
         return locales;
     }
-    
+
     public String convertirAJSON(Local local) {
-        if (local == null) return "{}";
+        if (local == null) {
+            return "{}";
+        }
 
         JsonObject json = new JsonObject();
         json.addProperty("codigo", local.getCodigo());
@@ -72,7 +87,7 @@ public class LocalDAO implements InterfazDAO<Local>{
 
         return json.toString();
     }
-    
+
     public String convertirListaAJSON() {
         JsonArray jsonArray = new JsonArray();
 

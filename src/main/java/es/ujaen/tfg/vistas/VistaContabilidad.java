@@ -4,24 +4,60 @@
  */
 package es.ujaen.tfg.vistas;
 
+import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.controlador.FacturaControlador;
+import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Factura;
+import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.utils.ColorCelda;
+import static es.ujaen.tfg.utils.Utils.convertirNumeroATextoMes;
+import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
  * @author jota
  */
-public class VistaContabilidad extends javax.swing.JPanel {
+public class VistaContabilidad extends javax.swing.JPanel implements Observador {
+
+    private final Map<Integer, Map<Integer, String>> celdaFacturaMap;
+
+    private final ClienteControlador clienteControlador;
+    private final FacturaControlador facturaControlador;
+
+    private final DefaultTableModel dtm;
+    private TableRowSorter<DefaultTableModel> rowSorter;
 
     /**
      * Creates new form VistaContabilidad
+     *
+     * @param clienteControlador
+     * @param facturaControlador
      */
-    public VistaContabilidad() {
+    public VistaContabilidad(ClienteControlador clienteControlador, FacturaControlador facturaControlador) {
+        this.celdaFacturaMap = new HashMap<>();
+
+        this.facturaControlador = facturaControlador;
+        this.facturaControlador.agregarObservador(this);
+
         initComponents();
+
+        this.clienteControlador = clienteControlador;
+        this.clienteControlador.agregarObservador(this);
+
+        this.dtm = (DefaultTableModel) jTable.getModel();
+
+        cargarTablaContabilidad();
     }
 
     /**
@@ -42,7 +78,7 @@ public class VistaContabilidad extends javax.swing.JPanel {
         jSpinnerAnio = new javax.swing.JSpinner();
         jPanelCuerpo = new javax.swing.JPanel();
         jScrollPaneTabla = new javax.swing.JScrollPane();
-        jTable = new javax.swing.JTable();
+        jTable = new ColorCelda(facturaControlador, celdaFacturaMap);
 
         setLayout(new java.awt.BorderLayout());
 
@@ -74,6 +110,11 @@ public class VistaContabilidad extends javax.swing.JPanel {
         jSpinnerAnio.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jSpinnerAnio.setModel(new javax.swing.SpinnerNumberModel(2024, null, null, 1));
         jSpinnerAnio.setEditor(new javax.swing.JSpinner.NumberEditor(jSpinnerAnio, "####"));
+        jSpinnerAnio.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSpinnerAnioStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -91,17 +132,19 @@ public class VistaContabilidad extends javax.swing.JPanel {
         jTable.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Cliente", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                "DNI", "Cliente", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -119,8 +162,8 @@ public class VistaContabilidad extends javax.swing.JPanel {
         });
         jScrollPaneTabla.setViewportView(jTable);
         if (jTable.getColumnModel().getColumnCount() > 0) {
-            jTable.getColumnModel().getColumn(0).setPreferredWidth(200);
-            jTable.getColumnModel().getColumn(1).setResizable(false);
+            jTable.getColumnModel().getColumn(0).setResizable(false);
+            jTable.getColumnModel().getColumn(1).setPreferredWidth(200);
             jTable.getColumnModel().getColumn(2).setResizable(false);
             jTable.getColumnModel().getColumn(3).setResizable(false);
             jTable.getColumnModel().getColumn(4).setResizable(false);
@@ -132,6 +175,7 @@ public class VistaContabilidad extends javax.swing.JPanel {
             jTable.getColumnModel().getColumn(10).setResizable(false);
             jTable.getColumnModel().getColumn(11).setResizable(false);
             jTable.getColumnModel().getColumn(12).setResizable(false);
+            jTable.getColumnModel().getColumn(13).setResizable(false);
         }
 
         jPanelCuerpo.add(jScrollPaneTabla);
@@ -144,13 +188,37 @@ public class VistaContabilidad extends javax.swing.JPanel {
         int row = jTable.rowAtPoint(evt.getPoint());
         int column = jTable.columnAtPoint(evt.getPoint());
 
-        // Solo actuar si se clickea en columnas de meses (ignorar "Cliente")
-        if (column > 0) {
-            showPopupPanel(evt.getComponent(), evt.getX(), evt.getY(), row, column);
+        // Solo actuar si se clickea en columnas de meses (ignorar "DNI y Cliente")
+        if (column > 1) {
+            Map<Integer, String> columnasFactura = celdaFacturaMap.get(row);
+
+            if (columnasFactura != null && columnasFactura.containsKey(column)) {
+                String claveFactura = columnasFactura.get(column);
+
+                if (claveFactura != null) {
+
+                    // Extraer año y número de factura
+                    String[] partesClave = claveFactura.split("_");
+                    String numeroFactura = partesClave[1]; // "A/1", "A/2", etc.
+                    String anioFactura = partesClave[0];  // "2024", "2023", etc.
+
+                    //String numeroFactura = columnasFactura.get(column);
+                    Factura factura = facturaControlador.leer(numeroFactura, anioFactura);
+
+                    if (factura != null) {
+                        showPopupPanel(evt.getComponent(), evt.getX(), evt.getY(), factura);
+                    }
+                }
+            }
         }
     }//GEN-LAST:event_jTableMouseClicked
 
-    private void showPopupPanel(Component parent, int x, int y, int row, int column) {
+    private void jSpinnerAnioStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerAnioStateChanged
+        // TODO add your handling code here:
+        cargarTablaContabilidad();
+    }//GEN-LAST:event_jSpinnerAnioStateChanged
+
+    private void showPopupPanel(Component parent, int x, int y, Factura factura) {
         // Crear el popup
         JPopupMenu popupMenu = new JPopupMenu();
         JPanel panel = new JPanel(new GridLayout(2, 1)); // Panel con 2 filas para los checkboxes
@@ -158,16 +226,12 @@ public class VistaContabilidad extends javax.swing.JPanel {
         JCheckBox pagadoCheckBox = new JCheckBox("Pagado");
         JCheckBox facturadoCheckBox = new JCheckBox("Facturado");
 
-        // Obtener valor actual de la celda para preseleccionar valores
-        Object cellValue = jTable.getValueAt(row, column);
-        String value = cellValue != null ? cellValue.toString() : "";
+        pagadoCheckBox.setFont(new java.awt.Font("Segoe UI", 0, 14));
+        facturadoCheckBox.setFont(new java.awt.Font("Segoe UI", 0, 14));
 
-        if (value.contains("Pagado")) {
-            pagadoCheckBox.setSelected(true);
-        }
-        if (value.contains("Facturado")) {
-            facturadoCheckBox.setSelected(true);
-        }
+        // Si la Factura tiene el valor "Pagado" o "Facturado", preseleccionar los checkboxes
+        pagadoCheckBox.setSelected(factura.getPagado());
+        facturadoCheckBox.setSelected(factura.getFacturado());
 
         // Agregar checkboxes al panel
         panel.add(pagadoCheckBox);
@@ -178,24 +242,18 @@ public class VistaContabilidad extends javax.swing.JPanel {
 
         // Añadir un botón para cerrar y guardar los cambios
         JButton guardarBtn = new JButton("Guardar");
+        guardarBtn.setFont(new java.awt.Font("Segoe UI", 0, 14));
+
         guardarBtn.addActionListener(e -> {
-            // Lógica para actualizar la celda
+            // Lógica para actualizar factura de la celda
             boolean pagado = pagadoCheckBox.isSelected();
             boolean facturado = facturadoCheckBox.isSelected();
-            String newValue;
 
-            if (pagado && facturado) {
-                newValue = "Verde";
-            } else if (!pagado && facturado) {
-                newValue = "Rojo";
-            } else if (pagado && !facturado) {
-                newValue = "Amarillo";
-            } else {
-                newValue = "";
-            }
+            // Acturalizar la factura (ahora mismo solo el valor Pagado y Facturado)
+            factura.setPagado(pagado);
+            factura.setFacturado(facturado);
 
-            // Actualizar el valor en la tabla
-            jTable.setValueAt(newValue, row, column);
+            facturaControlador.actualizar(factura);
 
             // Cerrar el popup
             popupMenu.setVisible(false);
@@ -208,7 +266,6 @@ public class VistaContabilidad extends javax.swing.JPanel {
         popupMenu.show(parent, x, y);
     }
 
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabelAnio;
     private javax.swing.JLabel jLabelTitulo;
@@ -220,4 +277,71 @@ public class VistaContabilidad extends javax.swing.JPanel {
     private javax.swing.JSpinner jSpinnerAnio;
     private javax.swing.JTable jTable;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void actualizar() {
+        cargarTablaContabilidad();
+    }
+
+    private void cargarTablaContabilidad() {
+
+        dtm.setRowCount(0); //Limpiar la tabla
+        celdaFacturaMap.clear(); // Limpiar el mapa
+
+        List<Cliente> clientes = clienteControlador.leerTodos();
+
+        for (Cliente cliente : clientes) {
+            // 1º Crear filas a todos los Clientes (vacias)
+            dtm.addRow(new Object[]{
+                cliente.getDNI().trim(), // Columna DNI
+                cliente.getNombre().trim(), // Columna Nombre
+                "", // Columna Enero
+                "", // Columna Febrero
+                "", // Columna Marzo
+                "", // Columna Abril
+                "", // Columna Mayo
+                "", // Columna Junio
+                "", // Columna Julio
+                "", // Columna Agosto
+                "", // Columna Septiembre
+                "", // Columna Octubre
+                "", // Columna Diciembre
+                "" // Columna Diciembre
+            });
+        }
+
+        // 2º Rellenar uno a uno las facturas de los clientes
+        for (int i = 0; i < clientes.size(); i++) {   // Necesito la fila del cliente
+            Cliente cliente = clientes.get(i);
+            List<Factura> facturasCliente = facturaControlador.facturasCliente(cliente);    // Cojo todas las facturas del cliente
+
+            for (Factura factura : facturasCliente) {
+                String[] diaMesAnio = factura.getFecha().split("/");
+                // Hacer coincidir el Año con el spinner
+                String anio = diaMesAnio[2];
+                String spinner = (String) jSpinnerAnio.getValue().toString();
+                if (spinner.equals(anio)) {
+                    // 2º hacer coincidir el Mes con la columna y poner su monto
+                    String mes = diaMesAnio[1];
+                    String mesTexto = convertirNumeroATextoMes(mes);
+                    int columna = jTable.getColumnModel().getColumnIndex(mesTexto);
+
+                    String claveFactura = anio + "_" + factura.getNumero();
+                    // 3º Asociar celda con número de factura
+                    celdaFacturaMap.computeIfAbsent(i, k -> new HashMap<>()).put(columna, claveFactura);
+
+                    dtm.setValueAt(factura.getMonto() + sufijoPrecios, i, columna);
+                }
+            }
+        }
+
+        // Ocultar la columna del DNI
+        jTable.getColumnModel().getColumn(0).setMinWidth(0);
+        jTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+        rowSorter = new TableRowSorter<>(dtm);
+        jTable.setRowSorter(rowSorter);
+    }
+
 }
