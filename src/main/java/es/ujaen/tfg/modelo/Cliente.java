@@ -4,6 +4,8 @@
  */
 package es.ujaen.tfg.modelo;
 
+import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
+import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import java.util.Objects;
 
 /**
@@ -19,15 +21,25 @@ public class Cliente {
     private String direccion;
     private String localidad;
     private String codigoPostal;
-    private String descripcion;
     private String estado;
-    private String saldo;
+    private double saldo;
     private String tipo;
 
     public Cliente() {
     }
 
-    public Cliente(String DNI, String nombre, String alias, String email, String direccion, String localidad, String codigoPostal, String descripcion, String estado, String saldo, String tipo) {
+    public Cliente(
+            String DNI, 
+            String nombre, 
+            String alias, 
+            String email, 
+            String direccion, 
+            String localidad, 
+            String codigoPostal, 
+            String estado, 
+            double saldo, 
+            String tipo
+    ) {
         this.DNI = DNI;
         this.nombre = nombre;
         this.alias = alias;
@@ -35,12 +47,35 @@ public class Cliente {
         this.direccion = direccion;
         this.localidad = localidad;
         this.codigoPostal = codigoPostal;
-        this.descripcion = descripcion;
         this.estado = estado;
         this.saldo = saldo;
         this.tipo = tipo;
     }
     
+    public Cliente(
+            String DNI, 
+            String nombre, 
+            String alias, 
+            String email, 
+            String direccion, 
+            String localidad, 
+            String codigoPostal, 
+            String estado, 
+            String saldo, 
+            String tipo
+    ) {
+        this.DNI = DNI;
+        this.nombre = nombre;
+        this.alias = alias;
+        this.email = email;
+        this.direccion = direccion;
+        this.localidad = localidad;
+        this.codigoPostal = codigoPostal;
+        this.estado = estado;
+        this.saldo = convertirStringADouble(saldo);
+        this.tipo = tipo;
+    }
+
     public Cliente(Cliente c) {
         this.DNI = c.DNI;
         this.nombre = c.nombre;
@@ -49,7 +84,6 @@ public class Cliente {
         this.direccion = c.direccion;
         this.codigoPostal = c.codigoPostal;
         this.localidad = c.localidad;
-        this.descripcion = c.descripcion;
         this.estado = c.estado;
         this.saldo = c.saldo;
         this.tipo = c.tipo;
@@ -111,14 +145,6 @@ public class Cliente {
         this.localidad = localidad;
     }
 
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
     public String getTipo() {
         return tipo;
     }
@@ -135,26 +161,25 @@ public class Cliente {
         this.estado = estado;
     }
 
-    public String getSaldo() {
+    public double getSaldo() {
         return saldo;
     }
     
-    public Double getSaldoDouble() {
-        String saldoDouble = this.saldo.replace(" €", "").replace(",", ".");
-        return Double.valueOf(saldoDouble);
+    public String getSaldoString() {
+        return convertirDoubleAString(saldo);
     }
 
-    public void setSaldo(String saldo) {
+    public void setSaldo(double saldo) {
         this.saldo = saldo;
     }
     
-    public void setSaldo(double saldo) {
-        this.saldo = String.format("%.2f", saldo);
+    public void setSaldo(String saldoStr) {
+        this.saldo = convertirStringADouble(saldoStr);
     }
 
     @Override
     public String toString() {
-        return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", correo=" + email + ", direccion=" + direccion + ", codigoPostal=" + codigoPostal + ", ciudad=" + localidad + ", descripcion=" + descripcion + ", estado=" + estado + ", saldo=" + saldo + ", tipo=" + tipo + '}';
+        return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", correo=" + email + ", direccion=" + direccion + ", codigoPostal=" + codigoPostal + ", ciudad=" + localidad + ", estado=" + estado + ", saldo=" + saldo + ", tipo=" + tipo + '}';
     }
 
     @Override
@@ -167,9 +192,6 @@ public class Cliente {
         hash = 97 * hash + Objects.hashCode(this.direccion);
         hash = 97 * hash + Objects.hashCode(this.localidad);
         hash = 97 * hash + Objects.hashCode(this.codigoPostal);
-        hash = 97 * hash + Objects.hashCode(this.descripcion);
-        hash = 97 * hash + Objects.hashCode(this.estado);
-        hash = 97 * hash + Objects.hashCode(this.saldo);
         hash = 97 * hash + Objects.hashCode(this.tipo);
         return hash;
     }
@@ -205,15 +227,6 @@ public class Cliente {
             return false;
         }
         if (!Objects.equals(this.codigoPostal, other.codigoPostal)) {
-            return false;
-        }
-        if (!Objects.equals(this.descripcion, other.descripcion)) {
-            return false;
-        }
-        if (!Objects.equals(this.estado, other.estado)) {
-            return false;
-        }
-        if (!Objects.equals(this.saldo, other.saldo)) {
             return false;
         }
         return Objects.equals(this.tipo, other.tipo);

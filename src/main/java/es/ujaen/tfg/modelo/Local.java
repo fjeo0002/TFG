@@ -4,6 +4,8 @@
  */
 package es.ujaen.tfg.modelo;
 
+import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
+import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import java.util.Objects;
 
 /**
@@ -15,16 +17,23 @@ public class Local {
     private String codigo;
     private String nombre;
     private String alias;
-    private String precio;
+    private double precio;
 
     public Local() {
+    }
+
+    public Local(String codigo, String articulo, String alias, double precio) {
+        this.codigo = codigo;
+        this.nombre = articulo;
+        this.alias = alias;
+        this.precio = precio;
     }
 
     public Local(String codigo, String articulo, String alias, String precio) {
         this.codigo = codigo;
         this.nombre = articulo;
         this.alias = alias;
-        setPrecio(precio);
+        this.precio = convertirStringADouble(precio);
     }
 
     public Local(Local local) {
@@ -58,23 +67,20 @@ public class Local {
         this.alias = alias;
     }
 
-    public String getPrecio() {
+    public double getPrecio() {
         return precio;
     }
-
-    public Double getPrecioDouble() {
-        String precioDouble = this.precio.replace(" €", "").replace(",", ".");
-        return Double.valueOf(precioDouble);
-    }
-
-    public void setPrecio(String precio) {
-        double x = Double.parseDouble(precio.trim().replace(",", "."));
-        String precioFormatoCorrecto = String.format("%.2f", x);
-        this.precio = precioFormatoCorrecto;
+    
+    public String getPrecioString() {
+        return convertirDoubleAString(precio);
     }
 
     public void setPrecio(double precio) {
-        this.precio = String.format("%.2f", precio);
+        this.precio = precio;
+    }
+    
+    public void setPrecio(String precioStr) {
+        this.precio = convertirStringADouble(precioStr);
     }
 
     @Override

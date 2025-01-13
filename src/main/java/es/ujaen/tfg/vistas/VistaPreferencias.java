@@ -4,21 +4,29 @@
  */
 package es.ujaen.tfg.vistas;
 
+import es.ujaen.tfg.controlador.PreferenciasControlador;
+import es.ujaen.tfg.modelo.Preferencias;
+
 /**
  *
  * @author jota
  */
 public class VistaPreferencias extends javax.swing.JDialog {
 
+    private final PreferenciasControlador preferenciasControlador;
+    
     /**
      * Creates new form VistaPreferencias
      * @param parent
      * @param modal
+     * @param preferenciasControlador
      */
-    public VistaPreferencias(java.awt.Frame parent, boolean modal) {
+    public VistaPreferencias(java.awt.Frame parent, boolean modal, PreferenciasControlador preferenciasControlador) {
         super(parent, modal);
         initComponents();
+        this.preferenciasControlador = preferenciasControlador;
         setLocationRelativeTo(null);
+        cargarPreferencias();
     }
 
     /**
@@ -147,9 +155,30 @@ public class VistaPreferencias extends javax.swing.JDialog {
 
     private void jButtonAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAceptarActionPerformed
         // TODO add your handling code here:
+        guardarPreferencias();
         dispose();
     }//GEN-LAST:event_jButtonAceptarActionPerformed
 
+    /**
+     * Carga las preferencias desde el controlador y las muestra en la vista.
+     */
+    private void cargarPreferencias() {
+        Preferencias preferencias = preferenciasControlador.obtenerPreferencias();
+        jSpinnerIVA.setValue(preferencias.getIva());
+        jSpinnerRetencion.setValue(preferencias.getRetencion());
+    }
+    
+    /**
+     * Recoge los valores de la vista y los envía al controlador.
+     */
+    private void guardarPreferencias() {
+        Preferencias nuevasPreferencias = new Preferencias(
+                (Integer) jSpinnerIVA.getValue(),
+                (Integer) jSpinnerRetencion.getValue()
+        );
+        preferenciasControlador.guardarPreferencias(nuevasPreferencias);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAceptar;
     private javax.swing.JButton jButtonCancelar;

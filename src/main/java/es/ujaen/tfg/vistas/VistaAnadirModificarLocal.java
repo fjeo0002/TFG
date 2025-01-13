@@ -6,15 +6,26 @@ package es.ujaen.tfg.vistas;
 
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Local;
+import es.ujaen.tfg.utils.Utils;
+import static es.ujaen.tfg.utils.Utils.ERROR_PRECIO_LOCAL;
+import static es.ujaen.tfg.utils.Utils.EURO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_LOCAL_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.NEGRO;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_ALIAS_LOCAL;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_NOMBRE_LOCAL;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_PRECIO_LOCAL;
+import static es.ujaen.tfg.utils.Utils.TITULO_LOCAL_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.TITULO_VISTA_ANADIR_LOCAL;
+import static es.ujaen.tfg.utils.Utils.TITULO_VISTA_MODIFICAR_LOCAL;
+import static es.ujaen.tfg.utils.Utils.VACIO;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarSufijo;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 import static es.ujaen.tfg.utils.Utils.validarMonto;
-import java.awt.Color;
-import java.awt.Frame;
 import java.util.UUID;
+import javax.swing.JFrame;
 import javax.swing.border.Border;
 
 /**
@@ -23,20 +34,17 @@ import javax.swing.border.Border;
  */
 public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
-    private final boolean esEdicion;
+    private final JFrame parent;
+
+    private boolean esEdicion;
+    private Local local;
     private Local localOriginal;
-    private Local localModificado;
 
     private final LocalControlador localControlador;
 
     private final Border originalBorder;
 
     private boolean campoPrecioBaseCorrecto;
-
-    private final String placeHolderNombre = "Introduzca Nombre de Local";
-    private final String placeHolderAlias = "Introduzca Alias de Local (opcional)";
-    private final String placeHolderPrecioBase = "0,00 €";
-    private final String sufijoPrecioBase = " €";
 
     /**
      * Creates new form VistaCrearModificarCliente
@@ -46,44 +54,53 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
      * @param local: null -> VistaAñadirLocal local -> VistaModificarLocal
      * @param localControlador
      */
-    public VistaAnadirModificarLocal(Frame parent, boolean modal, Local local, LocalControlador localControlador) {
+    public VistaAnadirModificarLocal(java.awt.Frame parent, boolean modal, Local local, LocalControlador localControlador) {
         super(parent, modal);
         initComponents();
+        this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
-        
+
         this.originalBorder = jTextFieldNombre.getBorder();
 
         this.localControlador = localControlador;
 
         if (local == null) {
-            jLabelTitulo.setText("Añadir Nuevo Local");
-            setTitle("Añadir Nuevo Local");
-
-            jButtonAceptar.setEnabled(false);
-
-            esEdicion = false;
-            campoPrecioBaseCorrecto = false;
-            localOriginal = null;
-            localModificado = null;
+            cargarVistaAnadirLocal();
         } else {
-            jLabelTitulo.setText("Modificar Local");
-            setTitle("Modificar Local");
-
-            jTextFieldNombre.setText(local.getNombre().trim());
-            jTextFieldAlias.setText(local.getAlias().trim());
-            jTextFieldPrecioBase.setText(local.getPrecio().trim() + sufijoPrecioBase);
-
-            jTextFieldNombre.setForeground(new Color(0, 0, 0));
-            jTextFieldAlias.setForeground(new Color(0, 0, 0));
-            jTextFieldPrecioBase.setForeground(new Color(0, 0, 0));
-
-            jButtonAceptar.setEnabled(true);
-
-            esEdicion = true;
-            campoPrecioBaseCorrecto = true;
-            localOriginal = new Local(local);
-            localModificado = new Local(local);
+            cargarVistaModificarLocal(local);
         }
+    }
+
+    private void cargarVistaAnadirLocal() {
+        this.jLabelTitulo.setText(TITULO_VISTA_ANADIR_LOCAL);
+        this.setTitle(TITULO_VISTA_ANADIR_LOCAL);
+
+        this.jButtonAceptar.setEnabled(false);
+
+        this.esEdicion = false;
+        this.campoPrecioBaseCorrecto = false;
+        this.local = null;
+        this.localOriginal = null;
+    }
+
+    private void cargarVistaModificarLocal(Local local) {
+        this.jLabelTitulo.setText(TITULO_VISTA_MODIFICAR_LOCAL);
+        this.setTitle(TITULO_VISTA_MODIFICAR_LOCAL);
+
+        this.jTextFieldNombre.setText(local.getNombre().trim());
+        this.jTextFieldAlias.setText(local.getAlias().trim());
+        this.jTextFieldPrecioBase.setText(local.getPrecioString().trim() + EURO);
+
+        this.jTextFieldNombre.setForeground(NEGRO);
+        this.jTextFieldAlias.setForeground(NEGRO);
+        this.jTextFieldPrecioBase.setForeground(NEGRO);
+
+        this.jButtonAceptar.setEnabled(true);
+
+        this.esEdicion = true;
+        this.campoPrecioBaseCorrecto = true;
+        this.local = new Local(local);
+        this.localOriginal = new Local(local);
     }
 
     /**
@@ -290,34 +307,42 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
     private void jButtonAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAceptarActionPerformed
         // TODO add your handling code here:
-        String aliasFinal = jTextFieldAlias.getText().trim();
-        if (aliasFinal.equals(placeHolderAlias)) {
-            aliasFinal = ""; // Sustituir el placeholder por cadena vacía
+        String codigo, nombre, alias, precio;
+
+        nombre = jTextFieldNombre.getText().trim();
+        alias = jTextFieldAlias.getText().trim();
+        if (alias.equals(PLACEHOLDER_ALIAS_LOCAL)) {
+            alias = VACIO; // Sustituir el placeholder por cadena vacía
         }
+        precio = jTextFieldPrecioBase.getText().trim();
 
         if (!esEdicion) {
             UUID uuid = UUID.randomUUID();
-            String codigo = uuid.toString().trim();
+            codigo = uuid.toString().trim();
 
-            quitarSufijo(jTextFieldPrecioBase, sufijoPrecioBase);
-
-            localOriginal = new Local(
+            local = new Local(
                     codigo,
-                    jTextFieldNombre.getText().trim(),
-                    aliasFinal,
-                    jTextFieldPrecioBase.getText().trim()
+                    nombre,
+                    alias,
+                    precio
             );
 
-            localControlador.crear(localOriginal);
-        } else {
-            localModificado.setNombre(jTextFieldNombre.getText().trim());
-            localModificado.setAlias(aliasFinal);
-            quitarSufijo(jTextFieldPrecioBase, sufijoPrecioBase);
-            localModificado.setPrecio(jTextFieldPrecioBase.getText().trim());
-
-            if (!localOriginal.equals(localControlador)) {
-                localControlador.actualizar(localModificado);
+            boolean localRepetido = localControlador.localRepetido(local);
+            if (localRepetido) {
+                Utils.mostrarError(parent, TITULO_LOCAL_REPETIDO, MENSAJE_LOCAL_REPETIDO);
+                return;
             }
+            localControlador.crear(local);
+
+        } else {
+            local.setNombre(nombre);
+            local.setAlias(alias);
+            local.setPrecio(precio);
+
+            if(!localOriginal.equals(local)){
+                localControlador.actualizar(local);
+            }
+
         }
         dispose();
     }//GEN-LAST:event_jButtonAceptarActionPerformed
@@ -327,7 +352,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         campoPrecioBaseCorrecto = validarCampoFormulario(
                 jTextFieldPrecioBase,
                 jLabelAdvertenciaPrecioBase,
-                "* Introduce un número con 2 decimales",
+                ERROR_PRECIO_LOCAL,
                 originalBorder,
                 texto -> validarMonto(jTextFieldPrecioBase.getText().trim())
         // Permitir números con exactamente 2 decimales y enteros != de 0,00 y 0
@@ -337,37 +362,37 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
     private void jTextFieldPrecioBaseFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldPrecioBaseFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldPrecioBase, placeHolderPrecioBase);
-        quitarSufijo(jTextFieldPrecioBase, sufijoPrecioBase);
+        quitarPlaceHolder(jTextFieldPrecioBase, PLACEHOLDER_PRECIO_LOCAL);
+        quitarSufijo(jTextFieldPrecioBase, EURO);
     }//GEN-LAST:event_jTextFieldPrecioBaseFocusGained
 
     private void jTextFieldPrecioBaseFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldPrecioBaseFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldPrecioBase, placeHolderPrecioBase);
-        if(validarMonto(jTextFieldPrecioBase.getText().trim())){
-            agregarSufijo(jTextFieldPrecioBase, sufijoPrecioBase);
+        agregarPlaceHolder(jTextFieldPrecioBase, PLACEHOLDER_PRECIO_LOCAL);
+        if (validarMonto(jTextFieldPrecioBase.getText().trim())) {
+            agregarSufijo(jTextFieldPrecioBase, EURO);
         }
     }//GEN-LAST:event_jTextFieldPrecioBaseFocusLost
 
     private void jTextFieldAliasFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+        quitarPlaceHolder(jTextFieldAlias, PLACEHOLDER_ALIAS_LOCAL);
     }//GEN-LAST:event_jTextFieldAliasFocusGained
 
     private void jTextFieldAliasFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+        agregarPlaceHolder(jTextFieldAlias, PLACEHOLDER_ALIAS_LOCAL);
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldAliasFocusLost
 
     private void jTextFieldNombreFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldNombre, placeHolderNombre);
+        quitarPlaceHolder(jTextFieldNombre, PLACEHOLDER_NOMBRE_LOCAL);
     }//GEN-LAST:event_jTextFieldNombreFocusGained
 
     private void jTextFieldNombreFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldNombre, placeHolderNombre);
+        agregarPlaceHolder(jTextFieldNombre, PLACEHOLDER_NOMBRE_LOCAL);
     }//GEN-LAST:event_jTextFieldNombreFocusLost
 
     private void jTextFieldNombreKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldNombreKeyReleased
@@ -376,7 +401,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
     }//GEN-LAST:event_jTextFieldNombreKeyReleased
 
     private void habilitarBotonAceptar() {
-        if (!jTextFieldNombre.getText().trim().equals(placeHolderNombre) && !jTextFieldNombre.getText().trim().isEmpty()) {
+        if (!jTextFieldNombre.getText().trim().equals(PLACEHOLDER_NOMBRE_LOCAL) && !jTextFieldNombre.getText().trim().isEmpty()) {
             if (campoPrecioBaseCorrecto && !jTextFieldPrecioBase.getText().trim().isEmpty()) {
                 jButtonAceptar.setEnabled(true);
                 return;

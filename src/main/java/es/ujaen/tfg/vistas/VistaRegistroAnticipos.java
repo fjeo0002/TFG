@@ -9,18 +9,18 @@ import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.utils.Utils;
+import static es.ujaen.tfg.utils.Utils.EURO;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
 import static es.ujaen.tfg.utils.Utils.mostrarError;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import static es.ujaen.tfg.utils.Utils.quitarSufijo;
-import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
 import static es.ujaen.tfg.utils.Utils.validarFecha;
 import static es.ujaen.tfg.utils.Utils.validarMesesCubiertos;
 import static es.ujaen.tfg.utils.Utils.validarMonto;
 import static es.ujaen.tfg.utils.Utils.validarSaldo;
 import java.awt.Component;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JFrame;
@@ -30,7 +30,6 @@ import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
-import static es.ujaen.tfg.utils.Utils.convertirTextoANumeroMes;
 
 /**
  *
@@ -61,6 +60,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         this.parent = parent;
 
         this.clienteControlador = clienteControlador;
+        this.clienteControlador.agregarObservador(this);
 
         this.anticipoControlador = anticipoControlador;
         this.anticipoControlador.agregarObservador(this);
@@ -197,7 +197,8 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         if (idAnticipo != null) {
             Anticipo anticipoEliminado = anticipoControlador.leer(idAnticipo);
             if (anticipoEliminado != null) {
-                clienteActualizar = anticipoEliminado.getCliente();
+                String clienteDNI = anticipoEliminado.getClienteDNI();
+                clienteActualizar = clienteControlador.leer(clienteDNI);
                 anticipoControlador.borrar(anticipoEliminado);
             }
         }
@@ -215,21 +216,22 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
 
             anticipos.stream()
                     .sorted((a1, a2) -> {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                        LocalDate fecha1 = LocalDate.parse(a1.getFecha(), formatter);
-                        LocalDate fecha2 = LocalDate.parse(a2.getFecha(), formatter);
+                        LocalDate fecha1 = a1.getFecha();
+                        LocalDate fecha2 = a2.getFecha();
                         return fecha2.compareTo(fecha1); // Orden descendente
                     })
                     .toList();
 
             for (Anticipo anticipo : anticipos) {
+                String clienteDNI = anticipo.getClienteDNI();
+                Cliente cliente = clienteControlador.leer(clienteDNI);
                 dtm.addRow(new Object[]{
                     anticipo.getId(), // Columna ID
-                    anticipo.getCliente().getNombre().trim(), // Columna Cliente
-                    anticipo.getFecha().trim(), // Columna Fecha
-                    anticipo.getMonto().trim() + sufijoPrecios, // Columna Monto
-                    anticipo.getMesesCubiertos().trim(), // Columna Meses Cubiertos
-                    anticipo.getSaldo().trim() + sufijoPrecios // Columna Saldo
+                    cliente.getNombre().trim(), // Columna Cliente
+                    anticipo.getFechaString().trim(), // Columna Fecha
+                    anticipo.getMontoString().trim() + EURO, // Columna Monto
+                    anticipo.getMesesCubiertosString().trim(), // Columna Meses Cubiertos
+                    anticipo.getSaldoString().trim() + EURO// Columna Saldo
                 });
             }
         }
@@ -258,14 +260,15 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         DefaultCellEditor fechaEditor = new DefaultCellEditor(fechaTextField) {
             @Override
             public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-                cargarDatosFilaSeleccionada(row);
+                cargarDatosFilaSeleccionada();
                 return super.getTableCellEditorComponent(table, value, isSelected, row, column);
             }
 
             @Override
             public boolean stopCellEditing() {
                 String value = (String) getCellEditorValue();
-                if (!validarFecha(value)) {
+                LocalDate fecha = Utils.convertirStringAFecha(value);
+                if (!validarFecha(fecha)) {
                     mostrarError(parent, "Fecha inválida.", "Debe tener formato 'dd/MM/yyyy' y no puede ser posterior a hoy.");
                     return false;
                 }
@@ -282,14 +285,14 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         montoTextField.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent evt) {
-                quitarSufijo(montoTextField, sufijoPrecios);
+                quitarSufijo(montoTextField, EURO);
             }
         });
 
         DefaultCellEditor montoEditor = new DefaultCellEditor(montoTextField) {
             @Override
             public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-                cargarDatosFilaSeleccionada(row);
+                cargarDatosFilaSeleccionada();
                 return super.getTableCellEditorComponent(table, value, isSelected, row, column);
             }
 
@@ -298,21 +301,19 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 String value = (String) getCellEditorValue();
                 if (!validarMonto(value)) {
                     mostrarError(parent, "Monto inválido.", "Debe ser un número distinto de 0,00 € con 2 decimales separados por coma (e.g. 150,00 €).");
-                    //montoTextField.requestFocus();
                     return false;
                 }
 
                 double nuevoMonto = Double.parseDouble(value.replace(",", "."));
 
-                if (anticipoActual.getSaldoDouble() > nuevoMonto) {
+                if (anticipoActual.getSaldo() > nuevoMonto) {
                     mostrarError(parent, "Monto inválido.", "No puede ser menor al Saldo actual.");
-                    //montoTextField.requestFocus();
                     return false;
                 }
 
                 anticipoActual.setMonto(nuevoMonto); // Actualizar monto solo si es válido
                 anticipoControlador.actualizar(anticipoActual);
-                agregarSufijo(montoTextField, sufijoPrecios);
+                agregarSufijo(montoTextField, EURO);
                 return super.stopCellEditing();
             }
         };
@@ -322,7 +323,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         DefaultCellEditor mesesEditor = new DefaultCellEditor(mesesTextField) {
             @Override
             public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-                cargarDatosFilaSeleccionada(row);
+                cargarDatosFilaSeleccionada();
                 return super.getTableCellEditorComponent(table, value, isSelected, row, column);
             }
 
@@ -346,14 +347,14 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         saldoTextField.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent evt) {
-                quitarSufijo(saldoTextField, sufijoPrecios);
+                quitarSufijo(saldoTextField, EURO);
             }
         });
 
         DefaultCellEditor saldoEditor = new DefaultCellEditor(saldoTextField) {
             @Override
             public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-                cargarDatosFilaSeleccionada(row);
+                cargarDatosFilaSeleccionada();
                 return super.getTableCellEditorComponent(table, value, isSelected, row, column);
             }
 
@@ -368,7 +369,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
 
                 double nuevoSaldo = Double.parseDouble(value.replace(",", "."));
 
-                if (nuevoSaldo > anticipoActual.getMontoDouble()) {
+                if (nuevoSaldo > anticipoActual.getMonto()) {
                     mostrarError(parent, "Saldo inválido.", "No puede ser mayor al Monto.");
                     saldoTextField.requestFocus();
                     return false;
@@ -377,26 +378,26 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 anticipoActual.setSaldo(nuevoSaldo); // Actualizar saldo solo si es válido
                 anticipoControlador.actualizar(anticipoActual);
 
-                Cliente clienteActual = anticipoActual.getCliente();
+                String clienteDNI = anticipoActual.getClienteDNI();
+                Cliente clienteActual = clienteControlador.leer(clienteDNI);
                 actualizarSaldoCliente(clienteActual);
-                /*
+                
                 clienteActual.setSaldo(nuevoSaldo);
                 if (nuevoSaldo == 0) {
                     clienteActual.setEstado("Al día");
                 }
-                 */
+                
                 clienteControlador.actualizar(clienteActual);
 
-                agregarSufijo(saldoTextField, sufijoPrecios);
+                agregarSufijo(saldoTextField, EURO);
                 return super.stopCellEditing();
             }
         };
         jTable.getColumnModel().getColumn(5).setCellEditor(saldoEditor);
     }
 
-    private void cargarDatosFilaSeleccionada(int row) {
-        int modeloFila = jTable.convertRowIndexToModel(row); // Convertir índice de vista a modelo
-        String idAnticipo = (String) dtm.getValueAt(modeloFila, 0); // Columna del ID
+    private void cargarDatosFilaSeleccionada() {
+        String idAnticipo = obtenerIdDeFilaSeleccionada(jTable, dtm); // Columna del ID
         anticipoActual = anticipoControlador.leer(idAnticipo); // Recuperar el objeto Anticipo        
     }
 
@@ -415,10 +416,13 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 Anticipo anticipoFiltrado = anticipoControlador.leer(ID); // Obtener el anticipo correspondiente
 
                 // Extraer datos del anticipo
-                String nombreCliente = anticipoFiltrado.getCliente().getNombre().toLowerCase();
-                String aliasCliente = anticipoFiltrado.getCliente().getAlias().toLowerCase();
-                double saldo = anticipoFiltrado.getSaldoDouble();
-                String fecha = anticipoFiltrado.getFecha();
+                String clienteDNI = anticipoFiltrado.getClienteDNI();
+                Cliente cliente = clienteControlador.leer(clienteDNI);
+                
+                String nombreCliente = cliente.getNombre().toLowerCase();
+                String aliasCliente = cliente.getAlias().toLowerCase();
+                double saldo = anticipoFiltrado.getSaldo();
+                String fecha = anticipoFiltrado.getFechaString();
                 String[] fechaSeparada = fecha.split("/");
                 String mes = fechaSeparada[1];
                 String anio = fechaSeparada[2];
@@ -445,13 +449,14 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 }
 
                 // Filtrar por mes (convertir mes textual a número si es necesario)
+                /*
                 if (!mesFiltro.equals("-")) {
                     String mesTexto = convertirTextoANumeroMes(mesFiltro);
                     if (mesTexto != null && !mes.equals(mesTexto)) {
                         return false;
                     }
                 }
-
+                */
                 return true; // Si pasa todos los filtros, incluir la fila
             }
         });
@@ -460,7 +465,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
 
     private Anticipo obtenerUltimoAnticipoActivo(Cliente cliente) {
         return anticipoControlador.leerTodos().stream()
-                .filter(a -> a.getCliente().equals(cliente) && a.getSaldoDouble() > 0)
+                .filter(a -> a.getClienteDNI().equals(cliente) && a.getSaldo() > 0)
                 .max((a1, a2) -> a1.getFecha().compareTo(a2.getFecha())) // Comparar por fecha
                 .orElse(null); // Devuelve null si no hay anticipos activos
     }
@@ -479,6 +484,11 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         clienteControlador.actualizar(cliente);
     }
 
+    @Override
+    public void actualizar() {
+        cargarTablaAnticipos();
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonEliminar;
     private javax.swing.JButton jButtonFiltrarBusqueda;
@@ -494,8 +504,4 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
     private javax.swing.JTable jTable;
     // End of variables declaration//GEN-END:variables
 
-    @Override
-    public void actualizar() {
-        cargarTablaAnticipos();
-    }
 }

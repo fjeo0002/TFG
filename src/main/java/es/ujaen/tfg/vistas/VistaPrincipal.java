@@ -4,15 +4,12 @@
  */
 package es.ujaen.tfg.vistas;
 
-import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.controlador.LocalControlador;
-import es.ujaen.tfg.modelo.Cliente;
-import es.ujaen.tfg.modelo.Local;
+import es.ujaen.tfg.controlador.PreferenciasControlador;
 import java.awt.BorderLayout;
 import javax.swing.*;
 
@@ -25,7 +22,6 @@ public class VistaPrincipal extends javax.swing.JFrame {
     private VistaPreferencias vistaPreferencias;
     private VistaCrearFactura vistaCrearFactura;
     private VistaCrearAnticipo vistaCrearAnticipo;
-    private VistaPlanFacturacion vistaPlanFacturacion;
 
     private VistaRegistroAnticipos vistaRegistroAnticipos;
     private VistaContabilidad vistaContabilidad;
@@ -37,6 +33,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
     private final LocalControlador localControlador;
     private final AnticipoControlador anticipoControlador;
     private final FacturaControlador facturaControlador;
+    private final PreferenciasControlador preferenciasControlador;
 
     /**
      * Creates new form VistaCrearModificarCliente2
@@ -50,6 +47,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
         localControlador = new LocalControlador();
         anticipoControlador = new AnticipoControlador();
         facturaControlador = new FacturaControlador();
+        preferenciasControlador = new PreferenciasControlador();
 
         cargarVistaContabilidad();
         cargarVistaRegistroAnticipos();
@@ -76,7 +74,6 @@ public class VistaPrincipal extends javax.swing.JFrame {
         jButtonPreferencias = new javax.swing.JButton();
         jButtonCrearFactura = new javax.swing.JButton();
         jButtonCrearAnticipo = new javax.swing.JButton();
-        jButtonPlanFacturacion = new javax.swing.JButton();
         jButtonDeshacer = new javax.swing.JButton();
         jButtonRehacer = new javax.swing.JButton();
         jTabbedPaneCategorias = new javax.swing.JTabbedPane();
@@ -143,15 +140,6 @@ public class VistaPrincipal extends javax.swing.JFrame {
             }
         });
         jPanelBotonesPrincipales.add(jButtonCrearAnticipo);
-
-        jButtonPlanFacturacion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonPlanFacturacion.setText("Plan Facturacion");
-        jButtonPlanFacturacion.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonPlanFacturacionActionPerformed(evt);
-            }
-        });
-        jPanelBotonesPrincipales.add(jButtonPlanFacturacion);
 
         jButtonDeshacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonDeshacer.setText("Deshacer");
@@ -266,21 +254,15 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private void jButtonPreferenciasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPreferenciasActionPerformed
         // TODO add your handling code here:
-        vistaPreferencias = new VistaPreferencias(this, true);
+        vistaPreferencias = new VistaPreferencias(this, true, preferenciasControlador);
         vistaPreferencias.setVisible(true);
     }//GEN-LAST:event_jButtonPreferenciasActionPerformed
 
     private void jButtonCrearFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearFacturaActionPerformed
         // TODO add your handling code here:
-        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador, facturaControlador);
+        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador, facturaControlador, preferenciasControlador);
         vistaCrearFactura.setVisible(true);
     }//GEN-LAST:event_jButtonCrearFacturaActionPerformed
-
-    private void jButtonPlanFacturacionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlanFacturacionActionPerformed
-        // TODO add your handling code here:
-        vistaPlanFacturacion = new VistaPlanFacturacion(this);
-        vistaPlanFacturacion.setVisible(true);
-    }//GEN-LAST:event_jButtonPlanFacturacionActionPerformed
 
     private void jButtonDeshacerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeshacerActionPerformed
         // TODO add your handling code here:
@@ -288,7 +270,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private void jButtonCrearAnticipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearAnticipoActionPerformed
         // TODO add your handling code here:
-        vistaCrearAnticipo = new VistaCrearAnticipo(this, true, clienteControlador, anticipoControlador);
+        vistaCrearAnticipo = new VistaCrearAnticipo(this, true, clienteControlador, anticipoControlador, facturaControlador);
         vistaCrearAnticipo.setVisible(true);
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
 
@@ -375,26 +357,18 @@ public class VistaPrincipal extends javax.swing.JFrame {
         //Aplicar LookAndFell FlatLaf
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
         }
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new VistaPrincipal().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new VistaPrincipal().setVisible(true);
         });
-    }
-
-    public LocalControlador getLocalControlador() {
-        return localControlador;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonCrearAnticipo;
     private javax.swing.JButton jButtonCrearFactura;
     private javax.swing.JButton jButtonDeshacer;
-    private javax.swing.JButton jButtonPlanFacturacion;
     private javax.swing.JButton jButtonPreferencias;
     private javax.swing.JButton jButtonRehacer;
     private javax.swing.JLabel jLabelTitulo;

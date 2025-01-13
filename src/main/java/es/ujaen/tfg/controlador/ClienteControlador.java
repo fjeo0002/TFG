@@ -67,12 +67,24 @@ public class ClienteControlador implements Observable {
     public List<Cliente> leerTodos() {
         return clienteDAO.leerTodos();
     }
-    
-    public Cliente buscarPorNombre(String nombre){
+
+    public Cliente buscarPorNombre(String nombre) {
         return clienteDAO.buscarPorNombre(nombre);
     }
-    
-    public Cliente buscarPorAlias(String alias){
+
+    public Cliente buscarPorAlias(String alias) {
         return clienteDAO.buscarPorAlias(alias);
+    }
+
+    public boolean clienteRepetido(Cliente c) {
+        List<Cliente> clientes = leerTodos();
+        if (clientes != null) {
+            for (Cliente cliente : clientes) {
+                if (c.equals(cliente)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

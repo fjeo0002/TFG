@@ -8,17 +8,28 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.controlador.LocalControlador;
+import es.ujaen.tfg.controlador.PreferenciasControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.modelo.Local;
+import es.ujaen.tfg.modelo.Preferencias;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.COMA;
+import static es.ujaen.tfg.utils.Utils.EURO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_FACTURA_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.PORCENTAJE;
+import static es.ujaen.tfg.utils.Utils.PUNTO;
+import static es.ujaen.tfg.utils.Utils.TIPOA;
+import static es.ujaen.tfg.utils.Utils.TITULO_FACTURA_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.VACIO;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
+import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
+import static es.ujaen.tfg.utils.Utils.convertirStringAFecha;
+import static es.ujaen.tfg.utils.Utils.mostrarError;
 import static es.ujaen.tfg.utils.Utils.quitarSufijo;
-import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
 import static es.ujaen.tfg.utils.Utils.validarFecha;
-import java.util.HashMap;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -32,12 +43,14 @@ import javax.swing.table.DefaultTableModel;
  */
 public class VistaCrearFactura extends javax.swing.JFrame implements Observador {
 
+    private Cliente clienteBuscado;
     private Local localBuscado;
     private double total;
 
     private final ClienteControlador clienteControlador;
     private final LocalControlador localControlador;
     private final FacturaControlador facturaControlador;
+    private final PreferenciasControlador preferenciasControlador;
 
     private TextAutoCompleter autoCompleterBuscadorClientes;
     private TextAutoCompleter autoCompleterBuscadorLocales;
@@ -57,8 +70,9 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
      * @param clienteControlador
      * @param localControlador
      * @param facturaControlador
+     * @param preferenciasControlador
      */
-    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador) {
+    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador, PreferenciasControlador preferenciasControlador) {
         initComponents();
         setLocationRelativeTo(null);
         this.parent = parent;
@@ -71,6 +85,8 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         this.facturaControlador = facturaControlador;
         this.facturaControlador.agregarObservador(this);
+
+        this.preferenciasControlador = preferenciasControlador;
 
         this.campoBuscadorClientesCorrecto = false;
         this.campoFechaCorrecto = false;
@@ -86,6 +102,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         inicializarListenerFecha();
         cargarAutocompletarBuscadorClientes();
         cargarAutocompletarBuscadorLocales();
+        cargarPreferencias();
     }
 
     /**
@@ -335,7 +352,6 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         jPanelSeleccionarLocal.add(jLabelPrecioUnitarioValor, gridBagConstraints);
 
         jLabelIVAValor.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelIVAValor.setText("21 %");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
@@ -344,7 +360,6 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         jPanelSeleccionarLocal.add(jLabelIVAValor, gridBagConstraints);
 
         jLabelRetencionValor.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelRetencionValor.setText("19 %");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
@@ -482,77 +497,61 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
     private void jButtonGenerarFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenerarFacturaActionPerformed
         // TODO add your handling code here:
+        String letra;
+        int numero;
+        LocalDate fecha;
+        boolean pagado, facturado;
+        double monto;
+        Cliente cliente;
+        String clienteDNI;
+
         JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
-        String fecha = dateField.getText().trim();
+        String fechaTxt = dateField.getText().trim();
+        fecha = convertirStringAFecha(fechaTxt);
 
-        String nombreAliasCliente = jTextFieldBuscadorClientes.getText().trim();
-        Cliente cliente = clienteControlador.buscarPorNombre(nombreAliasCliente);
-        if (cliente == null) {
-            cliente = clienteControlador.buscarPorAlias(nombreAliasCliente);
-        }
+        monto = total;
 
-        String monto = String.format("%.2f", total);
+        pagado = facturado = true;
 
-        String anio = "";
-        String[] diaMesAnio = fecha.split("/");
-        anio = diaMesAnio[2];
+        cliente = clienteBuscado;
+        clienteDNI = cliente.getDNI();
 
-        boolean clienteA = false;
-        String numero = "";
-        if ("A".equals(cliente.getTipo())) {
-            numero += "A/";
-            clienteA = true;
-        } else {
-            numero += "B/";
-            clienteA = false;
-        }
+        letra = cliente.getTipo();
 
-        List<Factura> todasFacturas = facturaControlador.leerTodos();
-        if (todasFacturas == null) {
-            numero += "1";
-        } else {
-            // Mapa para agrupar el último número por tipo y año
-            Map<String, Map<String, Integer>> ultimoPorTipoYAno = new HashMap<>();
+        numero = facturaControlador.siguienteNumeroFacturaLetraAnio(letra, fecha);
 
-            for (Factura factura : todasFacturas) {
-                String id = factura.getNumero();
-                String[] partes = id.split("/"); // Ejemplo: "A/1"
-                String tipo = partes[0];
-                int num = Integer.parseInt(partes[1]);
-
-                // Obtener la fecha de la factura
-                String facturaFecha = factura.getFecha();
-                String facturaAnio = facturaFecha.split("/")[2]; // Suponiendo formato "dd/MM/yyyy"
-
-                // Inicializar mapas anidados
-                ultimoPorTipoYAno.putIfAbsent(tipo, new HashMap<>());
-                Map<String, Integer> facturasPorAnio = ultimoPorTipoYAno.get(tipo);
-
-                // Actualizar el último número para el tipo y año
-                facturasPorAnio.put(facturaAnio, Math.max(facturasPorAnio.getOrDefault(facturaAnio, 0), num));
+        // Compruebo que sea un anticipo
+        List<Factura> facturasNoNumeradasCliente = facturaControlador.facturasNoNumeradasCliente(clienteDNI);
+        if (facturasNoNumeradasCliente == null || facturasNoNumeradasCliente.isEmpty()) {
+            // No hay Anticipos de ese cliente... se crea la factura normal
+            Factura factura = new Factura(letra, numero, fecha, pagado, facturado, monto, clienteDNI);
+            // Compruebo si está repetida según Mes/Año y Cliente... El número siempre dirá que es una nueva
+            boolean facturaRepetida = facturaControlador.facturaRepetida(factura);
+            if(facturaRepetida){
+                mostrarError(this, TITULO_FACTURA_REPETIDO, MENSAJE_FACTURA_REPETIDO);
+                // ¿Desea Sobreescribir? --> Método para Actualizar Facturas
+                return;
             }
+            facturaControlador.crear(factura);
+        } else {
+            // Hay anticipos de ese cliente... hay que actualizar la factura: numero y facturado
+            // El resto de campos ya se pusieron a la hora de crear el Anticipo
 
-            // Obtener el último número para el tipo y año actuales
-            Map<String, Integer> facturasDelTipo = ultimoPorTipoYAno.getOrDefault(clienteA ? "A" : "B", new HashMap<>());
-            int ultimoNumero = facturasDelTipo.getOrDefault(anio, 0);
-
-            // Incrementar el número de factura
-            int siguienteNumero = ultimoNumero + 1;
-            numero += String.valueOf(siguienteNumero);
-
+            // 1º: eliminamos la factura que hacia de Anticipo (a no ser que uses mal la aplicación, siempre es la 1º)
+            Factura factura = facturasNoNumeradasCliente.remove(0);
+            facturaControlador.borrar(factura);
+            // 2º "Actualizamos" la factura y volvemos a ingresarla en mi lista de facturas
+            factura.setFacturado(facturado);
+            factura.setNumero(numero);
+            facturaControlador.crear(factura);
         }
 
-        Factura factura = new Factura(numero, fecha, true, true, cliente, monto);
-        facturaControlador.crear(factura);
-
-        parent.setEnabled(true);
-        
         // Limpiar Textos de Cliente y Tabla 
-        // Deshabilitar Boton GenerarFactura
-        // Reinciar valor de total
-        jTextFieldBuscadorClientes.setText("");
+        jTextFieldBuscadorClientes.setText(VACIO);
         dtm.setRowCount(0);
+        // Deshabilitar Boton GenerarFactura
         jButtonGenerarFactura.setEnabled(false);
+        // Reinciar valor de total
         total = 0.0;
         actualizarLabelTotal();
     }//GEN-LAST:event_jButtonGenerarFacturaActionPerformed
@@ -580,27 +579,36 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private void jButtonAgregarLocalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAgregarLocalActionPerformed
         // TODO add your handling code here:
         // Limpiar Local + Precio:
-        jTextFieldBuscadorLocales.setText("");
-        jLabelPrecioUnitarioValor.setText("");
+        jTextFieldBuscadorLocales.setText(VACIO);
+        jLabelPrecioUnitarioValor.setText(VACIO);
 
         //Insertar nueva fila en la Tabla resumen:
         String cantidad = jSpinnerCantidad.getValue().toString();
         String local = localBuscado.getNombre();
-        String precioUnitario = localBuscado.getPrecio() + sufijoPrecios;
+        String precioUnitario = localBuscado.getPrecio() + EURO;
 
-        quitarSufijo(jLabelIVAValor, " %");
-        quitarSufijo(jLabelRetencionValor, " %");
+        quitarSufijo(jLabelIVAValor, PORCENTAJE);
+        quitarSufijo(jLabelRetencionValor, PORCENTAJE);
+
         String IVA = jLabelIVAValor.getText();
         String retencion = jLabelRetencionValor.getText();
 
         double IVADouble = Double.parseDouble(IVA) / 100.0 + 1.0;
         double retencionDouble = Double.parseDouble(retencion) / 100.0 + 1.0;
-        double precioUnitarioDouble = localBuscado.getPrecioDouble();
-        double subtotalDouble = ((precioUnitarioDouble * IVADouble) - (precioUnitarioDouble * retencionDouble) + precioUnitarioDouble) * Integer.parseInt(cantidad);
-        String subtotal = String.format("%.2f", subtotalDouble) + sufijoPrecios;
+        double precioUnitarioDouble = localBuscado.getPrecio();
+        double subtotalDouble;
 
-        agregarSufijo(jLabelIVAValor, " %");
-        agregarSufijo(jLabelRetencionValor, " %");
+        // Calculamos Subtotal según el tipo de Cliente
+        if (TIPOA.equals(clienteBuscado.getTipo())) {
+            subtotalDouble = ((precioUnitarioDouble * IVADouble) - (precioUnitarioDouble * retencionDouble) + precioUnitarioDouble) * Integer.parseInt(cantidad);
+        } else {
+            subtotalDouble = precioUnitarioDouble * Integer.parseInt(cantidad);
+        }
+
+        String subtotal = convertirDoubleAString(subtotalDouble) + EURO;
+
+        agregarSufijo(jLabelIVAValor, PORCENTAJE);
+        agregarSufijo(jLabelRetencionValor, PORCENTAJE);
         IVA = jLabelIVAValor.getText();
         retencion = jLabelRetencionValor.getText();
 
@@ -626,7 +634,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         int selectedRow = jTable.getSelectedRow();
         if (selectedRow != -1) {
             String subtotal = (String) dtm.getValueAt(selectedRow, dtm.getColumnCount() - 1);
-            double subtotalDouble = Double.parseDouble(subtotal.substring(0, subtotal.length() - 2).replace(",", "."));
+            double subtotalDouble = Double.parseDouble(subtotal.substring(0, subtotal.length() - 2).replace(COMA, PUNTO));
             total -= subtotalDouble;
             actualizarLabelTotal();
             dtm.removeRow(selectedRow);
@@ -648,11 +656,14 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private void jTextFieldBuscadorClientesFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldBuscadorClientesFocusLost
         // TODO add your handling code here:
         campoBuscadorClientesCorrecto = false;
+        clienteBuscado = null;
+
         if (!jTextFieldBuscadorClientes.getText().trim().isEmpty()) {
             for (Cliente cliente : clienteControlador.leerTodos()) {
                 if (jTextFieldBuscadorClientes.getText().trim().equals(cliente.getNombre())
                         || jTextFieldBuscadorClientes.getText().trim().equals(cliente.getAlias())) {
                     campoBuscadorClientesCorrecto = true;
+                    clienteBuscado = new Cliente(cliente);
                     break;
                 }
             }
@@ -709,35 +720,42 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private void inicializarListenerFecha() {
         // Obtener el editor de texto asociado al JDateChooser
         JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
-
         // Agregar un DocumentListener al campo de la fecha
         dateField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                verificarFecha();
+                procesarFecha(dateField.getText().trim());
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                verificarFecha();
+                procesarFecha(dateField.getText().trim());
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                verificarFecha();
+                procesarFecha(dateField.getText().trim());
             }
         });
     }
 
-    private void verificarFecha() {
-        JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
-        String textoFecha = dateField.getText().trim();
-
+    private void procesarFecha(String fechaTxt) {
         // Validar si el texto cumple con el formato "dd/MM/yyyy"
-        campoFechaCorrecto = !textoFecha.isEmpty() && validarFecha(textoFecha);
+        LocalDate fecha = convertirStringAFecha(fechaTxt);
+        if (fecha != null) {
+            campoFechaCorrecto = validarFecha(fecha);
+        } else {
+            campoFechaCorrecto = false;
+        }
 
         // Actualizar el estado del botón
         habilitarBotonAgregarLocal();
+    }
+
+    private void cargarPreferencias() {
+        Preferencias preferencias = preferenciasControlador.obtenerPreferencias();
+        jLabelIVAValor.setText(String.valueOf(preferencias.getIva()) + PORCENTAJE);
+        jLabelRetencionValor.setText(String.valueOf(preferencias.getRetencion()) + PORCENTAJE);
     }
 
     private void habilitarBotonAgregarLocal() {
@@ -763,16 +781,29 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private void actualizarLabelPrecioUnitarioValor() {
         // Comprobamos que haya un local introducido correctamente
         if (campoBuscadorLocalesCorrecto) {
-            String txt = localBuscado.getPrecio() + sufijoPrecios;
+            String txt = localBuscado.getPrecioString() + EURO;
             jLabelPrecioUnitarioValor.setText(txt);
         } else {
-            jLabelPrecioUnitarioValor.setText("");
+            jLabelPrecioUnitarioValor.setText(VACIO);
         }
     }
 
     private void actualizarLabelTotal() {
-        String subtotal = String.format("%.2f", total);
-        jLabelTotal.setText("Total: " + subtotal + sufijoPrecios);
+        String subtotal = convertirDoubleAString(total);
+        jLabelTotal.setText("Total: " + subtotal + EURO);
+    }
+
+    @Override
+    public void actualizar() {
+        actualizarAutocompleter();
+    }
+
+    private void actualizarAutocompleter() {
+        autoCompleterBuscadorClientes.removeAllItems();
+        cargarAutocompletarBuscadorClientes();
+
+        autoCompleterBuscadorLocales.removeAllItems();
+        cargarAutocompletarBuscadorLocales();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -817,16 +848,4 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private javax.swing.JTextField jTextFieldBuscadorLocales;
     // End of variables declaration//GEN-END:variables
 
-    @Override
-    public void actualizar() {
-        actualizarAutocompleter();
-    }
-
-    private void actualizarAutocompleter() {
-        autoCompleterBuscadorClientes.removeAllItems();
-        cargarAutocompletarBuscadorClientes();
-
-        autoCompleterBuscadorLocales.removeAllItems();
-        cargarAutocompletarBuscadorLocales();
-    }
 }

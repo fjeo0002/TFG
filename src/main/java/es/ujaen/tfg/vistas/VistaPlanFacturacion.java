@@ -2,34 +2,58 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
+
 package es.ujaen.tfg.vistas;
 
 import com.mxrck.autocompleter.TextAutoCompleter;
-import java.awt.Component;
-import java.util.Arrays;
+import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.controlador.LocalControlador;
+import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.observer.Observador;
 import java.util.List;
-import javax.swing.AbstractCellEditor;
 import javax.swing.JFrame;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.table.TableCellEditor;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
  * @author jota
  */
-public class VistaPlanFacturacion extends javax.swing.JFrame {
+public class VistaPlanFacturacion extends javax.swing.JFrame implements Observador {
 
     private final JFrame parent;
+
+    private final ClienteControlador clienteControlador;
+    private final LocalControlador localControlador;
+
+    private TextAutoCompleter autoCompleterBuscadorLocales;
+
+    private final DefaultTableModel dtm;
+    private TableRowSorter<DefaultTableModel> rowSorter;
+
     /**
      * Creates new form VistaPlanFacturacion
+     *
      * @param parent
+     * @param clienteControlador
+     * @param localControlador
      */
-    public VistaPlanFacturacion(JFrame parent) {
+    public VistaPlanFacturacion(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador) {
         initComponents();
         setLocationRelativeTo(null);
         this.parent = parent;
-        configurarTabla();
+
+        this.clienteControlador = clienteControlador;
+        this.clienteControlador.agregarObservador(this);
+
+        this.localControlador = localControlador;
+        this.localControlador.agregarObservador(this);
+
+        this.dtm = (DefaultTableModel) jTable.getModel();
+
+        cargarTablaPlanFacturacion();
+        addListenerDescripcion();
+
     }
 
     /**
@@ -75,17 +99,17 @@ public class VistaPlanFacturacion extends javax.swing.JFrame {
         jTable.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null}
+                {null, null, null, null, null}
             },
             new String [] {
-                "Cliente", "Local", "Total", "Descripción"
+                "DNI", "Cliente", "Local", "Total", "Descripción"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Object.class, java.lang.Double.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, true, false, true
+                false, false, true, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -130,14 +154,53 @@ public class VistaPlanFacturacion extends javax.swing.JFrame {
         parent.setEnabled(true);
     }//GEN-LAST:event_formWindowClosing
 
-    private void configurarTabla() {
-        // Supongamos que la tabla se llama jTable1
-        List<String> localesDisponibles = Arrays.asList("Calle Campanas", "Panadería Ramoni");
+    private void cargarTablaPlanFacturacion() {
+        dtm.setRowCount(0); //Limpiar la tabla
 
-        // Configurar el editor personalizado
-        jTable.getColumnModel().getColumn(1).setCellEditor(new LocalesCellEditor(localesDisponibles));
+        List<Cliente> clientes = clienteControlador.leerTodos();
+
+        if (clientes != null) {
+            for (Cliente cliente : clientes) {
+                dtm.addRow(new Object[]{
+                    cliente.getDNI().trim(), // Columna DNI
+                    cliente.getNombre().trim(), // Columna Cliente
+                    "", // Columna Local
+                    "", // Columna Total
+                    //cliente.getDescripcion() // Columna Descripcion
+                });
+            }
+        }
+        //Ocultar la columna del DNI
+        jTable.getColumnModel().getColumn(0).setMinWidth(0);
+        jTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+        rowSorter = new TableRowSorter<>(dtm);
+        jTable.setRowSorter(rowSorter);
     }
     
+    private void addListenerDescripcion() {
+        this.dtm.addTableModelListener(evt -> {
+            if (evt.getType() == javax.swing.event.TableModelEvent.UPDATE) {
+                int row = evt.getFirstRow();
+                int column = evt.getColumn();
+
+                // Verificar si la columna modificada es "Descripción"
+                if (column == 4) { // Índice de la columna "Descripción"
+                    String dni = (String) dtm.getValueAt(row, 0); // Columna DNI (oculta)
+                    String nuevaDescripcion = (String) dtm.getValueAt(row, column);
+
+                    // Actualizar el cliente en el controlador
+                    Cliente cliente = clienteControlador.leer(dni);
+                    if (cliente != null) {
+                        //cliente.setDescripcion(nuevaDescripcion);
+                        clienteControlador.actualizar(cliente);
+                    }
+                }
+            }
+        });
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelCuerpo;
@@ -147,31 +210,10 @@ public class VistaPlanFacturacion extends javax.swing.JFrame {
     private javax.swing.JTable jTable;
     // End of variables declaration//GEN-END:variables
 
-    private class LocalesCellEditor extends AbstractCellEditor implements TableCellEditor {
-
-        private final JTextField textField = new JTextField();
-        private final TextAutoCompleter autoCompleter;
-
-        public LocalesCellEditor(List<String> localesDisponibles) {
-            autoCompleter = new TextAutoCompleter(textField);
-            autoCompleter.setMode(0);
-            localesDisponibles.forEach(autoCompleter::addItem);
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            return Arrays.asList(textField.getText().split(",\\s*"));
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            if (value instanceof List) {
-                textField.setText(String.join(", ", (List<String>) value));
-            } else {
-                textField.setText("");
-            }
-            return textField;
-        }
+    @Override
+    public void actualizar() {
+        cargarTablaPlanFacturacion();
     }
+
     
 }

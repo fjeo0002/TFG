@@ -10,13 +10,13 @@ import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.utils.ColorCelda;
-import static es.ujaen.tfg.utils.Utils.convertirNumeroATextoMes;
-import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
+import static es.ujaen.tfg.utils.Utils.EURO;
+import es.ujaen.tfg.utils.Utils.Mes;
+import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import java.awt.Component;
 import java.awt.GridLayout;
-import java.util.HashMap;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -30,7 +30,7 @@ import javax.swing.table.TableRowSorter;
  */
 public class VistaContabilidad extends javax.swing.JPanel implements Observador {
 
-    private final Map<Integer, Map<Integer, String>> celdaFacturaMap;
+    private int anio;
 
     private final ClienteControlador clienteControlador;
     private final FacturaControlador facturaControlador;
@@ -45,17 +45,20 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
      * @param facturaControlador
      */
     public VistaContabilidad(ClienteControlador clienteControlador, FacturaControlador facturaControlador) {
-        this.celdaFacturaMap = new HashMap<>();
+        initComponents();
 
         this.facturaControlador = facturaControlador;
         this.facturaControlador.agregarObservador(this);
-
-        initComponents();
 
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
 
         this.dtm = (DefaultTableModel) jTable.getModel();
+        
+        //this.jSpinnerAnio.setValue(LocalDate.now().getYear());
+        //this.anio = LocalDate.now().getYear();
+        
+        this.jSpinnerAnio.setValue(2024);
 
         cargarTablaContabilidad();
     }
@@ -78,7 +81,7 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
         jSpinnerAnio = new javax.swing.JSpinner();
         jPanelCuerpo = new javax.swing.JPanel();
         jScrollPaneTabla = new javax.swing.JScrollPane();
-        jTable = new ColorCelda(facturaControlador, celdaFacturaMap);
+        jTable = new javax.swing.JTable();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -108,7 +111,7 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
         jPanelFiltro.add(jLabelAnio, gridBagConstraints);
 
         jSpinnerAnio.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jSpinnerAnio.setModel(new javax.swing.SpinnerNumberModel(2024, null, null, 1));
+        jSpinnerAnio.setModel(new javax.swing.SpinnerNumberModel());
         jSpinnerAnio.setEditor(new javax.swing.JSpinner.NumberEditor(jSpinnerAnio, "####"));
         jSpinnerAnio.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -185,36 +188,28 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
 
     private void jTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTableMouseClicked
         // TODO add your handling code here:
-        int row = jTable.rowAtPoint(evt.getPoint());
         int column = jTable.columnAtPoint(evt.getPoint());
 
         // Solo actuar si se clickea en columnas de meses (ignorar "DNI y Cliente")
         if (column > 1) {
-            Map<Integer, String> columnasFactura = celdaFacturaMap.get(row);
+            // Obtener la factura de la celda clickeada (basada en la fila y columna)
+            String clienteDNI = obtenerIdDeFilaSeleccionada(jTable, dtm);  // Obtener el DNI del cliente
 
-            if (columnasFactura != null && columnasFactura.containsKey(column)) {
-                String claveFactura = columnasFactura.get(column);
+            String mesNombre = jTable.getColumnName(column);  // Obtener el nombre del mes basado en la columna
+            Mes mes = Mes.porNombre(mesNombre);
 
-                if (claveFactura != null) {
-
-                    // Extraer año y número de factura
-                    String[] partesClave = claveFactura.split("_");
-                    String numeroFactura = partesClave[1]; // "A/1", "A/2", etc.
-                    String anioFactura = partesClave[0];  // "2024", "2023", etc.
-
-                    //String numeroFactura = columnasFactura.get(column);
-                    Factura factura = facturaControlador.leer(numeroFactura, anioFactura);
-
-                    if (factura != null) {
-                        showPopupPanel(evt.getComponent(), evt.getX(), evt.getY(), factura);
-                    }
-                }
+            // Buscar la factura correspondiente a este cliente y mes
+            Factura facturaClienteMesAnio = facturaControlador.facturaClienteMesAnio(clienteDNI, mes.getNumero(), anio);
+            if (facturaClienteMesAnio != null) {
+                // Mostrar el popup en la ubicación del clic
+                showPopupPanel(evt.getComponent(), evt.getX(), evt.getY(), facturaClienteMesAnio);
             }
         }
     }//GEN-LAST:event_jTableMouseClicked
 
     private void jSpinnerAnioStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerAnioStateChanged
         // TODO add your handling code here:
+        this.anio = ((Number) jSpinnerAnio.getValue()).intValue();
         cargarTablaContabilidad();
     }//GEN-LAST:event_jSpinnerAnioStateChanged
 
@@ -266,18 +261,6 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
         popupMenu.show(parent, x, y);
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabelAnio;
-    private javax.swing.JLabel jLabelTitulo;
-    private javax.swing.JPanel jPanelCabecera;
-    private javax.swing.JPanel jPanelCuerpo;
-    private javax.swing.JPanel jPanelFiltro;
-    private javax.swing.JPanel jPanelTitulo;
-    private javax.swing.JScrollPane jScrollPaneTabla;
-    private javax.swing.JSpinner jSpinnerAnio;
-    private javax.swing.JTable jTable;
-    // End of variables declaration//GEN-END:variables
-
     @Override
     public void actualizar() {
         cargarTablaContabilidad();
@@ -286,7 +269,6 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
     private void cargarTablaContabilidad() {
 
         dtm.setRowCount(0); //Limpiar la tabla
-        celdaFacturaMap.clear(); // Limpiar el mapa
 
         List<Cliente> clientes = clienteControlador.leerTodos();
 
@@ -314,28 +296,31 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
             // 2º Rellenar uno a uno las facturas de los clientes
             for (int i = 0; i < clientes.size(); i++) {   // Necesito la fila del cliente
                 Cliente cliente = clientes.get(i);
-                List<Factura> facturasCliente = facturaControlador.facturasCliente(cliente);    // Cojo todas las facturas del cliente
+                String clienteDNI = cliente.getDNI();
+                List<Factura> facturasCliente = facturaControlador.facturasCliente(clienteDNI);    // Cojo todas las facturas del cliente
 
                 if (facturasCliente != null) {
                     for (Factura factura : facturasCliente) {
-                        String[] diaMesAnio = factura.getFecha().split("/");
-                        // Hacer coincidir el Año con el spinner
-                        String anio = diaMesAnio[2];
-                        String spinner = (String) jSpinnerAnio.getValue().toString();
-                        if (spinner.equals(anio)) {
-                            // 2º hacer coincidir el Mes con la columna y poner su monto
-                            String mes = diaMesAnio[1];
-                            String mesTexto = convertirNumeroATextoMes(mes);
-                            int columna = jTable.getColumnModel().getColumnIndex(mesTexto);
+                        // 3º Hacer coincidir el Año con el spinner
+                        int anioFactura = factura.getFecha().getYear();
+                        if (this.anio == anioFactura) {
+                            // 4º Hacer coincidir el Mes con la columna
+                            int numeroMes = factura.getFecha().getMonthValue();
+                            Mes mes = Mes.porNumero(numeroMes);
+                            String nombreMes = mes.getNombre();
+                            int columna = jTable.getColumnModel().getColumnIndex(nombreMes);
 
-                            String claveFactura = anio + "_" + factura.getNumero();
-                            // 3º Asociar celda con número de factura
-                            celdaFacturaMap.computeIfAbsent(i, k -> new HashMap<>()).put(columna, claveFactura);
-
-                            dtm.setValueAt(factura.getMonto() + sufijoPrecios, i, columna);
+                            // 5º Asociar celda con monto de factura
+                            dtm.setValueAt(factura.getMontoString() + EURO, i, columna);
                         }
                     }
                 }
+            }
+
+            // 6º Aplicar el Render de colores a las celdas despues de haber puesto todos los valores (clientes y montos)
+            for (int col = 2; col < jTable.getColumnCount(); col++) {  // Empieza desde la columna de los meses
+                jTable.getColumnModel().getColumn(col).setCellRenderer(
+                        new ColorCelda(facturaControlador, clienteControlador, anio));
             }
 
             // Ocultar la columna del DNI
@@ -348,4 +333,17 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
         }
 
     }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabelAnio;
+    private javax.swing.JLabel jLabelTitulo;
+    private javax.swing.JPanel jPanelCabecera;
+    private javax.swing.JPanel jPanelCuerpo;
+    private javax.swing.JPanel jPanelFiltro;
+    private javax.swing.JPanel jPanelTitulo;
+    private javax.swing.JScrollPane jScrollPaneTabla;
+    private javax.swing.JSpinner jSpinnerAnio;
+    private javax.swing.JTable jTable;
+    // End of variables declaration//GEN-END:variables
+
 }

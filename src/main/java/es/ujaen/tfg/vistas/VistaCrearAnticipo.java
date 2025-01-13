@@ -7,12 +7,21 @@ package es.ujaen.tfg.vistas;
 import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.utils.Utils.EstadoSaldo;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_ANTICIPO_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.TITULO_ANTICIPO_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.convertirStringAFecha;
+import static es.ujaen.tfg.utils.Utils.mostrarError;
 import static es.ujaen.tfg.utils.Utils.validarFecha;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -23,8 +32,11 @@ import javax.swing.event.DocumentListener;
  */
 public class VistaCrearAnticipo extends javax.swing.JDialog implements Observador {
 
+    private final JFrame parent;
+
     private final ClienteControlador clienteControlador;
     private final AnticipoControlador anticipoControlador;
+    private final FacturaControlador facturaControlador;
 
     private TextAutoCompleter autoCompleterBuscadorClientes;
 
@@ -38,16 +50,20 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
      * @param modal
      * @param clienteControlador
      * @param anticipoControlador
+     * @param facturaControlador
      */
-    public VistaCrearAnticipo(java.awt.Frame parent, boolean modal, ClienteControlador clienteControlador, AnticipoControlador anticipoControlador) {
+    public VistaCrearAnticipo(java.awt.Frame parent, boolean modal, ClienteControlador clienteControlador, AnticipoControlador anticipoControlador, FacturaControlador facturaControlador) {
         super(parent, modal);
         initComponents();
+        this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
 
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
 
         this.anticipoControlador = anticipoControlador;
+
+        this.facturaControlador = facturaControlador;
 
         this.campoBuscadorClientesCorrecto = false;
         this.campoFechaCorrecto = false;
@@ -75,7 +91,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         jLabelFechaFactura = new javax.swing.JLabel();
         jDateChooser = new com.toedter.calendar.JDateChooser();
         jLabelMontoAnticipo = new javax.swing.JLabel();
-        jSpinnerMontoAnticipo = new javax.swing.JSpinner();
+        jSpinnerMonto = new javax.swing.JSpinner();
         jLabelMesesCubiertos = new javax.swing.JLabel();
         jSpinnerMesesCubiertos = new javax.swing.JSpinner();
         jPanelPiePagina = new javax.swing.JPanel();
@@ -157,9 +173,9 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelMontoAnticipo, gridBagConstraints);
 
-        jSpinnerMontoAnticipo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jSpinnerMontoAnticipo.setModel(new javax.swing.SpinnerNumberModel(50.0d, 0.01d, null, 1.0d));
-        jSpinnerMontoAnticipo.setEditor(new javax.swing.JSpinner.NumberEditor(jSpinnerMontoAnticipo, "0.00 '€'"));
+        jSpinnerMonto.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jSpinnerMonto.setModel(new javax.swing.SpinnerNumberModel(50.0d, 0.01d, null, 1.0d));
+        jSpinnerMonto.setEditor(new javax.swing.JSpinner.NumberEditor(jSpinnerMonto, "0.00 '€'"));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -167,7 +183,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jSpinnerMontoAnticipo, gridBagConstraints);
+        jPanelCuerpo.add(jSpinnerMonto, gridBagConstraints);
 
         jLabelMesesCubiertos.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelMesesCubiertos.setText("Meses Cubiertos");
@@ -237,24 +253,33 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
     private void jButtonCrearAnticipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearAnticipoActionPerformed
         // TODO add your handling code here:
+        String ID;
+        double monto;
+        int mesesCubiertos;
+        LocalDate fecha;
+        double saldo;
+        Cliente cliente;
+        String clienteDNI;
+
         UUID uuid = UUID.randomUUID();
-        String ID = uuid.toString().trim();
+        ID = uuid.toString().trim();
 
-        double valor = ((Number) jSpinnerMontoAnticipo.getValue()).doubleValue();
-        String monto = String.format("%.2f", valor).replace('.', ',');
+        monto = ((Number) jSpinnerMonto.getValue()).doubleValue();
 
-        String mesesCubiertos = jSpinnerMesesCubiertos.getValue().toString();
+        mesesCubiertos = ((Number) jSpinnerMesesCubiertos.getValue()).intValue();
 
         JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
-        String fecha = dateField.getText().trim();
+        String fechaTxt = dateField.getText().trim();
+        fecha = convertirStringAFecha(fechaTxt);
 
-        String saldo = monto;
+        saldo = monto;
 
         String nombreAliasCliente = jTextFieldBuscadorClientes.getText().trim();
-        Cliente cliente = clienteControlador.buscarPorNombre(nombreAliasCliente);
+        cliente = clienteControlador.buscarPorNombre(nombreAliasCliente);
         if (cliente == null) {
             cliente = clienteControlador.buscarPorAlias(nombreAliasCliente);
         }
+        clienteDNI = cliente.getDNI();
 
         Anticipo anticipo = new Anticipo(
                 ID,
@@ -262,14 +287,35 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
                 mesesCubiertos,
                 fecha,
                 saldo,
-                cliente
+                clienteDNI
         );
 
-        cliente.setSaldo(saldo);
-        cliente.setEstado("Anticipa");
+        boolean anticipoRepetido = anticipoControlador.anticipoRepetido(anticipo);
+        if (anticipoRepetido) {
+            mostrarError(parent, TITULO_ANTICIPO_REPETIDO, MENSAJE_ANTICIPO_REPETIDO);
+            return;
+        }
+        anticipoControlador.crear(anticipo);
+
+        // Actualizamos el saldo del cliente:
+        cliente.setSaldo(saldo * EstadoSaldo.ANTICIPA.getValor());
+        cliente.setEstado(EstadoSaldo.ANTICIPA.getEstado());
         clienteControlador.actualizar(cliente);
 
-        anticipoControlador.crear(anticipo);
+        // Creamos tantas facturas con fechas anticipadas como meses cubiertos tengamos
+        // Dejo por ahora el numero de factura inconcluso  
+        int numero = 0;
+        String letra = cliente.getTipo();
+        boolean pagado = true;
+        boolean facturado = false;
+
+        double montoMes = monto / mesesCubiertos;
+
+        for (int i = 0; i < mesesCubiertos; i++) {
+            Factura factura = new Factura(letra, numero, fecha, pagado, facturado, montoMes, clienteDNI);
+            fecha = fecha.plusMonths(+1);
+            facturaControlador.crear(factura);
+        }
 
         dispose();
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
@@ -293,32 +339,33 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
     private void inicializarListenerFecha() {
         // Obtener el editor de texto asociado al JDateChooser
         JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
-
         // Agregar un DocumentListener al campo de la fecha
         dateField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                verificarFecha();
+                procesarFecha(dateField.getText().trim());
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                verificarFecha();
+                procesarFecha(dateField.getText().trim());
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                verificarFecha();
+                procesarFecha(dateField.getText().trim());
             }
         });
     }
 
-    private void verificarFecha() {
-        JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
-        String textoFecha = dateField.getText().trim();
-
+    private void procesarFecha(String fechaTxt) {
         // Validar si el texto cumple con el formato "dd/MM/yyyy"
-        campoFechaCorrecto = !textoFecha.isEmpty() && validarFecha(textoFecha);
+        LocalDate fecha = convertirStringAFecha(fechaTxt);
+        if (fecha != null) {
+            campoFechaCorrecto = validarFecha(fecha);
+        } else {
+            campoFechaCorrecto = false;
+        }
 
         // Actualizar el estado del botón
         habilitarBotonCrearAnticipo();
@@ -352,6 +399,16 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         jButtonCrearAnticipo.setEnabled(false);
     }
 
+    @Override
+    public void actualizar() {
+        actualizarAutocompleter();
+    }
+
+    private void actualizarAutocompleter() {
+        autoCompleterBuscadorClientes.removeAllItems();
+        cargarAutocompletarBuscadorClientes();
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonCancelar;
     private javax.swing.JButton jButtonCrearAnticipo;
@@ -366,17 +423,8 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
     private javax.swing.JPanel jPanelPiePagina;
     private javax.swing.JPanel jPanelPrincipal;
     private javax.swing.JSpinner jSpinnerMesesCubiertos;
-    private javax.swing.JSpinner jSpinnerMontoAnticipo;
+    private javax.swing.JSpinner jSpinnerMonto;
     private javax.swing.JTextField jTextFieldBuscadorClientes;
     // End of variables declaration//GEN-END:variables
 
-    @Override
-    public void actualizar() {
-        actualizarAutocompleter();
-    }
-
-    private void actualizarAutocompleter() {
-        autoCompleterBuscadorClientes.removeAllItems();
-        cargarAutocompletarBuscadorClientes();
-    }
 }

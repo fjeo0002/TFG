@@ -9,13 +9,13 @@ import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.observer.Observador;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
-import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
+import static es.ujaen.tfg.utils.Utils.EURO;
 
 /**
  *
@@ -266,7 +266,7 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
                     local.getCodigo().trim(), // Columna Codigo
                     local.getNombre().trim(), // Columna Nombre
                     local.getAlias().trim(), // Columna Alias
-                    local.getPrecio().trim() + sufijoPrecios // Columna Precio
+                    local.getPrecioString().trim() + EURO// Columna Precio
                 });
             }
         }

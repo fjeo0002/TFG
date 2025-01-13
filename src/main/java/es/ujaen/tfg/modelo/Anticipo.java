@@ -4,9 +4,11 @@
  */
 package es.ujaen.tfg.modelo;
 
-import static es.ujaen.tfg.utils.Utils.FORMATO_FECHA;
+import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
+import static es.ujaen.tfg.utils.Utils.convertirFechaAString;
+import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
+import static es.ujaen.tfg.utils.Utils.convertirStringAFecha;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
 /**
@@ -16,22 +18,40 @@ import java.util.Objects;
 public class Anticipo {
 
     private String id;
-    private String monto;
-    private String mesesCubiertos;
-    private String fecha;
-    private String saldo;
-    private Cliente cliente;
+    private double monto;
+    private int mesesCubiertos;
+    private LocalDate fecha;
+    private double saldo;
+    private String clienteDNI;
 
     public Anticipo() {
     }
 
-    public Anticipo(String id, String monto, String mesesCubiertos, String fecha, String saldo, Cliente cliente) {
+    public Anticipo(String id, double monto, int mesesCubiertos, LocalDate fecha, double saldo, String clienteDNI) {
         this.id = id;
         this.monto = monto;
         this.mesesCubiertos = mesesCubiertos;
         this.fecha = fecha;
         this.saldo = saldo;
-        this.cliente = cliente;
+        this.clienteDNI = clienteDNI;
+    }
+
+    public Anticipo(String id, String monto, String mesesCubiertos, String fecha, String saldo, String clienteDNI) {
+        this.id = id;
+        this.monto = convertirStringADouble(monto);
+        this.mesesCubiertos = Integer.parseInt(mesesCubiertos);
+        this.fecha = convertirStringAFecha(fecha);
+        this.saldo = convertirStringADouble(saldo);
+        this.clienteDNI = clienteDNI;
+    }
+    
+    public Anticipo(Anticipo a) {
+        this.id = a.id;
+        this.monto = a.monto;
+        this.mesesCubiertos = a.mesesCubiertos;
+        this.fecha = a.fecha;
+        this.saldo = a.saldo;
+        this.clienteDNI = a.clienteDNI;
     }
 
     public String getId() {
@@ -42,87 +62,76 @@ public class Anticipo {
         this.id = id;
     }
 
-    public String getMonto() {
+    public double getMonto() {
         return monto;
     }
-
-    public Double getMontoDouble() {
-        String montoDouble = this.monto.replace(" €", "").replace(",", ".");
-        return Double.valueOf(montoDouble);
-    }
-
-    public void setMonto(String monto) {
-        this.monto = monto;
+    
+    public String getMontoString() {
+        return convertirDoubleAString(monto);
     }
 
     public void setMonto(double monto) {
-        this.monto = String.format("%.2f", monto);
+        this.monto = monto;
+    }
+    
+    public void setMonto(String monto) {
+        this.monto = convertirStringADouble(monto);
     }
 
-    public String getMesesCubiertos() {
+    public int getMesesCubiertos() {
         return mesesCubiertos;
     }
-
-    public Integer getMesesCubiertosInteger() {
-        return Integer.valueOf(mesesCubiertos);
-    }
-
-    public void setMesesCubiertos(String mesesCubiertos) {
-        this.mesesCubiertos = mesesCubiertos;
+    
+    public String getMesesCubiertosString() {
+        return String.valueOf(mesesCubiertos);
     }
 
     public void setMesesCubiertos(int mesesCubiertos) {
-        this.mesesCubiertos = String.valueOf(mesesCubiertos);
+        this.mesesCubiertos = mesesCubiertos;
+    }
+    
+    public void setMesesCubiertos(String mesesCubiertos) {
+        this.mesesCubiertos = Integer.parseInt(mesesCubiertos);
     }
 
-    public String getFecha() {
+    public LocalDate getFecha() {
         return fecha;
     }
-
-    public void setFecha(String fecha) {
-        this.fecha = fecha;
-    }
-
-    public LocalDate getFechaLocalDate() {
-        try {
-            return LocalDate.parse(fecha, FORMATO_FECHA);
-        } catch (DateTimeParseException e) {
-            return null;
-        }
+    
+    public String getFechaString() {
+        return convertirFechaAString(fecha);
     }
 
     public void setFecha(LocalDate fecha) {
-        if (fecha != null) {
-            // Convertir LocalDate a String en el formato deseado
-            this.fecha = fecha.format(FORMATO_FECHA);
-        } else {
-            this.fecha = null;
-        }
+        this.fecha = fecha;
+    }
+    
+    public void setFecha(String fecha) {
+        this.fecha = convertirStringAFecha(fecha);
     }
 
-    public Cliente getCliente() {
-        return cliente;
-    }
-
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
-    }
-
-    public String getSaldo() {
+    public double getSaldo() {
         return saldo;
     }
-
-    public Double getSaldoDouble() {
-        String saldoDouble = this.saldo.replace(" €", "").replace(",", ".");
-        return Double.valueOf(saldoDouble);
-    }
-
-    public void setSaldo(String saldo) {
-        this.saldo = saldo;
+    
+    public String getSaldoString() {
+        return convertirDoubleAString(saldo);
     }
 
     public void setSaldo(double saldo) {
-        this.saldo = String.format("%.2f", saldo);
+        this.saldo = saldo;
+    }
+    
+    public void setSaldo(String saldo) {
+        this.saldo = convertirStringADouble(saldo);
+    }
+
+    public String getClienteDNI() {
+        return clienteDNI;
+    }
+
+    public void setClienteDNI(String clienteDNI) {
+        this.clienteDNI = clienteDNI;
     }
 
     @Override
@@ -149,10 +158,11 @@ public class Anticipo {
         if (!Objects.equals(this.fecha, other.fecha)) {
             return false;
         }
-        if (!Objects.equals(this.saldo, other.saldo)) {
-            return false;
-        }
-        return Objects.equals(this.cliente, other.cliente);
+        // También veo si los anticipos se solapan con los meses
+        
+        
+        
+        return Objects.equals(this.clienteDNI, other.clienteDNI);
     }
 
     @Override
@@ -163,13 +173,13 @@ public class Anticipo {
         hash = 89 * hash + Objects.hashCode(this.mesesCubiertos);
         hash = 89 * hash + Objects.hashCode(this.fecha);
         hash = 89 * hash + Objects.hashCode(this.saldo);
-        hash = 89 * hash + Objects.hashCode(this.cliente);
+        hash = 89 * hash + Objects.hashCode(this.clienteDNI);
         return hash;
     }
 
     @Override
     public String toString() {
-        return "Anticipo{" + "id=" + id + ", monto=" + monto + ", mesesCubiertos=" + mesesCubiertos + ", fecha=" + fecha + ", saldo=" + saldo + ", cliente=" + cliente.getNombre() + '}';
+        return "Anticipo{" + "id=" + id + ", monto=" + monto + ", mesesCubiertos=" + mesesCubiertos + ", fecha=" + fecha + ", saldo=" + saldo + ", cliente=" + clienteDNI + '}';
     }
 
 }

@@ -6,10 +6,35 @@ package es.ujaen.tfg.vistas;
 
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Cliente;
+import static es.ujaen.tfg.utils.Utils.ERROR_CODIGOPOSTAL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.ERROR_DNI_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.ERROR_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.ERROR_NOMBRE_CLIENTE;
+import es.ujaen.tfg.utils.Utils.EstadoSaldo;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_CLIENTE_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.NEGRO;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_ALIAS_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_CODIGO_POSTAL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_DIRECCION_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_DNI_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_LOCALIDAD_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_NOMBRE_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.TIPOA;
+import static es.ujaen.tfg.utils.Utils.TIPOB;
+import static es.ujaen.tfg.utils.Utils.TITULO_CLIENTE_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.TITULO_VISTA_ANADIR_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.TITULO_VISTA_MODIFICAR_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VACIO;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_CODIGO_POSTAL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.mostrarError;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
-import java.awt.Color;
+import javax.swing.JFrame;
 import javax.swing.border.Border;
 
 /**
@@ -18,9 +43,12 @@ import javax.swing.border.Border;
  */
 public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
-    private final boolean esEdicion;
+    private final JFrame parent;
+
+    private boolean esEdicion;
+
+    private Cliente cliente;
     private Cliente clienteOriginal;
-    private Cliente clienteModificado;
 
     private final ClienteControlador clienteControlador;
 
@@ -30,14 +58,6 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
     private boolean campoNombreCorrecto;
     private boolean campoEmailCorrecto;
     private boolean campoCodigoPostalCorrecto;
-
-    private final String placeHolderDNI = "12345678X";
-    private final String placeHolderNombre = "Nombre Apellido1 Apellido2";
-    private final String placeHolderAlias = "Introduzca Alias de Cliente (opcional)";
-    private final String placeHolderEmail = "nombre.123@gmail.com (opcional)";
-    private final String placeHolderDireccion = "C/ Mirabueno, 9, 9ºB";
-    private final String placeHolderLocalidad = "Localidad, Provincia";
-    private final String placeHolderCodigoPostal = "12345";
 
     /**
      * Creates new form VistaCrearModificarCliente
@@ -51,6 +71,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
     public VistaAnadirModificarCliente(java.awt.Frame parent, boolean modal, Cliente cliente, ClienteControlador clienteControlador) {
         super(parent, modal);
         initComponents();
+        this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
 
         this.originalBorder = jTextFieldDNI.getBorder();
@@ -58,55 +79,65 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         this.clienteControlador = clienteControlador;
 
         if (cliente == null) {
-            jLabelTitulo.setText("Añadir Nuevo Cliente");
-            setTitle("Añadir Nuevo Cliente");
-            
-            jButtonAceptar.setEnabled(false);
-
-            esEdicion = false;
-            campoDNICorrecto = false;
-            campoNombreCorrecto = false;
-            campoEmailCorrecto = true;          //Por si no pones Email, q puedas habilitar el boton de Aceptar al crear
-            campoCodigoPostalCorrecto = false;
-            clienteOriginal = null;
-            clienteModificado = null;
+            cargarVistaAnadirCliente();
         } else {
-            jLabelTitulo.setText("Modificar Cliente");
-            setTitle("Modificar Cliente");
-
-            jTextFieldDNI.setText(cliente.getDNI().trim());
-            jTextFieldNombre.setText(cliente.getNombre().trim());
-            jTextFieldAlias.setText(cliente.getAlias().trim());
-            jTextFieldEmail.setText(cliente.getEmail().trim());
-            jTextFieldDireccion.setText(cliente.getDireccion().trim());
-            jTextFieldLocalidad.setText(cliente.getLocalidad().trim());
-            jTextFieldCodigoPostal.setText(cliente.getCodigoPostal().trim());
-
-            if ("A".equals(cliente.getTipo())) {
-                jRadioButtonTipoA.setSelected(true);
-            } else {
-                jRadioButtonTipoB.setSelected(true);
-            }
-
-            jTextFieldDNI.setForeground(new Color(0, 0, 0));
-            jTextFieldNombre.setForeground(new Color(0, 0, 0));
-            jTextFieldAlias.setForeground(new Color(0, 0, 0));
-            jTextFieldEmail.setForeground(new Color(0, 0, 0));
-            jTextFieldDireccion.setForeground(new Color(0, 0, 0));
-            jTextFieldLocalidad.setForeground(new Color(0, 0, 0));
-            jTextFieldCodigoPostal.setForeground(new Color(0, 0, 0));
-            
-            jButtonAceptar.setEnabled(true);
-
-            esEdicion = true;
-            campoDNICorrecto = true;
-            campoNombreCorrecto = true;
-            campoEmailCorrecto = true;
-            campoCodigoPostalCorrecto = true;
-            clienteOriginal = new Cliente(cliente);
-            clienteModificado = new Cliente(cliente);
+            cargarVistaModificarCliente(cliente);
         }
 
+    }
+
+    private void cargarVistaAnadirCliente() {
+        this.jLabelTitulo.setText(TITULO_VISTA_ANADIR_CLIENTE);
+        this.setTitle(TITULO_VISTA_ANADIR_CLIENTE);
+
+        this.jButtonAceptar.setEnabled(false);
+        this.jTextFieldDNI.setEditable(true);
+
+        this.esEdicion = false;
+        this.campoDNICorrecto = false;
+        this.campoNombreCorrecto = false;
+        this.campoEmailCorrecto = true;          //Por si no pones Email, q puedas habilitar el boton de Aceptar al crear
+        this.campoCodigoPostalCorrecto = false;
+        this.cliente = null;
+        this.clienteOriginal = null;
+    }
+
+    private void cargarVistaModificarCliente(Cliente cliente) {
+        this.jLabelTitulo.setText(TITULO_VISTA_MODIFICAR_CLIENTE);
+        this.setTitle(TITULO_VISTA_MODIFICAR_CLIENTE);
+
+        this.jTextFieldDNI.setText(cliente.getDNI().trim());
+        this.jTextFieldNombre.setText(cliente.getNombre().trim());
+        this.jTextFieldAlias.setText(cliente.getAlias().trim());
+        this.jTextFieldEmail.setText(cliente.getEmail().trim());
+        this.jTextFieldDireccion.setText(cliente.getDireccion().trim());
+        this.jTextFieldLocalidad.setText(cliente.getLocalidad().trim());
+        this.jTextFieldCodigoPostal.setText(cliente.getCodigoPostal().trim());
+
+        if (TIPOA.equals(cliente.getTipo())) {
+            this.jRadioButtonTipoA.setSelected(true);
+        } else {
+            this.jRadioButtonTipoB.setSelected(true);
+        }
+
+        this.jTextFieldDNI.setForeground(NEGRO);
+        this.jTextFieldNombre.setForeground(NEGRO);
+        this.jTextFieldAlias.setForeground(NEGRO);
+        this.jTextFieldEmail.setForeground(NEGRO);
+        this.jTextFieldDireccion.setForeground(NEGRO);
+        this.jTextFieldLocalidad.setForeground(NEGRO);
+        this.jTextFieldCodigoPostal.setForeground(NEGRO);
+
+        this.jButtonAceptar.setEnabled(true);
+        this.jTextFieldDNI.setEditable(false);
+
+        this.esEdicion = true;
+        this.campoDNICorrecto = true;
+        this.campoNombreCorrecto = true;
+        this.campoEmailCorrecto = true;
+        this.campoCodigoPostalCorrecto = true;
+        this.cliente = new Cliente(cliente);
+        this.clienteOriginal = new Cliente(cliente);
     }
 
     /**
@@ -547,44 +578,59 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jButtonAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAceptarActionPerformed
         // TODO add your handling code here:
-        String aliasFinal = jTextFieldAlias.getText().trim();
-        if (aliasFinal.equals(placeHolderAlias)) {
-            aliasFinal = ""; // Sustituir el placeholder por cadena vacía
+        String DNI, nombre, alias, email, direccion, localidad, codigoPostal, estado, saldo, tipo;
+
+        DNI = jTextFieldDNI.getText().trim();
+        nombre = jTextFieldNombre.getText().trim();
+        alias = jTextFieldAlias.getText().trim();
+        if (alias.equals(PLACEHOLDER_ALIAS_CLIENTE)) {
+            alias = VACIO; // Sustituir el placeholder por cadena vacía
         }
-        
-        String emailFinal = jTextFieldEmail.getText().trim();
-        if( emailFinal.equals(placeHolderEmail)){
-            emailFinal = "";
+        email = jTextFieldEmail.getText().trim();
+        if (email.equals(PLACEHOLDER_EMAIL_CLIENTE)) {
+            email = VACIO;
         }
+        direccion = jTextFieldDireccion.getText().trim();
+        localidad = jTextFieldLocalidad.getText().trim();
+        codigoPostal = jTextFieldCodigoPostal.getText().trim();
+        estado = EstadoSaldo.AL_DIA.getEstado();
+        saldo = EstadoSaldo.AL_DIA.getValorString();
+        tipo = jRadioButtonTipoA.isSelected() ? TIPOA : TIPOB;
 
         if (!esEdicion) {
-            clienteOriginal = new Cliente(
-                    jTextFieldDNI.getText().trim(),
-                    jTextFieldNombre.getText().trim(),
-                    aliasFinal,
-                    emailFinal,
-                    jTextFieldDireccion.getText().trim(),
-                    jTextFieldLocalidad.getText().trim(),
-                    jTextFieldCodigoPostal.getText().trim(),
-                    "",
-                    "Al día",
-                    "0,00",
-                    jRadioButtonTipoA.isSelected() ? "A" : "B"
+            cliente = new Cliente(
+                    DNI,
+                    nombre,
+                    alias,
+                    email,
+                    direccion,
+                    localidad,
+                    codigoPostal,
+                    estado,
+                    saldo,
+                    tipo
             );
-            clienteControlador.crear(clienteOriginal);
-        } else {
-            clienteModificado.setDNI(jTextFieldDNI.getText().trim());
-            clienteModificado.setNombre(jTextFieldNombre.getText().trim());
-            clienteModificado.setAlias(aliasFinal);
-            clienteModificado.setEmail(emailFinal);
-            clienteModificado.setDireccion(jTextFieldDireccion.getText().trim());
-            clienteModificado.setLocalidad(jTextFieldLocalidad.getText().trim());
-            clienteModificado.setCodigoPostal(jTextFieldCodigoPostal.getText().trim());
-            clienteModificado.setTipo(jRadioButtonTipoA.isSelected() ? "A" : "B");
 
-            if (!clienteOriginal.equals(clienteModificado)) {
-                clienteControlador.actualizar(clienteModificado);
+            boolean clienteRepetido = clienteControlador.clienteRepetido(cliente);
+            if (clienteRepetido) {
+                mostrarError(parent, TITULO_CLIENTE_REPETIDO, MENSAJE_CLIENTE_REPETIDO);
+                return;
             }
+            clienteControlador.crear(cliente);
+
+        } else {
+            cliente.setNombre(nombre);
+            cliente.setAlias(alias);
+            cliente.setEmail(email);
+            cliente.setDireccion(direccion);
+            cliente.setLocalidad(localidad);
+            cliente.setCodigoPostal(codigoPostal);
+            cliente.setTipo(tipo);
+
+            if (!clienteOriginal.equals(cliente)) {
+                clienteControlador.actualizar(cliente);
+            }
+
         }
 
         dispose();
@@ -592,12 +638,12 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jTextFieldDNIFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldDNI, placeHolderDNI);
+        agregarPlaceHolder(jTextFieldDNI, PLACEHOLDER_DNI_CLIENTE);
     }//GEN-LAST:event_jTextFieldDNIFocusLost
 
     private void jTextFieldDNIFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldDNI, placeHolderDNI);
+        quitarPlaceHolder(jTextFieldDNI, PLACEHOLDER_DNI_CLIENTE);
     }//GEN-LAST:event_jTextFieldDNIFocusGained
 
     private void jTextFieldDNIKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldDNIKeyReleased
@@ -605,21 +651,21 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         campoDNICorrecto = validarCampoFormulario(
                 jTextFieldDNI,
                 jLabelAdvertenciaDNI,
-                "* Introduce un DNI válido (8 números y 1 letra mayúscula)",
+                ERROR_DNI_CLIENTE,
                 originalBorder,
-                texto -> !texto.isEmpty() && texto.matches("\\d{8}[A-Z]")
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_DNI_CLIENTE)
         );
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldDNIKeyReleased
 
     private void jTextFieldNombreFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldNombre, placeHolderNombre);
+        quitarPlaceHolder(jTextFieldNombre, PLACEHOLDER_NOMBRE_CLIENTE);
     }//GEN-LAST:event_jTextFieldNombreFocusGained
 
     private void jTextFieldNombreFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldNombre, placeHolderNombre);
+        agregarPlaceHolder(jTextFieldNombre, PLACEHOLDER_NOMBRE_CLIENTE);
     }//GEN-LAST:event_jTextFieldNombreFocusLost
 
     private void jTextFieldNombreKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldNombreKeyReleased
@@ -627,31 +673,31 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         campoNombreCorrecto = validarCampoFormulario(
                 jTextFieldNombre,
                 jLabelAdvertenciaNombre,
-                "* Introduce un nombre válido (sin números ni caracteres especiales)",
+                ERROR_NOMBRE_CLIENTE,
                 originalBorder,
-                texto -> !texto.isEmpty() && texto.matches("[a-zA-ZÁÉÍÓÚáéíóúÑñ\\s'-]+")
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_NOMBRE_CLIENTE)
         );
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldNombreKeyReleased
 
     private void jTextFieldAliasFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+        quitarPlaceHolder(jTextFieldAlias, PLACEHOLDER_ALIAS_CLIENTE);
     }//GEN-LAST:event_jTextFieldAliasFocusGained
 
     private void jTextFieldAliasFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAliasFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldAlias, placeHolderAlias);
+        agregarPlaceHolder(jTextFieldAlias, PLACEHOLDER_ALIAS_CLIENTE);
     }//GEN-LAST:event_jTextFieldAliasFocusLost
 
     private void jTextFieldEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldEmail, placeHolderEmail);
+        quitarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
     }//GEN-LAST:event_jTextFieldEmailFocusGained
 
     private void jTextFieldEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldEmail, placeHolderEmail);
+        agregarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
     }//GEN-LAST:event_jTextFieldEmailFocusLost
 
     private void jTextFieldEmailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldEmailKeyReleased
@@ -659,21 +705,21 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         campoEmailCorrecto = validarCampoFormulario(
                 jTextFieldEmail,
                 jLabelAdvertenciaEmail,
-                "* Introduce un correo electrónico válido",
+                ERROR_EMAIL_CLIENTE,
                 originalBorder,
-                texto -> texto.isEmpty() || texto.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") || texto.equals(placeHolderEmail)
+                texto -> texto.isEmpty() || texto.matches(VALIDACION_EMAIL_CLIENTE) || texto.equals(PLACEHOLDER_EMAIL_CLIENTE)
         );
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldEmailKeyReleased
 
     private void jTextFieldDireccionFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldDireccion, placeHolderDireccion);
+        quitarPlaceHolder(jTextFieldDireccion, PLACEHOLDER_DIRECCION_CLIENTE);
     }//GEN-LAST:event_jTextFieldDireccionFocusGained
 
     private void jTextFieldDireccionFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldDireccion, placeHolderDireccion);
+        agregarPlaceHolder(jTextFieldDireccion, PLACEHOLDER_DIRECCION_CLIENTE);
     }//GEN-LAST:event_jTextFieldDireccionFocusLost
 
     private void jTextFieldDireccionKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldDireccionKeyReleased
@@ -683,12 +729,12 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jTextFieldLocalidadFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldLocalidad, placeHolderLocalidad);
+        quitarPlaceHolder(jTextFieldLocalidad, PLACEHOLDER_LOCALIDAD_CLIENTE);
     }//GEN-LAST:event_jTextFieldLocalidadFocusGained
 
     private void jTextFieldLocalidadFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldLocalidad, placeHolderLocalidad);
+        agregarPlaceHolder(jTextFieldLocalidad, PLACEHOLDER_LOCALIDAD_CLIENTE);
     }//GEN-LAST:event_jTextFieldLocalidadFocusLost
 
     private void jTextFieldLocalidadKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadKeyReleased
@@ -698,12 +744,12 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jTextFieldCodigoPostalFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldCodigoPostal, placeHolderCodigoPostal);
+        quitarPlaceHolder(jTextFieldCodigoPostal, PLACEHOLDER_CODIGO_POSTAL_CLIENTE);
     }//GEN-LAST:event_jTextFieldCodigoPostalFocusGained
 
     private void jTextFieldCodigoPostalFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldCodigoPostal, placeHolderCodigoPostal);
+        agregarPlaceHolder(jTextFieldCodigoPostal, PLACEHOLDER_CODIGO_POSTAL_CLIENTE);
     }//GEN-LAST:event_jTextFieldCodigoPostalFocusLost
 
     private void jTextFieldCodigoPostalKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalKeyReleased
@@ -711,9 +757,9 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         campoCodigoPostalCorrecto = validarCampoFormulario(
                 jTextFieldCodigoPostal,
                 jLabelAdvertenciaCodigoPostal,
-                "* Introduce un código postal válido (5 dígitos)",
+                ERROR_CODIGOPOSTAL_CLIENTE,
                 originalBorder,
-                texto -> texto.matches("^\\d{5}$")
+                texto -> texto.matches(VALIDACION_CODIGO_POSTAL_CLIENTE)
         );
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldCodigoPostalKeyReleased
@@ -732,8 +778,8 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         if (campoDNICorrecto) {
             if (campoNombreCorrecto) {
                 if (campoEmailCorrecto) {
-                    if (!jTextFieldDireccion.getText().trim().equals(placeHolderDireccion) && !jTextFieldDireccion.getText().trim().isEmpty()) {
-                        if (!jTextFieldLocalidad.getText().trim().equals(placeHolderLocalidad) && !jTextFieldLocalidad.getText().trim().isEmpty()) {
+                    if (!jTextFieldDireccion.getText().trim().equals(PLACEHOLDER_DIRECCION_CLIENTE) && !jTextFieldDireccion.getText().trim().isEmpty()) {
+                        if (!jTextFieldLocalidad.getText().trim().equals(PLACEHOLDER_LOCALIDAD_CLIENTE) && !jTextFieldLocalidad.getText().trim().isEmpty()) {
                             if (campoCodigoPostalCorrecto) {
                                 if (jRadioButtonTipoA.isSelected() || jRadioButtonTipoB.isSelected()) {
                                     jButtonAceptar.setEnabled(true);
@@ -747,6 +793,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         }
         jButtonAceptar.setEnabled(false);
     }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupTipo;
@@ -780,4 +827,5 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
     private javax.swing.JTextField jTextFieldLocalidad;
     private javax.swing.JTextField jTextFieldNombre;
     // End of variables declaration//GEN-END:variables
+
 }

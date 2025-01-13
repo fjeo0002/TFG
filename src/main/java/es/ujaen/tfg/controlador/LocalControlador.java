@@ -70,4 +70,15 @@ public class LocalControlador implements Observable {
         return localDAO.leerTodos();
     }
 
+    public boolean localRepetido(Local l) {
+        List<Local> locales = leerTodos();
+        if (locales != null) {
+            for (Local local : locales) {
+                if (l.equals(local)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

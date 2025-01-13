@@ -5,15 +5,16 @@
 package es.ujaen.tfg.DAO;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import es.ujaen.tfg.modelo.Anticipo;
-
-import java.io.FileReader;
+import es.ujaen.tfg.utils.LocalDateAdapterGson;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,36 +24,43 @@ import java.util.List;
  */
 public class AnticipoDAO implements InterfazDAO<Anticipo> {
 
-    private List<Anticipo> anticipos;  
+    private List<Anticipo> anticipos;
     private static final String FILE_PATH = "anticipos.json";
 
     public AnticipoDAO() {
         this.anticipos = cargarDatosDesdeArchivo();  // Inicializar la lista desde el archivo
     }
-    
+
     private List<Anticipo> cargarDatosDesdeArchivo() {
         try {
             if (!Files.exists(Paths.get(FILE_PATH))) {  // Si el archivo no existe
                 return new ArrayList<>();  // Retornar una lista vacía
             }
             String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
-            Type listType = new TypeToken<List<Anticipo>>() {}.getType();  // Tipo de la lista de Anticipo
-            return new Gson().fromJson(jsonData, listType);
+            Type listType = new TypeToken<List<Anticipo>>() {
+            }.getType();  // Tipo de la lista de Anticipo
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson()) // Registrar el adaptador
+                    .create();
+
+            return gson.fromJson(jsonData, listType);
         } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();  // En caso de error, retornar lista vacía
         }
     }
-    
+
     private void guardarDatosEnArchivo() {
         try (FileWriter writer = new FileWriter(FILE_PATH)) {
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson()) // Registrar el adaptador
+                    .create();
+
             gson.toJson(anticipos, writer);  // Guardar la lista de anticipos en formato JSON
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     @Override
     public boolean crear(Anticipo t) {

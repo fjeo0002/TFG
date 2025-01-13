@@ -9,11 +9,9 @@ import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
-import java.time.format.DateTimeParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import org.threeten.bp.LocalDate;
-import org.threeten.bp.format.DateTimeFormatter;
 
 /**
  *
@@ -74,45 +72,72 @@ public class AnticipoControlador implements Observable {
         return anticipoDAO.leerTodos();
     }
 
-    public Anticipo obtenerUltimoAnticipo(Cliente cliente) {
-        // Formato de las fechas (dd/MM/yyyy)
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        // Lista de todos los anticipos
+    public boolean anticipoRepetido(Anticipo a) {
         List<Anticipo> anticipos = leerTodos();
-
-        // Filtro: obtener solo los anticipos activos del cliente dado
-        List<Anticipo> anticiposActivos = new ArrayList<>();
-        for (Anticipo anticipo : anticipos) {
-            if (anticipo.getCliente().equals(cliente) && anticipo.getSaldoDouble() > 0) {
-                anticiposActivos.add(anticipo);
-            }
-        }
-
-        // Si no hay anticipos activos, devuelve null
-        if (anticiposActivos.isEmpty()) {
-            return null;
-        }
-
-        // Encontrar el anticipo con la fecha más reciente
-        Anticipo ultimoAnticipo = anticiposActivos.get(0); // Inicializar con el primero
-        for (Anticipo anticipo : anticiposActivos) {
-            try {
-                // Convertir las fechas a LocalDate
-                LocalDate fechaUltimo = LocalDate.parse(ultimoAnticipo.getFecha(), formatter);
-                LocalDate fechaActual = LocalDate.parse(anticipo.getFecha(), formatter);
-
-                // Comparar fechas
-                if (fechaActual.isAfter(fechaUltimo)) { // Si la fecha actual es más reciente
-                    ultimoAnticipo = anticipo; // Actualizar el último anticipo
+        if (anticipos != null) {
+            for (Anticipo anticipo : anticipos) {
+                if (a.equals(anticipo)) {
+                    return true;
                 }
-            } catch (DateTimeParseException e) {
-                // Si hay error en el formato de la fecha, ignorar este anticipo
-                System.err.println("Error al parsear la fecha: " + anticipo.getFecha());
+            }
+            // Verificar solapamientos temporales con anticipos del mismo cliente
+            String clienteDNI = a.getClienteDNI();
+            List<Anticipo> anticiposCliente = anticiposCliente(clienteDNI);
+            if (anticiposCliente != null) {
+                int mesesCubiertosNuevo = a.getMesesCubiertos();
+                LocalDate fechaInicioNuevo = a.getFecha();
+                LocalDate fechaFinNuevo = fechaInicioNuevo.plusMonths(mesesCubiertosNuevo);
+
+                for (Anticipo anticipo : anticiposCliente) {
+                    int mesesCubiertosExistente = anticipo.getMesesCubiertos();
+                    LocalDate fechaInicioExistente = anticipo.getFecha();
+                    LocalDate fechaFinExistente = fechaInicioExistente.plusMonths(mesesCubiertosExistente);
+
+                    // Comprobar si los rangos de fechas se solapan
+                    if (!(fechaFinNuevo.isBefore(fechaInicioExistente) || fechaInicioNuevo.isAfter(fechaFinExistente))) {
+                        return true; // Hay solapamiento temporal
+                    }
+                }
             }
         }
+        return false; // No hay repetición ni solapamiento
+    }
 
-        // Devolver el último anticipo encontrado
-        return ultimoAnticipo;
+    public List<Anticipo> anticiposCliente(String clienteDNI) {
+        List<Anticipo> anticipos = leerTodos();
+        if (anticipos != null) {
+            List<Anticipo> anticiposCliente = new ArrayList<>();
+            for (Anticipo factura : anticipos) {
+                if (factura.getClienteDNI().equals(clienteDNI)) {
+                    anticiposCliente.add(factura);
+                }
+            }
+            return anticiposCliente;
+        }
+        return null;
+    }
+
+    public Anticipo obtenerUltimoAnticipo(Cliente cliente) {
+        List<Anticipo> anticipos = leerTodos();
+        if (anticipos != null) {
+            List<Anticipo> anticiposActivos = new ArrayList<>();
+            for (Anticipo anticipo : anticipos) {
+                if (anticipo.getClienteDNI().equals(cliente.getDNI()) && anticipo.getSaldo() > 0) {
+                    anticiposActivos.add(anticipo);
+                }
+            }
+            if (anticiposActivos.isEmpty()) {
+                Anticipo ultimoAnticipo = anticiposActivos.get(0); // Inicializar con el primero
+                for (Anticipo anticipo : anticiposActivos) {
+                    LocalDate fechaAnticipo = anticipo.getFecha();
+                    LocalDate fechaUltimoAnticipo = ultimoAnticipo.getFecha();
+                    if (fechaAnticipo.isAfter(fechaUltimoAnticipo)) {
+                        ultimoAnticipo = anticipo;
+                    }
+                }
+                return ultimoAnticipo;
+            }
+        }
+        return null;
     }
 }

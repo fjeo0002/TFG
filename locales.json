@@ -1,8 +1,14 @@
 [
     {
-        "codigo": "a764d432-4cc2-4d65-a421-ed520abb95ad",
-        "nombre": "Calle de la Estrella 10",
-        "alias": "Cine Principal",
-        "precio": "150,00"
+        "codigo": "54e2dfde-9679-4b43-a928-31560cace481",
+        "nombre": "C/ de la Paz 1",
+        "alias": "Local guay",
+        "precio": 50.0
+    },
+    {
+        "codigo": "f3fb2e9b-4d0b-473e-bae3-b14488777c2b",
+        "nombre": "Casa Maripaz",
+        "alias": "Un Local m�s",
+        "precio": 60.0
     }
 ]

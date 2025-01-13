@@ -8,8 +8,8 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.EURO;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
-import static es.ujaen.tfg.utils.Utils.sufijoPrecios;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.RowFilter;
@@ -289,7 +289,7 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
                     cliente.getNombre().trim(), // Columna Nombre
                     cliente.getAlias().trim(), // Columna Alias
                     cliente.getEstado(), // Columna Estado
-                    cliente.getSaldo().trim() + sufijoPrecios // Columna Saldo
+                    cliente.getSaldoString().trim() + EURO// Columna Saldo
                 });
             }
         }
@@ -319,23 +319,6 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         }
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonAnadir;
-    private javax.swing.JButton jButtonEliminar;
-    private javax.swing.JButton jButtonModificar;
-    private javax.swing.JComboBox<String> jComboBoxEstado;
-    private javax.swing.JLabel jLabelBuscarCliente;
-    private javax.swing.JLabel jLabelTitulo;
-    private javax.swing.JPanel jPanelBotonesPrincipales;
-    private javax.swing.JPanel jPanelCabecera;
-    private javax.swing.JPanel jPanelCuerpo;
-    private javax.swing.JPanel jPanelFiltro;
-    private javax.swing.JPanel jPanelTitulo;
-    private javax.swing.JScrollPane jScrollPaneTabla;
-    private javax.swing.JTable jTable;
-    private javax.swing.JTextField jTextFieldBuscadorClientes;
-    // End of variables declaration//GEN-END:variables
-
     @Override
     public void actualizar() {
         cargarTablaClientes();
@@ -354,7 +337,7 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         // Aplicar RowFilter basado en los objetos Cliente
         rowSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
             @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+            public boolean include(RowFilter.Entry<? extends DefaultTableModel, ? extends Integer> entry) {
                 String DNI = (String) entry.getValue(0); // Obtener DNI de la fila
                 Cliente clienteFiltrado = clienteControlador.leer(DNI); // Recuperar el cliente correspondiente
 
@@ -377,4 +360,22 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
             }
         });
     }
+    
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonAnadir;
+    private javax.swing.JButton jButtonEliminar;
+    private javax.swing.JButton jButtonModificar;
+    private javax.swing.JComboBox<String> jComboBoxEstado;
+    private javax.swing.JLabel jLabelBuscarCliente;
+    private javax.swing.JLabel jLabelTitulo;
+    private javax.swing.JPanel jPanelBotonesPrincipales;
+    private javax.swing.JPanel jPanelCabecera;
+    private javax.swing.JPanel jPanelCuerpo;
+    private javax.swing.JPanel jPanelFiltro;
+    private javax.swing.JPanel jPanelTitulo;
+    private javax.swing.JScrollPane jScrollPaneTabla;
+    private javax.swing.JTable jTable;
+    private javax.swing.JTextField jTextFieldBuscadorClientes;
+    // End of variables declaration//GEN-END:variables
+
 }
