@@ -34,25 +34,25 @@ public class PreferenciasControlador {
             String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
             return new Gson().fromJson(jsonData, Preferencias.class);
         } catch (IOException e) {
-            e.printStackTrace();
             return crearPreferenciasPorDefecto();
         }
     }
 
     /**
      * Guarda las preferencias en el archivo JSON.
+     * @param nuevasPreferencias
      */
     public void guardarPreferencias(Preferencias nuevasPreferencias) {
         this.preferencias = nuevasPreferencias;
         try (FileWriter writer = new FileWriter(FILE_PATH)) {
             new Gson().toJson(preferencias, writer);
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
     /**
      * Obtiene las preferencias actuales.
+     * @return Preferencias
      */
     public Preferencias obtenerPreferencias() {
         return this.preferencias;

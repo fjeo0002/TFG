@@ -5,9 +5,12 @@
 package es.ujaen.tfg.vistas;
 
 import com.mxrck.autocompleter.TextAutoCompleter;
+import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
+import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.ESTADO;
 import static es.ujaen.tfg.utils.Utils.EURO;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import java.util.List;
@@ -25,6 +28,9 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
 
     private final ClienteControlador clienteControlador;
     private TextAutoCompleter autoCompleterBuscadorClientes;
+    
+    private final FacturaControlador facturaControlador;
+    private final AnticipoControlador anticipoControlador;
 
     private VistaAnadirModificarCliente vistaAnadirModificarCliente;
     private final JFrame parent;
@@ -37,19 +43,26 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
      *
      * @param parent
      * @param clienteControlador
+     * @param facturaControlador
+     * @param anticipoControlador
      */
-    public VistaClientes(JFrame parent, ClienteControlador clienteControlador) {
+    public VistaClientes(JFrame parent, ClienteControlador clienteControlador, FacturaControlador facturaControlador, AnticipoControlador anticipoControlador) {
         initComponents();
         this.parent = parent;
 
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
+        
+        this.facturaControlador = facturaControlador;
+        this.anticipoControlador = anticipoControlador;
 
         this.dtm = (DefaultTableModel) jTable.getModel();
 
         addTableSelectionListener();
         cargarTablaClientes();
         cargarAutocompletarBuscadorClientes();
+        
+        
     }
 
     /**
@@ -250,7 +263,10 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         if (DNI != null) {
             Cliente clienteEliminado = clienteControlador.leer(DNI);
             if (clienteEliminado != null) {
+                //Borrar Cliente y Facturas y Anticipos asociados
                 clienteControlador.borrar(clienteEliminado);
+                facturaControlador.borrarFacturasCliente(DNI);
+                anticipoControlador.borrarAnticiposCliente(DNI);
             }
         }
     }//GEN-LAST:event_jButtonEliminarActionPerformed
@@ -349,7 +365,7 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
                 }
 
                 // Verificar si cliente cumple el filtro por estado
-                if (estadoSeleccionado != null && !estadoSeleccionado.equals("Estado")) {
+                if (estadoSeleccionado != null && !estadoSeleccionado.equals(ESTADO)) {
                     String estado = clienteFiltrado.getEstado();
                     if (!estado.equals(estadoSeleccionado)) {
                         return false;

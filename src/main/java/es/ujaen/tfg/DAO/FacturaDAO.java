@@ -9,11 +9,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.utils.LocalDateAdapterGson;
-import java.io.FileWriter;
+import es.ujaen.tfg.utils.Utils;
+import static es.ujaen.tfg.utils.Utils.FACTURAS_COLECCION;
+import static es.ujaen.tfg.utils.Utils.FACTURAS_JSON;
+import static es.ujaen.tfg.utils.Utils.calcularHashArchivo;
+import static es.ujaen.tfg.utils.Utils.cargarDatosDesdeArchivo;
+import static es.ujaen.tfg.utils.Utils.iniciarSincronizacionPeriodica;
+import static es.ujaen.tfg.utils.Utils.sincronizarConFirebase;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,41 +28,45 @@ import java.util.List;
 public class FacturaDAO implements InterfazDAO<Factura> {
 
     private List<Factura> facturas;
-    private static final String FILE_PATH = "facturas.json";
+    private final String ultimoHashArchivo;
 
-    public FacturaDAO() {
-        this.facturas = cargarDatosDesdeArchivo();
+    public FacturaDAO() throws IOException {
+        this.facturas = cargarDatosDesdeArchivo(
+                FACTURAS_JSON,
+                new TypeToken<List<Factura>>() {
+                }.getType()
+        );
+        /*
+        this.facturas = cargarDatosDesdeFirebase(
+                FACTURAS_JSON, 
+                FACTURAS_COLECCION, 
+                Factura.class
+        );
+         */
+        this.ultimoHashArchivo = calcularHashArchivo(FACTURAS_JSON);
+        iniciarSincronizacionPeriodica(
+                FACTURAS_JSON,
+                FACTURAS_COLECCION,
+                ultimoHashArchivo,
+                facturas,
+                Factura::getId
+        );
+        agregarShutdownHook();
     }
 
-    private List<Factura> cargarDatosDesdeArchivo() {
-        try {
-            if (!Files.exists(Paths.get(FILE_PATH))) {  // Si el archivo no existe
-                return new ArrayList<>();  // Retornar una lista vacía
+    private void agregarShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                sincronizarConFirebase(
+                        FACTURAS_JSON,
+                        FACTURAS_COLECCION,
+                        ultimoHashArchivo,
+                        facturas,
+                        Factura::getId
+                );
+            } catch (IOException e) {
             }
-            String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
-            Type listType = new TypeToken<List<Factura>>() {
-            }.getType();  // Tipo de la lista de Anticipo
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson()) // Registrar el adaptador
-                    .create();
-
-            return gson.fromJson(jsonData, listType);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;  // En caso de error, retornar lista vacía
-        }
-    }
-
-    private void guardarDatosEnArchivo() {
-        try (FileWriter writer = new FileWriter(FILE_PATH)) {
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson()) // Registrar el adaptador
-                    .create();
-
-            gson.toJson(facturas, writer);  // Guardar la lista de anticipos en formato JSON
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        }));
     }
 
     @Override
@@ -68,10 +75,21 @@ public class FacturaDAO implements InterfazDAO<Factura> {
             facturas = new ArrayList<>();
         }
         facturas.add(t);
-        guardarDatosEnArchivo();
+        Utils.guardarDatosEnArchivo(FACTURAS_JSON, facturas);
         return true;
     }
 
+    @Override
+    public Factura leer(String id) {
+        for (Factura f : facturas) {
+            if (f.getId().equals(id)) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    /*
     public Factura leer(String letra, int numero, LocalDate fecha) {
         if (facturas != null) {
             for (Factura factura : facturas) {
@@ -85,7 +103,7 @@ public class FacturaDAO implements InterfazDAO<Factura> {
         }
         return null;
     }
-
+     */
     @Override
     public boolean actualizar(Factura f) {
         String letra = f.getLetra();
@@ -98,7 +116,7 @@ public class FacturaDAO implements InterfazDAO<Factura> {
                 LocalDate fechaFactura = facturas.get(i).getFecha();
                 if (letra.equals(letraFactura) && numero == numeroFactura && fecha.isEqual(fechaFactura)) {
                     facturas.set(i, f);
-                    guardarDatosEnArchivo();
+                    Utils.guardarDatosEnArchivo(FACTURAS_JSON, facturas);
                     return true;
                 }
             }
@@ -112,7 +130,7 @@ public class FacturaDAO implements InterfazDAO<Factura> {
         if (facturas != null) {
             removed = facturas.remove(t);  // Eliminar factura de la lista
             if (removed) {
-                guardarDatosEnArchivo();  // Guardar los cambios en el archivo
+                Utils.guardarDatosEnArchivo(FACTURAS_JSON, facturas);
             }
         }
         return removed;
@@ -124,24 +142,6 @@ public class FacturaDAO implements InterfazDAO<Factura> {
             return facturas;
         }
         return null;
-    }
-
-    @Override
-    public Factura leer(String id) {
-        return null;
-    }
-
-    public String convertirAJSON(Factura factura) {
-        if (factura == null) {
-            return "{}";
-        }
-        Gson gson = new Gson();
-        return gson.toJson(factura);  // Convertir el objeto cliente a JSON
-    }
-
-    public String convertirListaAJSON() {
-        Gson gson = new Gson();
-        return gson.toJson(facturas);  // Convertir la lista de clientes a JSON
     }
 
 }

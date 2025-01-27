@@ -4,6 +4,7 @@
  */
 package es.ujaen.tfg.modelo;
 
+import com.google.cloud.firestore.annotation.Exclude;
 import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
 import static es.ujaen.tfg.utils.Utils.convertirFechaAString;
 import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
@@ -44,7 +45,7 @@ public class Anticipo {
         this.saldo = convertirStringADouble(saldo);
         this.clienteDNI = clienteDNI;
     }
-    
+
     public Anticipo(Anticipo a) {
         this.id = a.id;
         this.monto = a.monto;
@@ -65,7 +66,8 @@ public class Anticipo {
     public double getMonto() {
         return monto;
     }
-    
+
+    @Exclude
     public String getMontoString() {
         return convertirDoubleAString(monto);
     }
@@ -73,15 +75,17 @@ public class Anticipo {
     public void setMonto(double monto) {
         this.monto = monto;
     }
-    
-    public void setMonto(String monto) {
+
+    @Exclude
+    public void setMontoString(String monto) {
         this.monto = convertirStringADouble(monto);
     }
 
     public int getMesesCubiertos() {
         return mesesCubiertos;
     }
-    
+
+    @Exclude
     public String getMesesCubiertosString() {
         return String.valueOf(mesesCubiertos);
     }
@@ -89,24 +93,27 @@ public class Anticipo {
     public void setMesesCubiertos(int mesesCubiertos) {
         this.mesesCubiertos = mesesCubiertos;
     }
-    
-    public void setMesesCubiertos(String mesesCubiertos) {
+
+    @Exclude
+    public void setMesesCubiertosString(String mesesCubiertos) {
         this.mesesCubiertos = Integer.parseInt(mesesCubiertos);
     }
-
+    
+    @Exclude
     public LocalDate getFecha() {
         return fecha;
     }
-    
+
     public String getFechaString() {
         return convertirFechaAString(fecha);
     }
-
+    
+    @Exclude
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
     }
-    
-    public void setFecha(String fecha) {
+
+    public void setFechaString(String fecha) {
         this.fecha = convertirStringAFecha(fecha);
     }
 
@@ -114,6 +121,7 @@ public class Anticipo {
         return saldo;
     }
     
+    @Exclude
     public String getSaldoString() {
         return convertirDoubleAString(saldo);
     }
@@ -121,8 +129,9 @@ public class Anticipo {
     public void setSaldo(double saldo) {
         this.saldo = saldo;
     }
-    
-    public void setSaldo(String saldo) {
+
+    @Exclude
+    public void setSaldoString(String saldo) {
         this.saldo = convertirStringADouble(saldo);
     }
 
@@ -158,10 +167,6 @@ public class Anticipo {
         if (!Objects.equals(this.fecha, other.fecha)) {
             return false;
         }
-        // También veo si los anticipos se solapan con los meses
-        
-        
-        
         return Objects.equals(this.clienteDNI, other.clienteDNI);
     }
 

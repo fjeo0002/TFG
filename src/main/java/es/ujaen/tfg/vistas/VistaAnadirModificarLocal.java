@@ -20,6 +20,7 @@ import static es.ujaen.tfg.utils.Utils.TITULO_VISTA_MODIFICAR_LOCAL;
 import static es.ujaen.tfg.utils.Utils.VACIO;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
+import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarSufijo;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
@@ -101,6 +102,11 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         this.campoPrecioBaseCorrecto = true;
         this.local = new Local(local);
         this.localOriginal = new Local(local);
+        
+        // Puede que no tenga alias
+        if(local.getAlias().trim().isEmpty()){
+            agregarPlaceHolder(jTextFieldAlias, PLACEHOLDER_ALIAS_LOCAL);
+        }
     }
 
     /**
@@ -337,7 +343,7 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         } else {
             local.setNombre(nombre);
             local.setAlias(alias);
-            local.setPrecio(precio);
+            local.setPrecioString(precio);
 
             if(!localOriginal.equals(local)){
                 localControlador.actualizar(local);

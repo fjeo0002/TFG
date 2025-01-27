@@ -6,10 +6,11 @@ package es.ujaen.tfg.controlador;
 
 import es.ujaen.tfg.DAO.AnticipoDAO;
 import es.ujaen.tfg.modelo.Anticipo;
-import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class AnticipoControlador implements Observable {
     private List<Observador> observadores;
     private final AnticipoDAO anticipoDAO;
 
-    public AnticipoControlador() {
+    public AnticipoControlador() throws IOException {
         this.anticipoDAO = new AnticipoDAO();
         this.observadores = new ArrayList<>();
     }
@@ -69,10 +70,18 @@ public class AnticipoControlador implements Observable {
     }
 
     public List<Anticipo> leerTodos() {
-        return anticipoDAO.leerTodos();
+        //return anticipoDAO.leerTodos();
+        List<Anticipo> anticipos = anticipoDAO.leerTodos();
+        if (anticipos != null) {
+            return anticipos.stream()
+                    .sorted((a1, a2) -> a2.getFecha().compareTo(a1.getFecha()))
+                    .toList();
+        }
+        return null;
     }
 
     public boolean anticipoRepetido(Anticipo a) {
+        // 1º Miramos que no sea uno igual:        
         List<Anticipo> anticipos = leerTodos();
         if (anticipos != null) {
             for (Anticipo anticipo : anticipos) {
@@ -80,27 +89,55 @@ public class AnticipoControlador implements Observable {
                     return true;
                 }
             }
-            // Verificar solapamientos temporales con anticipos del mismo cliente
-            String clienteDNI = a.getClienteDNI();
-            List<Anticipo> anticiposCliente = anticiposCliente(clienteDNI);
-            if (anticiposCliente != null) {
-                int mesesCubiertosNuevo = a.getMesesCubiertos();
-                LocalDate fechaInicioNuevo = a.getFecha();
-                LocalDate fechaFinNuevo = fechaInicioNuevo.plusMonths(mesesCubiertosNuevo);
+        }
+        return false;
+    }
 
+    public Anticipo anticipoActivo(String clienteDNI) {
+        List<Anticipo> anticiposCliente = anticiposCliente(clienteDNI);
+        if (anticiposCliente != null) {
+            if (!anticiposCliente.isEmpty()) {
                 for (Anticipo anticipo : anticiposCliente) {
-                    int mesesCubiertosExistente = anticipo.getMesesCubiertos();
-                    LocalDate fechaInicioExistente = anticipo.getFecha();
-                    LocalDate fechaFinExistente = fechaInicioExistente.plusMonths(mesesCubiertosExistente);
-
-                    // Comprobar si los rangos de fechas se solapan
-                    if (!(fechaFinNuevo.isBefore(fechaInicioExistente) || fechaInicioNuevo.isAfter(fechaFinExistente))) {
-                        return true; // Hay solapamiento temporal
+                    if (anticipo.getSaldo() > 0.0) {
+                        return anticipo;
                     }
                 }
             }
         }
-        return false; // No hay repetición ni solapamiento
+        return null;
+    }
+
+    public boolean anticipoSolapado(Anticipo a) {
+        // Obtener datos del nuevo anticipo
+        int mesesCubiertosNuevo = a.getMesesCubiertos();
+        LocalDate fechaInicioNuevo = a.getFecha();
+        LocalDate fechaFinNuevo = fechaInicioNuevo.plusMonths(mesesCubiertosNuevo - 1); // Ajustar rango al último mes incluido
+
+        YearMonth anioMesInicioNuevo = YearMonth.from(fechaInicioNuevo);
+        YearMonth anioMesFinNuevo = YearMonth.from(fechaFinNuevo);
+
+        // Obtener anticipos existentes del cliente
+        String clienteDNI = a.getClienteDNI();
+        List<Anticipo> anticiposCliente = anticiposCliente(clienteDNI);
+
+        // Comprobar si existe algún solapamiento
+        if (anticiposCliente != null && !anticiposCliente.isEmpty()) {
+            for (Anticipo anticipo : anticiposCliente) {
+                // Obtener datos del anticipo existente
+                int mesesCubiertosExistente = anticipo.getMesesCubiertos();
+                LocalDate fechaInicioExistente = anticipo.getFecha();
+                LocalDate fechaFinExistente = fechaInicioExistente.plusMonths(mesesCubiertosExistente - 1);
+
+                YearMonth anioMesInicioExistente = YearMonth.from(fechaInicioExistente);
+                YearMonth anioMesFinExistente = YearMonth.from(fechaFinExistente);
+
+                // Comprobar solapamiento entre rangos
+                if (!(anioMesFinNuevo.isBefore(anioMesInicioExistente) || anioMesInicioNuevo.isAfter(anioMesFinExistente))) {
+                    return true; // Hay solapamiento
+                }
+            }
+        }
+        return false; // No hay solapamiento
     }
 
     public List<Anticipo> anticiposCliente(String clienteDNI) {
@@ -117,6 +154,17 @@ public class AnticipoControlador implements Observable {
         return null;
     }
 
+    public boolean borrarAnticiposCliente(String clienteDNI) {
+        List<Anticipo> anticiposCliente = anticiposCliente(clienteDNI);
+        if (anticiposCliente != null) {
+            for (Anticipo anticipo : anticiposCliente) {
+                borrar(anticipo);
+            }
+            return true;
+        }
+        return false;
+    }
+    /*
     public Anticipo obtenerUltimoAnticipo(Cliente cliente) {
         List<Anticipo> anticipos = leerTodos();
         if (anticipos != null) {
@@ -140,4 +188,5 @@ public class AnticipoControlador implements Observable {
         }
         return null;
     }
+     */
 }

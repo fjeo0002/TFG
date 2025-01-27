@@ -8,6 +8,7 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.EURO;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import java.util.List;
 import javax.swing.JFrame;
@@ -15,7 +16,6 @@ import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
-import static es.ujaen.tfg.utils.Utils.EURO;
 
 /**
  *

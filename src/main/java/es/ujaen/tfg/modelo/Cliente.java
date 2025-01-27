@@ -4,6 +4,7 @@
  */
 package es.ujaen.tfg.modelo;
 
+import com.google.cloud.firestore.annotation.Exclude;
 import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
 import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import java.util.Objects;
@@ -29,15 +30,15 @@ public class Cliente {
     }
 
     public Cliente(
-            String DNI, 
-            String nombre, 
-            String alias, 
-            String email, 
-            String direccion, 
-            String localidad, 
-            String codigoPostal, 
-            String estado, 
-            double saldo, 
+            String DNI,
+            String nombre,
+            String alias,
+            String email,
+            String direccion,
+            String localidad,
+            String codigoPostal,
+            String estado,
+            double saldo,
             String tipo
     ) {
         this.DNI = DNI;
@@ -51,17 +52,17 @@ public class Cliente {
         this.saldo = saldo;
         this.tipo = tipo;
     }
-    
+
     public Cliente(
-            String DNI, 
-            String nombre, 
-            String alias, 
-            String email, 
-            String direccion, 
-            String localidad, 
-            String codigoPostal, 
-            String estado, 
-            String saldo, 
+            String DNI,
+            String nombre,
+            String alias,
+            String email,
+            String direccion,
+            String localidad,
+            String codigoPostal,
+            String estado,
+            String saldo,
             String tipo
     ) {
         this.DNI = DNI;
@@ -164,7 +165,8 @@ public class Cliente {
     public double getSaldo() {
         return saldo;
     }
-    
+
+    @Exclude
     public String getSaldoString() {
         return convertirDoubleAString(saldo);
     }
@@ -173,13 +175,9 @@ public class Cliente {
         this.saldo = saldo;
     }
     
-    public void setSaldo(String saldoStr) {
+    @Exclude
+    public void setSaldoString(String saldoStr) {
         this.saldo = convertirStringADouble(saldoStr);
-    }
-
-    @Override
-    public String toString() {
-        return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", correo=" + email + ", direccion=" + direccion + ", codigoPostal=" + codigoPostal + ", ciudad=" + localidad + ", estado=" + estado + ", saldo=" + saldo + ", tipo=" + tipo + '}';
     }
 
     @Override
@@ -230,6 +228,11 @@ public class Cliente {
             return false;
         }
         return Objects.equals(this.tipo, other.tipo);
+    }
+
+    @Override
+    public String toString() {
+        return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", email=" + email + ", direccion=" + direccion + ", localidad=" + localidad + ", codigoPostal=" + codigoPostal + ", estado=" + estado + ", saldo=" + saldo + ", tipo=" + tipo + '}';
     }
 
 }

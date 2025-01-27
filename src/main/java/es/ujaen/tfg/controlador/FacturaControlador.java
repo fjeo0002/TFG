@@ -5,11 +5,16 @@
 package es.ujaen.tfg.controlador;
 
 import es.ujaen.tfg.DAO.FacturaDAO;
-import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.utils.Utils;
+import es.ujaen.tfg.utils.Utils.Mes;
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +27,7 @@ public class FacturaControlador implements Observable {
     private List<Observador> observadores;
     private final FacturaDAO facturaDAO;
 
-    public FacturaControlador() {
+    public FacturaControlador() throws IOException {
         this.facturaDAO = new FacturaDAO();
         this.observadores = new ArrayList<>();
     }
@@ -50,8 +55,8 @@ public class FacturaControlador implements Observable {
         return true;
     }
 
-    public Factura leer(String letra, int numero, LocalDate fecha) {
-        return facturaDAO.leer(letra, numero, fecha);
+    public Factura leer(String id) {
+        return facturaDAO.leer(id);
     }
 
     public boolean actualizar(Factura factura) {
@@ -71,14 +76,30 @@ public class FacturaControlador implements Observable {
         return facturaDAO.leerTodos();
     }
 
+    public String generarIdFactura(String letra, int numero, LocalDate fecha) {
+        // Crear una clave única combinando los campos 'letra', 'numero' y 'fecha'
+        int numeroMes = fecha.getMonthValue();
+        Mes mes = Mes.porNumero(numeroMes);
+        String nombreMes = mes.getNombre();
+        
+        int anio = fecha.getYear();
+        
+        String txt = letra + "-" + anio + "-" + nombreMes + "-" + numero;
+        return txt;
+    }
+
     public boolean facturaRepetida(Factura f) {
         // La factura no está repetida en caso de que el cliente no tenga factura en ese mes y anio
         String clienteDNI = f.getClienteDNI();
         int mes = f.getFecha().getMonthValue();
         int anio = f.getFecha().getYear();
         Factura facturaClienteMesAnio = facturaClienteMesAnio(clienteDNI, mes, anio);
+
         if (facturaClienteMesAnio != null) {
-            return true;
+            // ¡Ojo! si la factura está "Repetida" por ser un Anticipo (Numero = 0) !No Cuenta!
+            if (facturaClienteMesAnio.getNumero() != 0) {
+                return true;
+            }
         }
         return false;
     }
@@ -112,7 +133,7 @@ public class FacturaControlador implements Observable {
     }
 
     public List<Factura> facturasLetra(String letra) {
-        List<Factura> facturas = facturaDAO.leerTodos();
+        List<Factura> facturas = leerTodos();
         if (facturas != null) {
             List<Factura> facturasLetra = new ArrayList<>();
             for (Factura factura : facturas) {
@@ -143,9 +164,11 @@ public class FacturaControlador implements Observable {
         int ultimoNumeroFactura = 0;
         List<Factura> facturasLetraAnio = facturasLetraAnio(letra, fecha);
         if (facturasLetraAnio != null) {
-            for (Factura factura : facturasLetraAnio) {
-                if (factura.getNumero() > ultimoNumeroFactura) {
-                    ultimoNumeroFactura = factura.getNumero();
+            if (!facturasLetraAnio.isEmpty()) {
+                for (Factura factura : facturasLetraAnio) {
+                    if (factura.getNumero() > ultimoNumeroFactura) {
+                        ultimoNumeroFactura = factura.getNumero();
+                    }
                 }
             }
         }
@@ -156,15 +179,179 @@ public class FacturaControlador implements Observable {
     public List<Factura> facturasNoNumeradasCliente(String clienteDNI) {
         List<Factura> facturasCliente = facturasCliente(clienteDNI);
         if (facturasCliente != null) {
-            List<Factura> facturasNoNumeradasCliente = new ArrayList<>();
-            for (Factura factura : facturasCliente) {
-                if (factura.getNumero() == 0) {
-                    facturasNoNumeradasCliente.add(factura);
+            if (!facturasCliente.isEmpty()) {
+                List<Factura> facturasNoNumeradasCliente = new ArrayList<>();
+                for (Factura factura : facturasCliente) {
+                    if (factura.getNumero() == 0) {
+                        facturasNoNumeradasCliente.add(factura);
+                    }
                 }
+                return facturasNoNumeradasCliente;
             }
-            return facturasNoNumeradasCliente;
         }
         return null;
     }
 
+    public double saldoFacturasNoNumeradas(String clienteDNI) {
+        List<Factura> facturasNoNumeradasCliente = facturasNoNumeradasCliente(clienteDNI);
+        if (facturasNoNumeradasCliente != null) {
+            if (!facturasNoNumeradasCliente.isEmpty()) {
+                double saldo = 0.0;
+                for (Factura f : facturasNoNumeradasCliente) {
+                    saldo += f.getMonto();
+                }
+                return saldo;
+            }
+        }
+        return 0.0;
+    }
+
+    public List<Factura> facturasNoPagadasCliente(String clienteDNI) {
+        List<Factura> facturasCliente = facturasCliente(clienteDNI);
+        if (facturasCliente != null) {
+            if (!facturasCliente.isEmpty()) {
+                List<Factura> facturasNoPagadasCliente = new ArrayList<>();
+                for (Factura f : facturasCliente) {
+                    if (f.getPagado() == false) {
+                        facturasNoPagadasCliente.add(f);
+                    }
+                }
+                if (!facturasNoPagadasCliente.isEmpty()) {
+                    return facturasNoPagadasCliente;
+                }
+            }
+        }
+        return null;
+    }
+
+    public double saldoFacturasNoPagadasCliente(String clienteDNI) {
+        List<Factura> facturasNoPagadasCliente = facturasNoPagadasCliente(clienteDNI);
+        if (facturasNoPagadasCliente != null) {
+            if (!facturasNoPagadasCliente.isEmpty()) {
+                double saldo = 0.0;
+                for (Factura f : facturasNoPagadasCliente) {
+                    saldo += f.getMonto();
+                }
+                return saldo;
+            }
+        }
+        return 0.0;
+    }
+
+    public boolean borrarFacturasNoNumeradasCliente(String clienteDNI) {
+        List<Factura> facturasNoNumeradasCliente = facturasNoNumeradasCliente(clienteDNI);
+        if (facturasNoNumeradasCliente != null) {
+            if (!facturasNoNumeradasCliente.isEmpty()) {
+                for (Factura factura : facturasNoNumeradasCliente) {
+                    borrar(factura);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean borrarFacturasCliente(String clienteDNI) {
+        List<Factura> facturasCliente = facturasCliente(clienteDNI);
+        if (facturasCliente != null) {
+            if (!facturasCliente.isEmpty()) {
+                for (Factura factura : facturasCliente) {
+                    borrar(factura);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Factura ultimaFacturaCliente(String clienteDNI) {
+        List<Factura> facturasCliente = facturasCliente(clienteDNI);
+        if (facturasCliente != null) {
+            if (!facturasCliente.isEmpty()) {
+                int size = facturasCliente.size() - 1;
+                Factura ultimaFactura = facturasCliente.get(size); // Empiezo por la última
+                for (Factura factura : facturasCliente) {
+                    LocalDate fechaUltimaFactura = ultimaFactura.getFecha();
+                    LocalDate fechaFactura = factura.getFecha();
+                    if (fechaFactura.isAfter(fechaUltimaFactura)) {
+                        ultimaFactura = factura;
+                    }
+                }
+                return ultimaFactura;
+            }
+        }
+        return null;
+    }
+
+    public Factura primeraFacturaAnticipoActivoCliente(String clienteDNI) {
+        List<Factura> facturasNoNumeradasCliente = facturasNoNumeradasCliente(clienteDNI);
+        if (facturasNoNumeradasCliente != null) {
+            if (!facturasNoNumeradasCliente.isEmpty()) {
+                Factura factura = facturasNoNumeradasCliente.remove(0);
+                return factura;
+            }
+        }
+        return null;
+    }
+
+    public boolean facturaContigua(Factura factura) {
+        String clienteDNI = factura.getClienteDNI();
+        Factura ultimaFacturaCliente = ultimaFacturaCliente(clienteDNI);
+        if (ultimaFacturaCliente != null) {
+            boolean facturado = ultimaFacturaCliente.getFacturado();
+            // El cliente no tiene anticipos activos y se mira la ultimaFacturaCliente
+            if (facturado) {
+                LocalDate fechaUltimaFacturaCliente = ultimaFacturaCliente.getFecha();
+                LocalDate fechaFactura = factura.getFecha();
+                // ¿Son consecutivos por meses?
+                long diferenciaMeses = ChronoUnit.MONTHS.between(
+                        fechaUltimaFacturaCliente.withDayOfMonth(1),
+                        fechaFactura.withDayOfMonth(1)
+                );
+                if (diferenciaMeses == 1) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        // Entonces, no hay ninguna otra factura creada para el cliente, y siempre puede crearse
+        return true;
+    }
+
+    public boolean anticipoTardioAUltimaFactura(Anticipo a) {
+        Factura ultimaFacturaCliente = ultimaFacturaCliente(a.getClienteDNI());
+        if (ultimaFacturaCliente != null) {
+            LocalDate fechaUltimaFacturaCliente = ultimaFacturaCliente.getFecha();
+            LocalDate fecha = a.getFecha();
+            // Solo tenemos en cuenta los años y meses
+            YearMonth fechaFactura = YearMonth.from(fechaUltimaFacturaCliente);
+            YearMonth fechaAnticipo = YearMonth.from(fecha);
+
+            if (fechaFactura.isAfter(fechaAnticipo)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean anticipoContiguoAUltimaFactura(Anticipo a) {
+        String clienteDNI = a.getClienteDNI();
+        Factura ultimaFacturaCliente = ultimaFacturaCliente(clienteDNI);
+        if (ultimaFacturaCliente != null) {
+            LocalDate fechaUltimaFacturaCliente = ultimaFacturaCliente.getFecha();
+            LocalDate fechaAnticipo = a.getFecha();
+            // ¿Son consecutivos por meses?
+            long diferenciaMeses = ChronoUnit.MONTHS.between(fechaUltimaFacturaCliente.withDayOfMonth(1), fechaAnticipo.withDayOfMonth(1));
+
+            if (diferenciaMeses == 1) {
+                return true;
+            } else {
+                return false;
+            }
+
+        }
+        // Entonces, no hay ninguna otra factura creada para el cliente, y siempre puede crearse
+        return true;
+    }
 }

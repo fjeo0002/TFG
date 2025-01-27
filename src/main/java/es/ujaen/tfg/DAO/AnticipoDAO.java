@@ -9,11 +9,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.utils.LocalDateAdapterGson;
-import java.io.FileWriter;
+import es.ujaen.tfg.utils.Utils;
+import static es.ujaen.tfg.utils.Utils.ANTICIPOS_COLECCION;
+import static es.ujaen.tfg.utils.Utils.ANTICIPOS_JSON;
+import static es.ujaen.tfg.utils.Utils.calcularHashArchivo;
+import static es.ujaen.tfg.utils.Utils.cargarDatosDesdeArchivo;
+import static es.ujaen.tfg.utils.Utils.iniciarSincronizacionPeriodica;
+import static es.ujaen.tfg.utils.Utils.sincronizarConFirebase;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,44 +25,48 @@ import java.util.List;
  *
  * @author jota
  */
-public class AnticipoDAO implements InterfazDAO<Anticipo> {
+public final class AnticipoDAO implements InterfazDAO<Anticipo> {
 
     private List<Anticipo> anticipos;
-    private static final String FILE_PATH = "anticipos.json";
+    private final String ultimoHashArchivo;
 
-    public AnticipoDAO() {
-        this.anticipos = cargarDatosDesdeArchivo();  // Inicializar la lista desde el archivo
+    public AnticipoDAO() throws IOException {
+        this.anticipos = cargarDatosDesdeArchivo(
+                ANTICIPOS_JSON,
+                new TypeToken<List<Anticipo>>() {
+                }.getType()
+        );
+        /*
+        this.anticipos = cargarDatosDesdeFirebase(
+                ANTICIPOS_JSON, 
+                ANTICIPOS_COLECCION, 
+                Anticipo.class
+        );
+         */
+        this.ultimoHashArchivo = calcularHashArchivo(ANTICIPOS_JSON);
+        iniciarSincronizacionPeriodica(
+                ANTICIPOS_JSON,
+                ANTICIPOS_COLECCION,
+                ultimoHashArchivo,
+                anticipos,
+                Anticipo::getId
+        );
+        agregarShutdownHook();
     }
 
-    private List<Anticipo> cargarDatosDesdeArchivo() {
-        try {
-            if (!Files.exists(Paths.get(FILE_PATH))) {  // Si el archivo no existe
-                return new ArrayList<>();  // Retornar una lista vacía
+    private void agregarShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                sincronizarConFirebase(
+                        ANTICIPOS_JSON,
+                        ANTICIPOS_COLECCION,
+                        ultimoHashArchivo,
+                        anticipos,
+                        Anticipo::getId
+                );
+            } catch (IOException e) {
             }
-            String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
-            Type listType = new TypeToken<List<Anticipo>>() {
-            }.getType();  // Tipo de la lista de Anticipo
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson()) // Registrar el adaptador
-                    .create();
-
-            return gson.fromJson(jsonData, listType);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ArrayList<>();  // En caso de error, retornar lista vacía
-        }
-    }
-
-    private void guardarDatosEnArchivo() {
-        try (FileWriter writer = new FileWriter(FILE_PATH)) {
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson()) // Registrar el adaptador
-                    .create();
-
-            gson.toJson(anticipos, writer);  // Guardar la lista de anticipos en formato JSON
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        }));
     }
 
     @Override
@@ -68,7 +75,7 @@ public class AnticipoDAO implements InterfazDAO<Anticipo> {
             anticipos = new ArrayList<>();
         }
         anticipos.add(t);  // Agregar anticipo a la lista
-        guardarDatosEnArchivo();  // Guardar los cambios en el archivo
+        Utils.guardarDatosEnArchivo(ANTICIPOS_JSON, anticipos);  // Guardar los cambios en el archivo
         return true;
     }
 
@@ -87,7 +94,7 @@ public class AnticipoDAO implements InterfazDAO<Anticipo> {
         for (int i = 0; i < anticipos.size(); i++) {
             if (anticipos.get(i).getId().equals(anticipo.getId())) {
                 anticipos.set(i, anticipo);
-                guardarDatosEnArchivo();
+                Utils.guardarDatosEnArchivo(ANTICIPOS_JSON, anticipos);  // Guardar los cambios en el archivo
                 return true;
             }
         }
@@ -98,7 +105,7 @@ public class AnticipoDAO implements InterfazDAO<Anticipo> {
     public boolean borrar(Anticipo t) {
         boolean removed = anticipos.remove(t);  // Eliminar anticipo de la lista
         if (removed) {
-            guardarDatosEnArchivo();  // Guardar los cambios en el archivo
+            Utils.guardarDatosEnArchivo(ANTICIPOS_JSON, anticipos);  // Guardar los cambios en el archivo
         }
         return removed;
     }
@@ -108,16 +115,4 @@ public class AnticipoDAO implements InterfazDAO<Anticipo> {
         return anticipos;
     }
 
-    public String convertirAJSON(Anticipo anticipo) {
-        if (anticipo == null) {
-            return "{}";
-        }
-        Gson gson = new Gson();
-        return gson.toJson(anticipo);  // Convertir el objeto cliente a JSON
-    }
-
-    public String convertirListaAJSON() {
-        Gson gson = new Gson();
-        return gson.toJson(anticipos);  // Convertir la lista de clientes a JSON
-    }
 }

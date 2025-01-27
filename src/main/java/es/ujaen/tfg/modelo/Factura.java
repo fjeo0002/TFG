@@ -4,11 +4,13 @@
  */
 package es.ujaen.tfg.modelo;
 
+import com.google.cloud.firestore.annotation.Exclude;
 import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
 import static es.ujaen.tfg.utils.Utils.convertirFechaAString;
 import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import static es.ujaen.tfg.utils.Utils.convertirStringAFecha;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Objects;
 
 /**
@@ -17,6 +19,7 @@ import java.util.Objects;
  */
 public class Factura {
 
+    private String id;
     private String letra;
     private int numero;
     private LocalDate fecha;
@@ -28,7 +31,8 @@ public class Factura {
     public Factura() {
     }
 
-    public Factura(String letra, int numero, LocalDate fecha, Boolean pagado, Boolean facturado, double monto, String clienteDNI) {
+    public Factura(String id, String letra, int numero, LocalDate fecha, Boolean pagado, Boolean facturado, double monto, String clienteDNI) {
+        this.id = id;
         this.letra = letra;
         this.numero = numero;
         this.fecha = fecha;
@@ -38,7 +42,8 @@ public class Factura {
         this.monto = monto;
     }
 
-    public Factura(String letra, String numero, String fecha, Boolean pagado, Boolean facturado, String monto, String clienteDNI) {
+    public Factura(String id, String letra, String numero, String fecha, Boolean pagado, Boolean facturado, String monto, String clienteDNI) {
+        this.id = id;
         this.letra = letra;
         this.numero = Integer.parseInt(numero);
         this.fecha = convertirStringAFecha(fecha);
@@ -49,6 +54,7 @@ public class Factura {
     }
 
     public Factura(Factura f) {
+        this.id = f.id;
         this.letra = f.letra;
         this.numero = f.numero;
         this.fecha = f.fecha;
@@ -56,6 +62,14 @@ public class Factura {
         this.facturado = f.facturado;
         this.clienteDNI = f.clienteDNI;
         this.monto = f.monto;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getLetra() {
@@ -70,6 +84,7 @@ public class Factura {
         return numero;
     }
 
+    @Exclude
     public String getNumeroString() {
         return String.valueOf(numero);
     }
@@ -78,10 +93,12 @@ public class Factura {
         this.numero = numero;
     }
 
-    public void setNumero(String numero) {
+    @Exclude
+    public void setNumeroString(String numero) {
         this.numero = Integer.parseInt(numero);
     }
 
+    @Exclude
     public LocalDate getFecha() {
         return fecha;
     }
@@ -90,6 +107,7 @@ public class Factura {
         return convertirFechaAString(fecha);
     }
 
+    @Exclude
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
     }
@@ -126,6 +144,7 @@ public class Factura {
         return monto;
     }
 
+    @Exclude
     public String getMontoString() {
         return convertirDoubleAString(monto);
     }
@@ -134,7 +153,8 @@ public class Factura {
         this.monto = monto;
     }
 
-    public void setMonto(String monto) {
+    @Exclude
+    public void setMontoString(String monto) {
         this.monto = convertirStringADouble(monto);
     }
 
@@ -150,21 +170,13 @@ public class Factura {
             return false;
         }
         final Factura other = (Factura) obj;
-        /*
-        if (this.numero != other.numero) {
+        // No pueden tener Mes/Año, Cliente y Monto iguales
+        YearMonth fecha1 = YearMonth.from(this.fecha);
+        YearMonth fecha2 = YearMonth.from(other.fecha);
+        if (!fecha1.equals(fecha2)) {
             return false;
         }
-        if (!Objects.equals(this.letra, other.letra)) {
-            return false;
-        }
-        */ //Para mí, una factura es igual en caso de tener fecha (año y mes) y cliente Iguales
-        if (!Objects.equals(this.fecha, other.fecha)) {
-            return false;
-        }
-        if (!Objects.equals(this.fecha.getMonth(), other.fecha.getMonth())) {
-            return false;
-        }
-        if (!Objects.equals(this.fecha.getYear(), other.fecha.getYear())) {
+        if (!Objects.equals(this.monto, other.monto)) {
             return false;
         }
         return Objects.equals(this.clienteDNI, other.clienteDNI);

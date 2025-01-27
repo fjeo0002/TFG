@@ -4,6 +4,7 @@
  */
 package es.ujaen.tfg.modelo;
 
+import com.google.cloud.firestore.annotation.Exclude;
 import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
 import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import java.util.Objects;
@@ -71,6 +72,7 @@ public class Local {
         return precio;
     }
     
+    @Exclude
     public String getPrecioString() {
         return convertirDoubleAString(precio);
     }
@@ -78,8 +80,9 @@ public class Local {
     public void setPrecio(double precio) {
         this.precio = precio;
     }
-    
-    public void setPrecio(String precioStr) {
+
+    @Exclude
+    public void setPrecioString(String precioStr) {
         this.precio = convertirStringADouble(precioStr);
     }
 

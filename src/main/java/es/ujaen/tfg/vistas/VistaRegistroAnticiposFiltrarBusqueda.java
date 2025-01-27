@@ -8,6 +8,10 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
+import static es.ujaen.tfg.utils.Utils.ERROR_ANIO;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_ANIO;
+import static es.ujaen.tfg.utils.Utils.VACIO;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_ANIO;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
@@ -24,9 +28,9 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
     private final ClienteControlador clienteControlador;
     private TextAutoCompleter autoCompleterBuscadorClientes;
 
-    private final String placeHolderAnio = "aaaa";
     private final Border originalBorder;
-    private boolean campoAnioCorrecto = true;
+    
+    private boolean campoAnioCorrecto = true; // Si está vacío, no pasa nada, podemos filtrar por otro/s campo/s
 
     /**
      * Creates new form VistaRegistroAnticiposFiltrarBusqueda
@@ -255,12 +259,12 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
 
     private void jTextFieldAnioFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAnioFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldAnio, placeHolderAnio);
+        agregarPlaceHolder(jTextFieldAnio, PLACEHOLDER_ANIO);
     }//GEN-LAST:event_jTextFieldAnioFocusLost
 
     private void jTextFieldAnioFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldAnioFocusGained
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldAnio, placeHolderAnio);
+        quitarPlaceHolder(jTextFieldAnio, PLACEHOLDER_ANIO);
     }//GEN-LAST:event_jTextFieldAnioFocusGained
 
     private void jTextFieldAnioKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldAnioKeyReleased
@@ -268,9 +272,9 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
         campoAnioCorrecto = validarCampoFormulario(
                 jTextFieldAnio,
                 jLabelAdvertenciaAnio,
-                "* Introduce un año válido (4 dígitos)",
+                ERROR_ANIO,
                 originalBorder,
-                texto -> texto.isEmpty() || texto.matches("^\\d{4}") || texto.equals(placeHolderAnio)
+                texto -> texto.isEmpty() || texto.matches(VALIDACION_ANIO) || texto.equals(PLACEHOLDER_ANIO)
         );
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldAnioKeyReleased
@@ -282,18 +286,21 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
         //Esto hace que también se pueda buscar por en medio del String
         autoCompleterBuscadorClientes.setMode(0);
 
-        for (Cliente cliente : clienteControlador.leerTodos()) {
-            autoCompleterBuscadorClientes.addItem(cliente.getNombre());
-            autoCompleterBuscadorClientes.addItem(cliente.getAlias());
-        }
+        List<Cliente> clientes = clienteControlador.leerTodos();
 
+        if (clientes != null) {
+            for (Cliente cliente : clientes) {
+                autoCompleterBuscadorClientes.addItem(cliente.getNombre());
+                autoCompleterBuscadorClientes.addItem(cliente.getAlias());
+            }
+        }
     }
 
     public List<String> obtenerFiltros() {
         List<String> filtros = new ArrayList<>();
         filtros.add(jTextFieldBuscadorClientes.getText().trim());
         filtros.add((String) jComboBoxSaldo.getSelectedItem());
-        filtros.add(jTextFieldAnio.getText().trim().equals("aaaa") ? "" : jTextFieldAnio.getText().trim());
+        filtros.add(jTextFieldAnio.getText().trim().equals(PLACEHOLDER_ANIO) ? VACIO : jTextFieldAnio.getText().trim());
         filtros.add((String) jComboBoxMes.getSelectedItem());
         return filtros;
     }
@@ -304,6 +311,16 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
             return;
         }
         jButtonAceptar.setEnabled(false);
+    }
+
+    @Override
+    public void actualizar() {
+        actualizarAutocompleter();
+    }
+
+    private void actualizarAutocompleter() {
+        autoCompleterBuscadorClientes.removeAllItems();
+        cargarAutocompletarBuscadorClientes();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -325,13 +342,4 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
     private javax.swing.JTextField jTextFieldBuscadorClientes;
     // End of variables declaration//GEN-END:variables
 
-    @Override
-    public void actualizar() {
-        actualizarAutocompleter();
-    }
-
-    private void actualizarAutocompleter() {
-        autoCompleterBuscadorClientes.removeAllItems();
-        cargarAutocompletarBuscadorClientes();
-    }
 }

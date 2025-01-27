@@ -5,25 +5,32 @@
 package es.ujaen.tfg.vistas;
 
 import com.mxrck.autocompleter.TextAutoCompleter;
+import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.controlador.PreferenciasControlador;
+import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.modelo.Preferencias;
 import es.ujaen.tfg.observer.Observador;
-import static es.ujaen.tfg.utils.Utils.COMA;
+import static es.ujaen.tfg.utils.Utils.AL_DIA;
 import static es.ujaen.tfg.utils.Utils.EURO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_FACTURA_ANTICIPO_DISTINTOS;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_FACTURA_CONTIGUA;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_FACTURA_REPETIDO;
 import static es.ujaen.tfg.utils.Utils.PORCENTAJE;
-import static es.ujaen.tfg.utils.Utils.PUNTO;
+import static es.ujaen.tfg.utils.Utils.SUBTOTAL;
 import static es.ujaen.tfg.utils.Utils.TIPOA;
+import static es.ujaen.tfg.utils.Utils.TITULO_FACTURA_ANTICIPO_DISTINTOS;
+import static es.ujaen.tfg.utils.Utils.TITULO_FACTURA_CONTIGUA;
 import static es.ujaen.tfg.utils.Utils.TITULO_FACTURA_REPETIDO;
 import static es.ujaen.tfg.utils.Utils.VACIO;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
 import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
+import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import static es.ujaen.tfg.utils.Utils.convertirStringAFecha;
 import static es.ujaen.tfg.utils.Utils.mostrarError;
 import static es.ujaen.tfg.utils.Utils.quitarSufijo;
@@ -50,6 +57,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private final ClienteControlador clienteControlador;
     private final LocalControlador localControlador;
     private final FacturaControlador facturaControlador;
+    private final AnticipoControlador anticipoControlador;
     private final PreferenciasControlador preferenciasControlador;
 
     private TextAutoCompleter autoCompleterBuscadorClientes;
@@ -70,9 +78,10 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
      * @param clienteControlador
      * @param localControlador
      * @param facturaControlador
+     * @param anticipoControlador
      * @param preferenciasControlador
      */
-    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador, PreferenciasControlador preferenciasControlador) {
+    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador, AnticipoControlador anticipoControlador, PreferenciasControlador preferenciasControlador) {
         initComponents();
         setLocationRelativeTo(null);
         this.parent = parent;
@@ -85,6 +94,8 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         this.facturaControlador = facturaControlador;
         this.facturaControlador.agregarObservador(this);
+
+        this.anticipoControlador = anticipoControlador;
 
         this.preferenciasControlador = preferenciasControlador;
 
@@ -497,6 +508,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
     private void jButtonGenerarFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenerarFacturaActionPerformed
         // TODO add your handling code here:
+        String ID;
         String letra;
         int numero;
         LocalDate fecha;
@@ -519,31 +531,93 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         letra = cliente.getTipo();
 
         numero = facturaControlador.siguienteNumeroFacturaLetraAnio(letra, fecha);
+        
+        ID = facturaControlador.generarIdFactura(letra, numero, fecha);
+
+        Factura factura = new Factura(
+                ID,
+                letra,
+                numero,
+                fecha,
+                pagado,
+                facturado,
+                monto,
+                clienteDNI
+        );
+        // Compruebo si está repetida según Mes/Año y Cliente... El número siempre dirá que es una nueva
+        boolean facturaRepetida = facturaControlador.facturaRepetida(factura);
+        if (facturaRepetida) {
+            mostrarError(this, TITULO_FACTURA_REPETIDO, MENSAJE_FACTURA_REPETIDO);
+            // ¿Desea Sobreescribir? --> Método para Actualizar Facturas
+            // Limpiar Tabla 
+            dtm.setRowCount(0);
+            // Deshabilitar Boton GenerarFactura
+            jButtonGenerarFactura.setEnabled(false);
+            // Reinciar valor de total
+            total = 0.0;
+            actualizarLabelTotal();
+            return;
+        }
+
+        // Las facturas, al menos para este caso específico, deben ser todas contiguas...
+        boolean facturaContigua = facturaControlador.facturaContigua(factura);
+        if (!facturaContigua) {
+            mostrarError(this, TITULO_FACTURA_CONTIGUA, MENSAJE_FACTURA_CONTIGUA);
+            // ¿Desea Hacerla aún así? --> Método de Confirmacion
+            // Limpiar Tabla 
+            dtm.setRowCount(0);
+            // Deshabilitar Boton GenerarFactura
+            jButtonGenerarFactura.setEnabled(false);
+            // Reinciar valor de total
+            total = 0.0;
+            actualizarLabelTotal();
+            return;
+        }
 
         // Compruebo que sea un anticipo
         List<Factura> facturasNoNumeradasCliente = facturaControlador.facturasNoNumeradasCliente(clienteDNI);
         if (facturasNoNumeradasCliente == null || facturasNoNumeradasCliente.isEmpty()) {
             // No hay Anticipos de ese cliente... se crea la factura normal
-            Factura factura = new Factura(letra, numero, fecha, pagado, facturado, monto, clienteDNI);
-            // Compruebo si está repetida según Mes/Año y Cliente... El número siempre dirá que es una nueva
-            boolean facturaRepetida = facturaControlador.facturaRepetida(factura);
-            if(facturaRepetida){
-                mostrarError(this, TITULO_FACTURA_REPETIDO, MENSAJE_FACTURA_REPETIDO);
-                // ¿Desea Sobreescribir? --> Método para Actualizar Facturas
-                return;
-            }
             facturaControlador.crear(factura);
         } else {
             // Hay anticipos de ese cliente... hay que actualizar la factura: numero y facturado
             // El resto de campos ya se pusieron a la hora de crear el Anticipo
 
-            // 1º: eliminamos la factura que hacia de Anticipo (a no ser que uses mal la aplicación, siempre es la 1º)
-            Factura factura = facturasNoNumeradasCliente.remove(0);
-            facturaControlador.borrar(factura);
-            // 2º "Actualizamos" la factura y volvemos a ingresarla en mi lista de facturas
-            factura.setFacturado(facturado);
-            factura.setNumero(numero);
-            facturaControlador.crear(factura);
+            // 1º: Recuperamos la factura que hacia de Anticipo
+            Factura ultimaFacturaNoNumerada = facturasNoNumeradasCliente.remove(0);
+            // ¿Es realmente la Factura que acabo de crear igual al Anticipo que tenía creado?
+            boolean anticipoIgualAFactura = anticipoIgualAFactura(ultimaFacturaNoNumerada, factura);
+            // En caso de que NO sean iguales, advertimos al usuario
+            if (!anticipoIgualAFactura) {
+
+                mostrarError(this, TITULO_FACTURA_ANTICIPO_DISTINTOS, MENSAJE_FACTURA_ANTICIPO_DISTINTOS);
+                // Limpiar Tabla 
+                dtm.setRowCount(0);
+                // Deshabilitar Boton GenerarFactura
+                jButtonGenerarFactura.setEnabled(false);
+                // Reinciar valor de total
+                total = 0.0;
+                actualizarLabelTotal();
+                return;
+
+            } else {
+                facturaControlador.borrar(ultimaFacturaNoNumerada);
+                ultimaFacturaNoNumerada.setFacturado(facturado);
+                ultimaFacturaNoNumerada.setNumero(numero);
+                facturaControlador.crear(ultimaFacturaNoNumerada);
+                Anticipo anticipoActivoCliente = anticipoControlador.anticipoActivo(clienteDNI);
+                if (anticipoActivoCliente != null) {
+                    double saldoAnticipo = anticipoActivoCliente.getSaldo();
+                    double nuevoSaldo = saldoAnticipo - monto;
+                    anticipoActivoCliente.setSaldo(nuevoSaldo);
+                    anticipoControlador.actualizar(anticipoActivoCliente);
+                    cliente.setSaldo(nuevoSaldo);
+                    if (cliente.getSaldo() == 0.0) {
+                        cliente.setEstado(AL_DIA);
+                    }
+                    clienteControlador.actualizar(cliente);
+                }
+            }
         }
 
         // Limpiar Textos de Cliente y Tabla 
@@ -585,7 +659,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         //Insertar nueva fila en la Tabla resumen:
         String cantidad = jSpinnerCantidad.getValue().toString();
         String local = localBuscado.getNombre();
-        String precioUnitario = localBuscado.getPrecio() + EURO;
+        String precioUnitario = localBuscado.getPrecioString() + EURO;
 
         quitarSufijo(jLabelIVAValor, PORCENTAJE);
         quitarSufijo(jLabelRetencionValor, PORCENTAJE);
@@ -600,7 +674,9 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         // Calculamos Subtotal según el tipo de Cliente
         if (TIPOA.equals(clienteBuscado.getTipo())) {
-            subtotalDouble = ((precioUnitarioDouble * IVADouble) - (precioUnitarioDouble * retencionDouble) + precioUnitarioDouble) * Integer.parseInt(cantidad);
+            subtotalDouble = ((precioUnitarioDouble * IVADouble)
+                    - (precioUnitarioDouble * retencionDouble)
+                    + precioUnitarioDouble) * Integer.parseInt(cantidad);
         } else {
             subtotalDouble = precioUnitarioDouble * Integer.parseInt(cantidad);
         }
@@ -609,6 +685,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         agregarSufijo(jLabelIVAValor, PORCENTAJE);
         agregarSufijo(jLabelRetencionValor, PORCENTAJE);
+
         IVA = jLabelIVAValor.getText();
         retencion = jLabelRetencionValor.getText();
 
@@ -631,14 +708,21 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
     private void jButtonEliminarLocalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarLocalActionPerformed
         // TODO add your handling code here:
-        int selectedRow = jTable.getSelectedRow();
-        if (selectedRow != -1) {
-            String subtotal = (String) dtm.getValueAt(selectedRow, dtm.getColumnCount() - 1);
-            double subtotalDouble = Double.parseDouble(subtotal.substring(0, subtotal.length() - 2).replace(COMA, PUNTO));
+        int row = jTable.getSelectedRow();
+        if (row != -1) {
+            // Cogemos el subtotal de la fila seleccionada
+            int col = jTable.getColumnModel().getColumnIndex(SUBTOTAL);
+            String subtotal = (String) dtm.getValueAt(row, col);
+            double subtotalDouble = convertirStringADouble(subtotal);
+
+            // Lo restamos del total y actualizamos
             total -= subtotalDouble;
             actualizarLabelTotal();
-            dtm.removeRow(selectedRow);
+
+            // Eliminamos fila e inhabilitamos botones
+            dtm.removeRow(row);
             jButtonEliminarLocal.setEnabled(false);
+
             habilitarBotonGenerarFactura();
         }
     }//GEN-LAST:event_jButtonEliminarLocalActionPerformed
@@ -756,6 +840,13 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         Preferencias preferencias = preferenciasControlador.obtenerPreferencias();
         jLabelIVAValor.setText(String.valueOf(preferencias.getIva()) + PORCENTAJE);
         jLabelRetencionValor.setText(String.valueOf(preferencias.getRetencion()) + PORCENTAJE);
+    }
+
+    private boolean anticipoIgualAFactura(Factura facturaAnticipo, Factura facturaCreada) {
+        if (!facturaAnticipo.equals(facturaCreada)) {
+            return false;
+        }
+        return true;
     }
 
     private void habilitarBotonAgregarLocal() {

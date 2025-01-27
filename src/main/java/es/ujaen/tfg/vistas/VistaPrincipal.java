@@ -11,6 +11,9 @@ import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.controlador.PreferenciasControlador;
 import java.awt.BorderLayout;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 /**
@@ -37,8 +40,9 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     /**
      * Creates new form VistaCrearModificarCliente2
+     * @throws java.io.IOException
      */
-    public VistaPrincipal() {
+    public VistaPrincipal() throws IOException {
         initComponents();
         setLocationRelativeTo(null);
         setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
@@ -260,7 +264,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private void jButtonCrearFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearFacturaActionPerformed
         // TODO add your handling code here:
-        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador, facturaControlador, preferenciasControlador);
+        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador, facturaControlador, anticipoControlador, preferenciasControlador);
         vistaCrearFactura.setVisible(true);
     }//GEN-LAST:event_jButtonCrearFacturaActionPerformed
 
@@ -287,7 +291,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
     }
 
     private void cargarVistaRegistroAnticipos() {
-        vistaRegistroAnticipos = new VistaRegistroAnticipos(this, clienteControlador, anticipoControlador);
+        vistaRegistroAnticipos = new VistaRegistroAnticipos(this, clienteControlador, anticipoControlador, facturaControlador);
         vistaRegistroAnticipos.setSize(jPanelAnticipos.getWidth(), jPanelAnticipos.getHeight());
         vistaRegistroAnticipos.setLocation(0, 0);
 
@@ -299,7 +303,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
     }
 
     private void cargarVistaClientes() {
-        vistaClientes = new VistaClientes(this, clienteControlador);
+        vistaClientes = new VistaClientes(this, clienteControlador, facturaControlador, anticipoControlador);
         vistaClientes.setSize(jPanelClientes.getWidth(), jPanelClientes.getHeight());
         vistaClientes.setLocation(0, 0);
 
@@ -361,7 +365,11 @@ public class VistaPrincipal extends javax.swing.JFrame {
         }
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            new VistaPrincipal().setVisible(true);
+            try {
+                new VistaPrincipal().setVisible(true);
+            } catch (IOException ex) {
+                Logger.getLogger(VistaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
     }
 

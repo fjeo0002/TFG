@@ -6,11 +6,11 @@ package es.ujaen.tfg.vistas;
 
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.modelo.Cliente;
+import static es.ujaen.tfg.utils.Utils.AL_DIA;
 import static es.ujaen.tfg.utils.Utils.ERROR_CODIGOPOSTAL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.ERROR_DNI_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.ERROR_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.ERROR_NOMBRE_CLIENTE;
-import es.ujaen.tfg.utils.Utils.EstadoSaldo;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_CLIENTE_REPETIDO;
 import static es.ujaen.tfg.utils.Utils.NEGRO;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_ALIAS_CLIENTE;
@@ -138,6 +138,14 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         this.campoCodigoPostalCorrecto = true;
         this.cliente = new Cliente(cliente);
         this.clienteOriginal = new Cliente(cliente);
+        
+        // Puede que no tenga ni alias ni email
+        if(cliente.getAlias().trim().isEmpty()){
+            agregarPlaceHolder(jTextFieldAlias, PLACEHOLDER_ALIAS_CLIENTE);
+        }
+        if(cliente.getEmail().trim().isEmpty()){
+            agregarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
+        }
     }
 
     /**
@@ -593,8 +601,8 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         direccion = jTextFieldDireccion.getText().trim();
         localidad = jTextFieldLocalidad.getText().trim();
         codigoPostal = jTextFieldCodigoPostal.getText().trim();
-        estado = EstadoSaldo.AL_DIA.getEstado();
-        saldo = EstadoSaldo.AL_DIA.getValorString();
+        estado = AL_DIA;
+        saldo = "0,00";
         tipo = jRadioButtonTipoA.isSelected() ? TIPOA : TIPOB;
 
         if (!esEdicion) {

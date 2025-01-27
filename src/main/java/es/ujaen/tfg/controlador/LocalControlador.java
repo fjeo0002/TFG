@@ -8,6 +8,7 @@ import es.ujaen.tfg.DAO.LocalDAO;
 import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class LocalControlador implements Observable {
     private List<Observador> observadores;
     private final LocalDAO localDAO;
 
-    public LocalControlador() {
+    public LocalControlador() throws IOException {
         this.localDAO = new LocalDAO();
         this.observadores = new ArrayList<>();
     }

@@ -7,13 +7,14 @@ package es.ujaen.tfg.DAO;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import es.ujaen.tfg.modelo.Cliente;
-
-import java.io.FileReader;
-import java.io.FileWriter;
+import es.ujaen.tfg.utils.Utils;
+import static es.ujaen.tfg.utils.Utils.CLIENTES_COLECCION;
+import static es.ujaen.tfg.utils.Utils.CLIENTES_JSON;
+import static es.ujaen.tfg.utils.Utils.calcularHashArchivo;
+import static es.ujaen.tfg.utils.Utils.cargarDatosDesdeArchivo;
+import static es.ujaen.tfg.utils.Utils.iniciarSincronizacionPeriodica;
+import static es.ujaen.tfg.utils.Utils.sincronizarConFirebase;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,45 +22,57 @@ import java.util.List;
  *
  * @author jota
  */
-public class ClienteDAO implements InterfazDAO<Cliente> {
+public final class ClienteDAO implements InterfazDAO<Cliente> {
 
     private List<Cliente> clientes;
-    private static final String FILE_PATH = "clientes.json";
+    private final String ultimoHashArchivo;
 
-    public ClienteDAO() {
-        this.clientes = cargarDatosDesdeArchivo();
+    public ClienteDAO() throws IOException {
+        this.clientes = cargarDatosDesdeArchivo(
+                CLIENTES_JSON,
+                new TypeToken<List<Cliente>>() {
+                }.getType()
+        );
+        /*
+        this.clientes = cargarDatosDesdeFirebase(
+                CLIENTES_JSON, 
+                CLIENTES_COLECCION, 
+                Cliente.class
+        );
+         */
+        this.ultimoHashArchivo = calcularHashArchivo(CLIENTES_JSON);
+        iniciarSincronizacionPeriodica(
+                CLIENTES_JSON,
+                CLIENTES_COLECCION,
+                ultimoHashArchivo,
+                clientes,
+                Cliente::getDNI
+        );
+        agregarShutdownHook();
     }
 
-    private List<Cliente> cargarDatosDesdeArchivo() {
-        try {
-            if (!Files.exists(Paths.get(FILE_PATH))) {  // Si el archivo no existe
-                return new ArrayList<>();  // Retornar una lista vacía
+    private void agregarShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                sincronizarConFirebase(
+                        CLIENTES_JSON,
+                        CLIENTES_COLECCION,
+                        ultimoHashArchivo,
+                        clientes,
+                        Cliente::getDNI
+                );
+            } catch (IOException e) {
             }
-            String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
-            Type listType = new TypeToken<List<Cliente>>() {}.getType();  // Tipo de la lista de Cliente
-            return new Gson().fromJson(jsonData, listType);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ArrayList<>();  // En caso de error, retornar lista vacía
-        }
-    }
-
-    private void guardarDatosEnArchivo() {
-        try (FileWriter writer = new FileWriter(FILE_PATH)) {
-            Gson gson = new Gson();
-            gson.toJson(clientes, writer);  // Guardar la lista de clientes en formato JSON
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        }));
     }
 
     @Override
     public boolean crear(Cliente t) {
-        if(clientes == null){
+        if (clientes == null) {
             clientes = new ArrayList<>();
         }
         clientes.add(t);
-        guardarDatosEnArchivo();
+        Utils.guardarDatosEnArchivo(CLIENTES_JSON, clientes);
         return true;
     }
 
@@ -74,11 +87,11 @@ public class ClienteDAO implements InterfazDAO<Cliente> {
     }
 
     @Override
-    public boolean actualizar(Cliente t) {
+    public boolean actualizar(Cliente c) {
         for (int i = 0; i < clientes.size(); i++) {
-            if (clientes.get(i).getDNI().equals(t.getDNI())) {
-                clientes.set(i, t);
-                guardarDatosEnArchivo();
+            if (clientes.get(i).getDNI().equals(c.getDNI())) {
+                clientes.set(i, c);
+                Utils.guardarDatosEnArchivo(CLIENTES_JSON, clientes);
                 return true;
             }
         }
@@ -89,7 +102,7 @@ public class ClienteDAO implements InterfazDAO<Cliente> {
     public boolean borrar(Cliente t) {
         boolean removed = clientes.remove(t);
         if (removed) {
-            guardarDatosEnArchivo();
+            Utils.guardarDatosEnArchivo(CLIENTES_JSON, clientes);
         }
         return removed;
     }
@@ -99,34 +112,4 @@ public class ClienteDAO implements InterfazDAO<Cliente> {
         return clientes;
     }
 
-    public Cliente buscarPorNombre(String nombre) {
-        for (Cliente cliente : clientes) {
-            if (cliente.getNombre().equals(nombre)) {
-                return cliente;
-            }
-        }
-        return null;
-    }
-
-    public Cliente buscarPorAlias(String alias) {
-        for (Cliente cliente : clientes) {
-            if (cliente.getAlias().equals(alias)) {
-                return cliente;
-            }
-        }
-        return null;
-    }
-
-    public String convertirAJSON(Cliente cliente) {
-        if (cliente == null) {
-            return "{}";
-        }
-        Gson gson = new Gson();
-        return gson.toJson(cliente);  // Convertir el objeto cliente a JSON
-    }
-
-    public String convertirListaAJSON() {
-        Gson gson = new Gson();
-        return gson.toJson(clientes);  // Convertir la lista de clientes a JSON
-    }
 }

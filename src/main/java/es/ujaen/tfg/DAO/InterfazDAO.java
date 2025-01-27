@@ -9,6 +9,7 @@ import java.util.List;
 /**
  *
  * @author jota
+ * @param <T>
  */
 public interface InterfazDAO<T> {
     boolean crear(T t);

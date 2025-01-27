@@ -12,13 +12,24 @@ import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
-import es.ujaen.tfg.utils.Utils.EstadoSaldo;
+import static es.ujaen.tfg.utils.Utils.ANTICIPA;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_ANTICIPO_ACTIVO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_ANTICIPO_ANTERIOR_FACTURA;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_ANTICIPO_CONTIGUO_FACTURA;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_ANTICIPO_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_ANTICIPO_SOLAPADO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_FACTURA_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.TITULO_ANTICIPO_ACTIVO;
+import static es.ujaen.tfg.utils.Utils.TITULO_ANTICIPO_ANTERIOR_FACTURA;
+import static es.ujaen.tfg.utils.Utils.TITULO_ANTICIPO_CONTIGUO_FACTURA;
 import static es.ujaen.tfg.utils.Utils.TITULO_ANTICIPO_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.TITULO_ANTICIPO_SOLAPADO;
+import static es.ujaen.tfg.utils.Utils.TITULO_FACTURA_REPETIDO;
 import static es.ujaen.tfg.utils.Utils.convertirStringAFecha;
 import static es.ujaen.tfg.utils.Utils.mostrarError;
 import static es.ujaen.tfg.utils.Utils.validarFecha;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.swing.JFrame;
@@ -290,20 +301,13 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
                 clienteDNI
         );
 
-        boolean anticipoRepetido = anticipoControlador.anticipoRepetido(anticipo);
-        if (anticipoRepetido) {
-            mostrarError(parent, TITULO_ANTICIPO_REPETIDO, MENSAJE_ANTICIPO_REPETIDO);
+        boolean procesarAnticipo = procesarAnticipo(anticipo);
+        if (!procesarAnticipo) {
             return;
         }
-        anticipoControlador.crear(anticipo);
-
-        // Actualizamos el saldo del cliente:
-        cliente.setSaldo(saldo * EstadoSaldo.ANTICIPA.getValor());
-        cliente.setEstado(EstadoSaldo.ANTICIPA.getEstado());
-        clienteControlador.actualizar(cliente);
 
         // Creamos tantas facturas con fechas anticipadas como meses cubiertos tengamos
-        // Dejo por ahora el numero de factura inconcluso  
+        // Dejo por ahora el numero de factura inconcluso (0)
         int numero = 0;
         String letra = cliente.getTipo();
         boolean pagado = true;
@@ -311,11 +315,31 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
         double montoMes = monto / mesesCubiertos;
 
+        List<Factura> facturasACrear = new ArrayList<>();
         for (int i = 0; i < mesesCubiertos; i++) {
-            Factura factura = new Factura(letra, numero, fecha, pagado, facturado, montoMes, clienteDNI);
+            ID = facturaControlador.generarIdFactura(letra, numero, fecha);
+            
+            Factura factura = new Factura(ID, letra, numero, fecha, pagado, facturado, montoMes, clienteDNI);
+            boolean facturaRepetida = facturaControlador.facturaRepetida(factura);
+            if (facturaRepetida) {
+                mostrarError(parent, TITULO_FACTURA_REPETIDO, MENSAJE_FACTURA_REPETIDO);
+                return;
+            }
             fecha = fecha.plusMonths(+1);
+            facturasACrear.add(factura);
+        }
+
+        // Finalmente, si todo ha salido bien:
+        // Creamos el Anticipo
+        anticipoControlador.crear(anticipo);
+        // Creamos las Facturas asociadas
+        for (Factura factura : facturasACrear) {
             facturaControlador.crear(factura);
         }
+        // Actualizamos el saldo del cliente:
+        cliente.setSaldo(saldo);
+        cliente.setEstado(ANTICIPA);
+        clienteControlador.actualizar(cliente);
 
         dispose();
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
@@ -369,6 +393,41 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
         // Actualizar el estado del botón
         habilitarBotonCrearAnticipo();
+    }
+
+    private boolean procesarAnticipo(Anticipo anticipo) {
+        // 1º El anticipo no puede estar ya creado
+        boolean anticipoRepetido = anticipoControlador.anticipoRepetido(anticipo);
+        if (anticipoRepetido) {
+            mostrarError(parent, TITULO_ANTICIPO_REPETIDO, MENSAJE_ANTICIPO_REPETIDO);
+            return false;
+        }
+        // 2º El anticipo no puede crearse si hay uno activo ya
+        Anticipo anticipoActivo = anticipoControlador.anticipoActivo(anticipo.getClienteDNI());
+        if (anticipoActivo != null) {
+            mostrarError(parent, TITULO_ANTICIPO_ACTIVO, MENSAJE_ANTICIPO_ACTIVO);
+            return false;
+        }
+        // 3º El anticipo no puede solaparse con anticipos creados
+        boolean anticipoSolapado = anticipoControlador.anticipoSolapado(anticipo);
+        if (anticipoSolapado) {
+            mostrarError(parent, TITULO_ANTICIPO_SOLAPADO, MENSAJE_ANTICIPO_SOLAPADO);
+            return false;
+        }
+        // 4º El anticipo debe ser más tardío que la fecha de la última Factura
+        boolean anticipoTardioAUltimaFactura = facturaControlador.anticipoTardioAUltimaFactura(anticipo);
+        if (!anticipoTardioAUltimaFactura) {
+            mostrarError(parent, TITULO_ANTICIPO_ANTERIOR_FACTURA, MENSAJE_ANTICIPO_ANTERIOR_FACTURA);
+            return false;
+        }
+        // 5º El anticipo debe ser contiguo a la ultima Factura del Cliente
+        boolean anticipoContiguoAUltimaFactura = facturaControlador.anticipoContiguoAUltimaFactura(anticipo);
+        if (!anticipoContiguoAUltimaFactura) {
+            mostrarError(parent, TITULO_ANTICIPO_CONTIGUO_FACTURA, MENSAJE_ANTICIPO_CONTIGUO_FACTURA);
+            return false;
+        }
+        // Ha pasado todos los filtros: Anticipo válido
+        return true;
     }
 
     private void cargarAutocompletarBuscadorClientes() {

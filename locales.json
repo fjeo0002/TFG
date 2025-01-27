@@ -1,14 +1,1 @@
-[
-    {
-        "codigo": "54e2dfde-9679-4b43-a928-31560cace481",
-        "nombre": "C/ de la Paz 1",
-        "alias": "Local guay",
-        "precio": 50.0
-    },
-    {
-        "codigo": "f3fb2e9b-4d0b-473e-bae3-b14488777c2b",
-        "nombre": "Casa Maripaz",
-        "alias": "Un Local m�s",
-        "precio": 60.0
-    }
-]
+[{"codigo":"675bfd0e-23b3-484c-80ad-b53761df9c19","nombre":"Local n1","alias":"Estudio","precio":50.0},{"codigo":"869e73f6-8b63-46a7-a962-c6f7b5f50f47","nombre":"Local n2","alias":"Garito","precio":60.0},{"codigo":"bcb5b78c-7cae-4909-972b-23ae04f13b84","nombre":"Local n3","alias":"Bar","precio":300.5}]

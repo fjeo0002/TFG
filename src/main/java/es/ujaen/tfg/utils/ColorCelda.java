@@ -4,12 +4,14 @@
  */
 package es.ujaen.tfg.utils;
 
-import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
-import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
+import static es.ujaen.tfg.utils.Utils.AMARILLO;
+import static es.ujaen.tfg.utils.Utils.BLANCO;
 import es.ujaen.tfg.utils.Utils.Mes;
-import java.awt.Color;
+import static es.ujaen.tfg.utils.Utils.NEGRO;
+import static es.ujaen.tfg.utils.Utils.ROJO;
+import static es.ujaen.tfg.utils.Utils.VERDE;
 import java.awt.Component;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -22,12 +24,10 @@ import javax.swing.table.TableCellRenderer;
 public class ColorCelda implements TableCellRenderer {
 
     private final FacturaControlador facturaControlador;
-    private final ClienteControlador clienteControlador;
     private final int anio;
 
-    public ColorCelda(FacturaControlador facturaControlador, ClienteControlador clienteControlador, int anio) {
+    public ColorCelda(FacturaControlador facturaControlador, int anio) {
         this.facturaControlador = facturaControlador;
-        this.clienteControlador = clienteControlador;
         this.anio = anio;
     }
 
@@ -49,25 +49,25 @@ public class ColorCelda implements TableCellRenderer {
             if (factura != null) {
                 // Determinar el color según los estados de Facturado y Pagado
                 if (factura.getFacturado() && factura.getPagado()) {
-                    component.setBackground(new Color(144, 238, 144)); // Verde claro
-                    component.setForeground(Color.BLACK); // Negro por defecto
+                    component.setBackground(VERDE); // Verde claro
+                    component.setForeground(NEGRO); // Negro por defecto
                 } else if (factura.getFacturado() && !factura.getPagado()) {
-                    component.setBackground(new Color(241, 107, 107)); // Rojo claro
-                    component.setForeground(Color.BLACK); // Negro por defecto
+                    component.setBackground(ROJO); // Rojo claro
+                    component.setForeground(NEGRO); // Negro por defecto
                 } else if (!factura.getFacturado() && factura.getPagado()) {
-                    component.setBackground(new Color(255, 255, 102)); // Amarillo claro
-                    component.setForeground(Color.BLACK); // Negro por defecto
+                    component.setBackground(AMARILLO); // Amarillo claro
+                    component.setForeground(NEGRO); // Negro por defecto
                 } else {
-                    component.setBackground(Color.WHITE); // Blanco por defecto
-                    component.setForeground(Color.BLACK); // Negro por defecto
+                    component.setBackground(BLANCO); // Blanco por defecto
+                    component.setForeground(NEGRO); // Negro por defecto
                 }
             } else {
-                component.setBackground(Color.WHITE); // Blanco por defecto
-                component.setForeground(Color.BLACK); // Negro por defecto
+                component.setBackground(BLANCO); // Blanco por defecto
+                component.setForeground(NEGRO); // Negro por defecto
             }
         } else {
-            component.setBackground(Color.WHITE); // Blanco por defecto
-            component.setForeground(Color.BLACK); // Negro por defecto
+            component.setBackground(BLANCO); // Blanco por defecto
+            component.setForeground(NEGRO); // Negro por defecto
         }
 
         return component;

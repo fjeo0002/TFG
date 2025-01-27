@@ -10,8 +10,14 @@ import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.utils.ColorCelda;
+import static es.ujaen.tfg.utils.Utils.AL_DIA;
+import static es.ujaen.tfg.utils.Utils.ANTICIPA;
+import static es.ujaen.tfg.utils.Utils.DEBE;
 import static es.ujaen.tfg.utils.Utils.EURO;
+import static es.ujaen.tfg.utils.Utils.FONT;
+import static es.ujaen.tfg.utils.Utils.GUARDAR;
 import es.ujaen.tfg.utils.Utils.Mes;
+import static es.ujaen.tfg.utils.Utils.PAGADO;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import java.awt.Component;
 import java.awt.GridLayout;
@@ -54,11 +60,10 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
         this.clienteControlador.agregarObservador(this);
 
         this.dtm = (DefaultTableModel) jTable.getModel();
-        
-        //this.jSpinnerAnio.setValue(LocalDate.now().getYear());
-        //this.anio = LocalDate.now().getYear();
-        
-        this.jSpinnerAnio.setValue(2024);
+
+        this.jSpinnerAnio.setValue(LocalDate.now().getYear());
+        this.anio = LocalDate.now().getYear();
+        //this.jSpinnerAnio.setValue(2024);
 
         cargarTablaContabilidad();
     }
@@ -201,8 +206,11 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
             // Buscar la factura correspondiente a este cliente y mes
             Factura facturaClienteMesAnio = facturaControlador.facturaClienteMesAnio(clienteDNI, mes.getNumero(), anio);
             if (facturaClienteMesAnio != null) {
-                // Mostrar el popup en la ubicación del clic
-                showPopupPanel(evt.getComponent(), evt.getX(), evt.getY(), facturaClienteMesAnio);
+                // Solo mostrar popUp si facturado
+                if (facturaClienteMesAnio.getFacturado() != false) {
+                    // Mostrar el popup en la ubicación del clic
+                    showPopupPanel(evt.getComponent(), evt.getX(), evt.getY(), facturaClienteMesAnio);
+                }
             }
         }
     }//GEN-LAST:event_jTableMouseClicked
@@ -216,37 +224,60 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
     private void showPopupPanel(Component parent, int x, int y, Factura factura) {
         // Crear el popup
         JPopupMenu popupMenu = new JPopupMenu();
-        JPanel panel = new JPanel(new GridLayout(2, 1)); // Panel con 2 filas para los checkboxes
+        JPanel panel = new JPanel(new GridLayout(1, 1)); // Panel con 2 filas para los checkboxes
 
-        JCheckBox pagadoCheckBox = new JCheckBox("Pagado");
-        JCheckBox facturadoCheckBox = new JCheckBox("Facturado");
+        JCheckBox pagadoCheckBox = new JCheckBox(PAGADO);
+        //JCheckBox facturadoCheckBox = new JCheckBox(FACTURADO);
 
-        pagadoCheckBox.setFont(new java.awt.Font("Segoe UI", 0, 14));
-        facturadoCheckBox.setFont(new java.awt.Font("Segoe UI", 0, 14));
+        pagadoCheckBox.setFont(FONT);
+        //facturadoCheckBox.setFont(FONT);
 
         // Si la Factura tiene el valor "Pagado" o "Facturado", preseleccionar los checkboxes
         pagadoCheckBox.setSelected(factura.getPagado());
-        facturadoCheckBox.setSelected(factura.getFacturado());
+        //facturadoCheckBox.setSelected(factura.getFacturado());
 
         // Agregar checkboxes al panel
         panel.add(pagadoCheckBox);
-        panel.add(facturadoCheckBox);
+        //panel.add(facturadoCheckBox);
 
         // Agregar el panel al popup
         popupMenu.add(panel);
 
         // Añadir un botón para cerrar y guardar los cambios
-        JButton guardarBtn = new JButton("Guardar");
-        guardarBtn.setFont(new java.awt.Font("Segoe UI", 0, 14));
+        JButton guardarBtn = new JButton(GUARDAR);
+        guardarBtn.setFont(FONT);
 
         guardarBtn.addActionListener(e -> {
             // Lógica para actualizar factura de la celda
             boolean pagado = pagadoCheckBox.isSelected();
-            boolean facturado = facturadoCheckBox.isSelected();
+            //boolean facturado = facturadoCheckBox.isSelected();
 
             // Acturalizar la factura (ahora mismo solo el valor Pagado y Facturado)
             factura.setPagado(pagado);
-            factura.setFacturado(facturado);
+            //factura.setFacturado(facturado);
+
+            List<Cliente> clientes = clienteControlador.leerTodos();
+            for (Cliente cliente : clientes) {
+                double saldoDebe = facturaControlador.saldoFacturasNoPagadasCliente(cliente.getDNI());
+                double saldoAnticipa = facturaControlador.saldoFacturasNoNumeradas(cliente.getDNI());
+                if (saldoDebe != 0.0) {
+                    // El cliente debe
+                    cliente.setSaldo(saldoDebe * -1);
+                    cliente.setEstado(DEBE);
+                    clienteControlador.actualizar(cliente);
+                } else if (saldoAnticipa != 0.0) {
+                    // El cliente Anticipa
+                    cliente.setSaldo(saldoAnticipa);
+                    cliente.setEstado(ANTICIPA);
+                    clienteControlador.actualizar(cliente);
+
+                } else {
+                    // El saldo está a 0
+                    cliente.setSaldo(saldoDebe);
+                    cliente.setEstado(AL_DIA);
+                    clienteControlador.actualizar(cliente);
+                }
+            }
 
             facturaControlador.actualizar(factura);
 
@@ -288,7 +319,7 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
                     "", // Columna Agosto
                     "", // Columna Septiembre
                     "", // Columna Octubre
-                    "", // Columna Diciembre
+                    "", // Columna Noviembre
                     "" // Columna Diciembre
                 });
             }
@@ -320,17 +351,17 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
             // 6º Aplicar el Render de colores a las celdas despues de haber puesto todos los valores (clientes y montos)
             for (int col = 2; col < jTable.getColumnCount(); col++) {  // Empieza desde la columna de los meses
                 jTable.getColumnModel().getColumn(col).setCellRenderer(
-                        new ColorCelda(facturaControlador, clienteControlador, anio));
+                        new ColorCelda(facturaControlador, anio));
             }
-
-            // Ocultar la columna del DNI
-            jTable.getColumnModel().getColumn(0).setMinWidth(0);
-            jTable.getColumnModel().getColumn(0).setMaxWidth(0);
-            jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
-
-            rowSorter = new TableRowSorter<>(dtm);
-            jTable.setRowSorter(rowSorter);
         }
+
+        // Ocultar la columna del DNI
+        jTable.getColumnModel().getColumn(0).setMinWidth(0);
+        jTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        jTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+        rowSorter = new TableRowSorter<>(dtm);
+        jTable.setRowSorter(rowSorter);
 
     }
 

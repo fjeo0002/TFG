@@ -8,6 +8,7 @@ import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class ClienteControlador implements Observable {
     private List<Observador> observadores;
     private final ClienteDAO clienteDAO;
 
-    public ClienteControlador() {
+    public ClienteControlador() throws IOException {
         this.clienteDAO = new ClienteDAO();
         this.observadores = new ArrayList<>();
     }
@@ -69,11 +70,23 @@ public class ClienteControlador implements Observable {
     }
 
     public Cliente buscarPorNombre(String nombre) {
-        return clienteDAO.buscarPorNombre(nombre);
+        List<Cliente> clientes = leerTodos();
+        for (Cliente cliente : clientes) {
+            if (cliente.getNombre().equals(nombre)) {
+                return cliente;
+            }
+        }
+        return null;
     }
 
     public Cliente buscarPorAlias(String alias) {
-        return clienteDAO.buscarPorAlias(alias);
+        List<Cliente> clientes = leerTodos();
+        for (Cliente cliente : clientes) {
+            if (cliente.getAlias().equals(alias)) {
+                return cliente;
+            }
+        }
+        return null;
     }
 
     public boolean clienteRepetido(Cliente c) {
