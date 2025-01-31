@@ -194,7 +194,7 @@ public class VistaPlanFacturacion extends javax.swing.JFrame implements Observad
                     Cliente cliente = clienteControlador.leer(dni);
                     if (cliente != null) {
                         //cliente.setDescripcion(nuevaDescripcion);
-                        clienteControlador.actualizar(cliente);
+                        //clienteControlador.actualizar(cliente);
                     }
                 }
             }

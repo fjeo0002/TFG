@@ -47,7 +47,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private boolean esEdicion;
 
-    private Cliente cliente;
+    private Cliente clienteModificado;
     private Cliente clienteOriginal;
 
     private final ClienteControlador clienteControlador;
@@ -98,7 +98,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         this.campoNombreCorrecto = false;
         this.campoEmailCorrecto = true;          //Por si no pones Email, q puedas habilitar el boton de Aceptar al crear
         this.campoCodigoPostalCorrecto = false;
-        this.cliente = null;
+        this.clienteModificado = null;
         this.clienteOriginal = null;
     }
 
@@ -136,7 +136,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         this.campoNombreCorrecto = true;
         this.campoEmailCorrecto = true;
         this.campoCodigoPostalCorrecto = true;
-        this.cliente = new Cliente(cliente);
+        this.clienteModificado = new Cliente(cliente);
         this.clienteOriginal = new Cliente(cliente);
         
         // Puede que no tenga ni alias ni email
@@ -606,7 +606,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         tipo = jRadioButtonTipoA.isSelected() ? TIPOA : TIPOB;
 
         if (!esEdicion) {
-            cliente = new Cliente(
+            clienteOriginal = new Cliente(
                     DNI,
                     nombre,
                     alias,
@@ -619,25 +619,25 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
                     tipo
             );
 
-            boolean clienteRepetido = clienteControlador.clienteRepetido(cliente);
+            boolean clienteRepetido = clienteControlador.clienteRepetido(clienteOriginal);
             if (clienteRepetido) {
                 mostrarError(parent, TITULO_CLIENTE_REPETIDO, MENSAJE_CLIENTE_REPETIDO);
                 return;
             }
-            clienteControlador.crear(cliente);
+            clienteControlador.crear(clienteOriginal);
 
         } else {
-            cliente.setNombre(nombre);
-            cliente.setAlias(alias);
-            cliente.setEmail(email);
-            cliente.setDireccion(direccion);
-            cliente.setLocalidad(localidad);
-            cliente.setCodigoPostal(codigoPostal);
-            cliente.setTipo(tipo);
+            clienteModificado.setNombre(nombre);
+            clienteModificado.setAlias(alias);
+            clienteModificado.setEmail(email);
+            clienteModificado.setDireccion(direccion);
+            clienteModificado.setLocalidad(localidad);
+            clienteModificado.setCodigoPostal(codigoPostal);
+            clienteModificado.setTipo(tipo);
 
-            if (!clienteOriginal.equals(cliente)) {
-                clienteControlador.actualizar(cliente);
-            }
+            //if (!clienteOriginal.equals(clienteModificado)) {
+                clienteControlador.actualizar(clienteOriginal, clienteModificado);
+            //}
 
         }
 

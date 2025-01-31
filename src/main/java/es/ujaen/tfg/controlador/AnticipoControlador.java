@@ -20,7 +20,7 @@ import java.util.List;
  */
 public class AnticipoControlador implements Observable {
 
-    private List<Observador> observadores;
+    private final List<Observador> observadores;
     private final AnticipoDAO anticipoDAO;
 
     public AnticipoControlador() throws IOException {

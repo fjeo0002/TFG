@@ -14,28 +14,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 public class FirebaseInitializer {
-
-    // Clase Predeterminada de Google
-    /* 
-    private Firestore db;
-
-    public FirebaseInitializer() throws IOException {
-        // Cargar el archivo de credenciales JSON de la cuenta de servicio
-        FileInputStream serviceAccount = new FileInputStream(FIREBASE_JSON);
-
-        FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))  // Usar GoogleCredentials
-                .build();
-
-        // Inicializar la app Firebase
-        FirebaseApp.initializeApp(options);
-        this.db = FirestoreClient.getFirestore();
-    }
-
-    public Firestore getDb() {
-        return db;
-    }
-     */
     // Clase Singleton
     private static FirebaseInitializer instance; // Instancia única
     private final Firestore db;

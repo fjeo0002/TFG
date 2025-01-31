@@ -10,6 +10,8 @@ import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.controlador.PreferenciasControlador;
+import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.UndoManager;
 import java.awt.BorderLayout;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -20,7 +22,7 @@ import javax.swing.*;
  *
  * @author PCCA201
  */
-public class VistaPrincipal extends javax.swing.JFrame {
+public class VistaPrincipal extends javax.swing.JFrame implements Observador {
 
     private VistaPreferencias vistaPreferencias;
     private VistaCrearFactura vistaCrearFactura;
@@ -38,8 +40,11 @@ public class VistaPrincipal extends javax.swing.JFrame {
     private final FacturaControlador facturaControlador;
     private final PreferenciasControlador preferenciasControlador;
 
+    private final UndoManager undoManager;
+
     /**
-     * Creates new form VistaCrearModificarCliente2
+     * Creates new form VistaPrincipal
+     *
      * @throws java.io.IOException
      */
     public VistaPrincipal() throws IOException {
@@ -47,11 +52,18 @@ public class VistaPrincipal extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
 
-        clienteControlador = new ClienteControlador();
-        localControlador = new LocalControlador();
-        anticipoControlador = new AnticipoControlador();
-        facturaControlador = new FacturaControlador();
-        preferenciasControlador = new PreferenciasControlador();
+        this.clienteControlador = new ClienteControlador();
+        this.localControlador = new LocalControlador();
+        this.anticipoControlador = new AnticipoControlador();
+        this.facturaControlador = new FacturaControlador();
+        this.preferenciasControlador = new PreferenciasControlador();
+        
+        this.clienteControlador.agregarObservador(this);
+        this.localControlador.agregarObservador(this);
+        this.anticipoControlador.agregarObservador(this);
+        this.facturaControlador.agregarObservador(this);
+
+        this.undoManager = UndoManager.getInstance();
 
         cargarVistaContabilidad();
         cargarVistaRegistroAnticipos();
@@ -59,6 +71,7 @@ public class VistaPrincipal extends javax.swing.JFrame {
         cargarVistaClientes();
         cargarVistaLocales();
 
+        actualizarEstadoBotones();
     }
 
     /**
@@ -156,6 +169,11 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
         jButtonRehacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonRehacer.setText("Rehacer");
+        jButtonRehacer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRehacerActionPerformed(evt);
+            }
+        });
         jPanelBotonesPrincipales.add(jButtonRehacer);
 
         jPanelCabecera.add(jPanelBotonesPrincipales);
@@ -270,6 +288,10 @@ public class VistaPrincipal extends javax.swing.JFrame {
 
     private void jButtonDeshacerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeshacerActionPerformed
         // TODO add your handling code here:
+        if (undoManager.canUndo()) {
+            undoManager.undo();
+        }
+        actualizarEstadoBotones();
     }//GEN-LAST:event_jButtonDeshacerActionPerformed
 
     private void jButtonCrearAnticipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearAnticipoActionPerformed
@@ -278,6 +300,25 @@ public class VistaPrincipal extends javax.swing.JFrame {
         vistaCrearAnticipo.setVisible(true);
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
 
+    private void jButtonRehacerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRehacerActionPerformed
+        // TODO add your handling code here:
+        if (undoManager.canRedo()) {
+            undoManager.redo();
+        }
+        actualizarEstadoBotones();
+    }//GEN-LAST:event_jButtonRehacerActionPerformed
+
+    private void actualizarEstadoBotones() {
+        // Habilitar o deshabilitar los botones según el estado de las pilas en el UndoManager
+        jButtonDeshacer.setEnabled(undoManager.canUndo());
+        jButtonRehacer.setEnabled(undoManager.canRedo());
+    }
+
+    @Override
+    public void actualizar() {
+        actualizarEstadoBotones();
+    }
+    
     private void cargarVistaContabilidad() {
         vistaContabilidad = new VistaContabilidad(clienteControlador, facturaControlador);
         vistaContabilidad.setSize(jPanelContabilidad.getWidth(), jPanelContabilidad.getHeight());

@@ -269,7 +269,8 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         int mesesCubiertos;
         LocalDate fecha;
         double saldo;
-        Cliente cliente;
+        Cliente clienteOriginal;
+        Cliente clienteModificado;
         String clienteDNI;
 
         UUID uuid = UUID.randomUUID();
@@ -286,11 +287,11 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         saldo = monto;
 
         String nombreAliasCliente = jTextFieldBuscadorClientes.getText().trim();
-        cliente = clienteControlador.buscarPorNombre(nombreAliasCliente);
-        if (cliente == null) {
-            cliente = clienteControlador.buscarPorAlias(nombreAliasCliente);
+        clienteOriginal = clienteControlador.buscarPorNombre(nombreAliasCliente);
+        if (clienteOriginal == null) {
+            clienteOriginal = clienteControlador.buscarPorAlias(nombreAliasCliente);
         }
-        clienteDNI = cliente.getDNI();
+        clienteDNI = clienteOriginal.getDNI();
 
         Anticipo anticipo = new Anticipo(
                 ID,
@@ -309,7 +310,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         // Creamos tantas facturas con fechas anticipadas como meses cubiertos tengamos
         // Dejo por ahora el numero de factura inconcluso (0)
         int numero = 0;
-        String letra = cliente.getTipo();
+        String letra = clienteOriginal.getTipo();
         boolean pagado = true;
         boolean facturado = false;
 
@@ -337,9 +338,10 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
             facturaControlador.crear(factura);
         }
         // Actualizamos el saldo del cliente:
-        cliente.setSaldo(saldo);
-        cliente.setEstado(ANTICIPA);
-        clienteControlador.actualizar(cliente);
+        clienteModificado = new Cliente(clienteOriginal);
+        clienteModificado.setSaldo(saldo);
+        clienteModificado.setEstado(ANTICIPA);
+        clienteControlador.actualizar(clienteOriginal, clienteModificado);
 
         dispose();
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed

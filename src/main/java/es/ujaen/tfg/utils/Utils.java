@@ -532,7 +532,7 @@ public class Utils {
     }
 
     public static boolean validarMonto(String monto) {
-        if (!monto.matches(FORMATO_DECIMAL)) {
+        if (!monto.matches("^\\d+(,\\d{2})?")) {
             return false;
         }
 

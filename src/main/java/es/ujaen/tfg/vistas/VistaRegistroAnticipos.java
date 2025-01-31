@@ -463,16 +463,16 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
 
     private void actualizarSaldoCliente(Cliente cliente) {
         Anticipo anticipoActivo = anticipoControlador.anticipoActivo(cliente.getDNI());
-
+        Cliente clienteModificado = new Cliente(cliente);
         if (anticipoActivo != null) {
-            cliente.setSaldo(anticipoActivo.getSaldo());
-            cliente.setEstado(ANTICIPA);
+            clienteModificado.setSaldo(anticipoActivo.getSaldo());
+            clienteModificado.setEstado(ANTICIPA);
         } else {
-            cliente.setSaldo(0.0);
-            cliente.setEstado(AL_DIA);
+            clienteModificado.setSaldo(0.0);
+            clienteModificado.setEstado(AL_DIA);
         }
 
-        clienteControlador.actualizar(cliente);
+        clienteControlador.actualizar(cliente, clienteModificado);
     }
 
     @Override

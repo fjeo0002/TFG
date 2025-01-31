@@ -8,6 +8,7 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.UndoManager;
 import static es.ujaen.tfg.utils.Utils.EURO;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import java.util.List;
@@ -25,6 +26,8 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
 
     private final LocalControlador localControlador;
     private TextAutoCompleter autoCompleterBuscadorLocales;
+    
+    private final UndoManager undoManager;
 
     private VistaAnadirModificarLocal vistaAnadirModificarLocal;
     private final JFrame parent;
@@ -44,6 +47,9 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
 
         this.localControlador = localControlador;
         this.localControlador.agregarObservador(this);
+        
+        this.undoManager = UndoManager.getInstance();
+        this.undoManager.agregarObservador(this);
 
         this.dtm = (DefaultTableModel) jTable.getModel();
 

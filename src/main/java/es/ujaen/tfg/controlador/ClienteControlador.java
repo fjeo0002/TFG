@@ -8,6 +8,11 @@ import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.BorrarClienteCommand;
+import es.ujaen.tfg.orden.Command;
+import es.ujaen.tfg.orden.CrearClienteCommand;
+import es.ujaen.tfg.orden.ModificarClienteCommand;
+import es.ujaen.tfg.orden.UndoManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +23,14 @@ import java.util.List;
  */
 public class ClienteControlador implements Observable {
 
-    private List<Observador> observadores;
+    private final List<Observador> observadores;
     private final ClienteDAO clienteDAO;
+    private final UndoManager undoManager;
 
     public ClienteControlador() throws IOException {
         this.clienteDAO = new ClienteDAO();
         this.observadores = new ArrayList<>();
+        this.undoManager = UndoManager.getInstance();
     }
 
     @Override
@@ -44,7 +51,9 @@ public class ClienteControlador implements Observable {
     }
 
     public boolean crear(Cliente cliente) {
-        clienteDAO.crear(cliente);
+        //clienteDAO.crear(cliente);
+        Command crearCliente = new CrearClienteCommand(clienteDAO, cliente);
+        undoManager.execute(crearCliente);
         notificarObservadores();
         return true;
     }
@@ -53,14 +62,21 @@ public class ClienteControlador implements Observable {
         return clienteDAO.leer(DNI);
     }
 
-    public boolean actualizar(Cliente cliente) {
-        clienteDAO.actualizar(cliente);
-        notificarObservadores();
-        return true;
+    public boolean actualizar(Cliente clienteOriginal, Cliente clienteModificado) {
+        //clienteDAO.actualizar(cliente);
+        if (!clienteOriginal.equals(clienteModificado)) {
+            Command modificarCliente = new ModificarClienteCommand(clienteDAO, clienteOriginal, clienteModificado);
+            undoManager.execute(modificarCliente);
+            notificarObservadores();
+            return true;
+        }
+        return false;
     }
 
     public boolean borrar(Cliente cliente) {
-        clienteDAO.borrar(cliente);
+        //clienteDAO.borrar(cliente);
+        Command borrarCliente = new BorrarClienteCommand(clienteDAO, cliente);
+        undoManager.execute(borrarCliente);
         notificarObservadores();
         return true;
     }

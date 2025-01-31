@@ -4,7 +4,6 @@
  */
 package es.ujaen.tfg.DAO;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.utils.Utils;

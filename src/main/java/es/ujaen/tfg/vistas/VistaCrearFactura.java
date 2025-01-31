@@ -514,7 +514,8 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         LocalDate fecha;
         boolean pagado, facturado;
         double monto;
-        Cliente cliente;
+        Cliente clienteOriginal;
+        Cliente clienteModificado;
         String clienteDNI;
 
         JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
@@ -525,10 +526,10 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         pagado = facturado = true;
 
-        cliente = clienteBuscado;
-        clienteDNI = cliente.getDNI();
+        clienteOriginal = clienteBuscado;
+        clienteDNI = clienteOriginal.getDNI();
 
-        letra = cliente.getTipo();
+        letra = clienteOriginal.getTipo();
 
         numero = facturaControlador.siguienteNumeroFacturaLetraAnio(letra, fecha);
         
@@ -611,11 +612,13 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
                     double nuevoSaldo = saldoAnticipo - monto;
                     anticipoActivoCliente.setSaldo(nuevoSaldo);
                     anticipoControlador.actualizar(anticipoActivoCliente);
-                    cliente.setSaldo(nuevoSaldo);
-                    if (cliente.getSaldo() == 0.0) {
-                        cliente.setEstado(AL_DIA);
+                    
+                    clienteModificado = new Cliente(clienteOriginal);
+                    clienteModificado.setSaldo(nuevoSaldo);
+                    if (clienteModificado.getSaldo() == 0.0) {
+                        clienteModificado.setEstado(AL_DIA);
                     }
-                    clienteControlador.actualizar(cliente);
+                    clienteControlador.actualizar(clienteOriginal, clienteModificado);
                 }
             }
         }

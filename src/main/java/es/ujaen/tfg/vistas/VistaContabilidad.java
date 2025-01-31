@@ -257,25 +257,26 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
             //factura.setFacturado(facturado);
 
             List<Cliente> clientes = clienteControlador.leerTodos();
-            for (Cliente cliente : clientes) {
-                double saldoDebe = facturaControlador.saldoFacturasNoPagadasCliente(cliente.getDNI());
-                double saldoAnticipa = facturaControlador.saldoFacturasNoNumeradas(cliente.getDNI());
+            for (Cliente clienteOriginal : clientes) {
+                double saldoDebe = facturaControlador.saldoFacturasNoPagadasCliente(clienteOriginal.getDNI());
+                double saldoAnticipa = facturaControlador.saldoFacturasNoNumeradas(clienteOriginal.getDNI());
+                Cliente clienteModificado = new Cliente(clienteOriginal);
                 if (saldoDebe != 0.0) {
                     // El cliente debe
-                    cliente.setSaldo(saldoDebe * -1);
-                    cliente.setEstado(DEBE);
-                    clienteControlador.actualizar(cliente);
+                    clienteModificado.setSaldo(saldoDebe * -1);
+                    clienteModificado.setEstado(DEBE);
+                    clienteControlador.actualizar(clienteOriginal, clienteModificado);
                 } else if (saldoAnticipa != 0.0) {
                     // El cliente Anticipa
-                    cliente.setSaldo(saldoAnticipa);
-                    cliente.setEstado(ANTICIPA);
-                    clienteControlador.actualizar(cliente);
+                    clienteModificado.setSaldo(saldoAnticipa);
+                    clienteModificado.setEstado(ANTICIPA);
+                    clienteControlador.actualizar(clienteOriginal, clienteModificado);
 
                 } else {
                     // El saldo está a 0
-                    cliente.setSaldo(saldoDebe);
-                    cliente.setEstado(AL_DIA);
-                    clienteControlador.actualizar(cliente);
+                    clienteModificado.setSaldo(saldoDebe);
+                    clienteModificado.setEstado(AL_DIA);
+                    clienteControlador.actualizar(clienteOriginal, clienteModificado);
                 }
             }
 

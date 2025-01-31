@@ -20,7 +20,6 @@ import static es.ujaen.tfg.utils.Utils.TITULO_VISTA_MODIFICAR_LOCAL;
 import static es.ujaen.tfg.utils.Utils.VACIO;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
-import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarSufijo;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
@@ -38,8 +37,8 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
     private final JFrame parent;
 
     private boolean esEdicion;
-    private Local local;
     private Local localOriginal;
+    private Local localModificado;
 
     private final LocalControlador localControlador;
 
@@ -80,8 +79,8 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
         this.esEdicion = false;
         this.campoPrecioBaseCorrecto = false;
-        this.local = null;
         this.localOriginal = null;
+        this.localModificado = null;
     }
 
     private void cargarVistaModificarLocal(Local local) {
@@ -100,8 +99,8 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
 
         this.esEdicion = true;
         this.campoPrecioBaseCorrecto = true;
-        this.local = new Local(local);
         this.localOriginal = new Local(local);
+        this.localModificado = new Local(local);
         
         // Puede que no tenga alias
         if(local.getAlias().trim().isEmpty()){
@@ -326,28 +325,28 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
             UUID uuid = UUID.randomUUID();
             codigo = uuid.toString().trim();
 
-            local = new Local(
+            localOriginal = new Local(
                     codigo,
                     nombre,
                     alias,
                     precio
             );
 
-            boolean localRepetido = localControlador.localRepetido(local);
+            boolean localRepetido = localControlador.localRepetido(localOriginal);
             if (localRepetido) {
                 Utils.mostrarError(parent, TITULO_LOCAL_REPETIDO, MENSAJE_LOCAL_REPETIDO);
                 return;
             }
-            localControlador.crear(local);
+            localControlador.crear(localOriginal);
 
         } else {
-            local.setNombre(nombre);
-            local.setAlias(alias);
-            local.setPrecioString(precio);
+            localModificado.setNombre(nombre);
+            localModificado.setAlias(alias);
+            localModificado.setPrecioString(precio);
 
-            if(!localOriginal.equals(local)){
-                localControlador.actualizar(local);
-            }
+            //if(!localOriginal.equals(local)){
+                localControlador.actualizar(localOriginal, localModificado);
+            //}
 
         }
         dispose();

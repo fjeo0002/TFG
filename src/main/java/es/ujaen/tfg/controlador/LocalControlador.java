@@ -8,6 +8,11 @@ import es.ujaen.tfg.DAO.LocalDAO;
 import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.BorrarLocalCommand;
+import es.ujaen.tfg.orden.Command;
+import es.ujaen.tfg.orden.CrearLocalCommand;
+import es.ujaen.tfg.orden.ModificarLocalCommand;
+import es.ujaen.tfg.orden.UndoManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +23,14 @@ import java.util.List;
  */
 public class LocalControlador implements Observable {
 
-    private List<Observador> observadores;
+    private final List<Observador> observadores;
     private final LocalDAO localDAO;
+    private final UndoManager undoManager;
 
     public LocalControlador() throws IOException {
         this.localDAO = new LocalDAO();
         this.observadores = new ArrayList<>();
+        this.undoManager = UndoManager.getInstance();
     }
 
     @Override
@@ -44,25 +51,33 @@ public class LocalControlador implements Observable {
     }
 
     public boolean crear(Local local) {
-        localDAO.crear(local);
+        //localDAO.crear(local);
+        Command crearLocal = new CrearLocalCommand(localDAO, local);
+        undoManager.execute(crearLocal);
         notificarObservadores();
         return true;
-
     }
 
     public Local leer(String codigo) {
         return localDAO.leer(codigo);
     }
 
-    public boolean actualizar(Local local) {
-        localDAO.actualizar(local);
-        notificarObservadores();
-        return true;
+    public boolean actualizar(Local localOriginal, Local localModificado) {
+        //localDAO.actualizar(local);
+        if(!localOriginal.equals(localModificado)){
+            Command modificarLocal = new ModificarLocalCommand(localDAO, localOriginal, localModificado);
+            undoManager.execute(modificarLocal);
+            notificarObservadores();
+            return true;
+        }
+        return false;
 
     }
 
     public boolean borrar(Local local) {
-        localDAO.borrar(local);
+        //localDAO.borrar(local);
+        Command borrarLocal = new BorrarLocalCommand(localDAO, local);
+        undoManager.execute(borrarLocal);
         notificarObservadores();
         return true;
     }

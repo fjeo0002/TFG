@@ -10,6 +10,7 @@ import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.UndoManager;
 import static es.ujaen.tfg.utils.Utils.ESTADO;
 import static es.ujaen.tfg.utils.Utils.EURO;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
@@ -31,6 +32,8 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
     
     private final FacturaControlador facturaControlador;
     private final AnticipoControlador anticipoControlador;
+    
+    private final UndoManager undoManager;
 
     private VistaAnadirModificarCliente vistaAnadirModificarCliente;
     private final JFrame parent;
@@ -55,6 +58,9 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         
         this.facturaControlador = facturaControlador;
         this.anticipoControlador = anticipoControlador;
+        
+        this.undoManager = UndoManager.getInstance();
+        this.undoManager.agregarObservador(this);
 
         this.dtm = (DefaultTableModel) jTable.getModel();
 
@@ -243,6 +249,7 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         // TODO add your handling code here:
         vistaAnadirModificarCliente = new VistaAnadirModificarCliente(parent, true, null, clienteControlador);
         vistaAnadirModificarCliente.setVisible(true);
+        
     }//GEN-LAST:event_jButtonAnadirActionPerformed
 
     private void jButtonModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonModificarActionPerformed
