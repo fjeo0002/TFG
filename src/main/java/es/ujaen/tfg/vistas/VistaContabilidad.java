@@ -4,11 +4,14 @@
  */
 package es.ujaen.tfg.vistas;
 
+import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
+import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.UndoManager;
 import es.ujaen.tfg.utils.ColorCelda;
 import static es.ujaen.tfg.utils.Utils.AL_DIA;
 import static es.ujaen.tfg.utils.Utils.ANTICIPA;
@@ -40,6 +43,9 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
 
     private final ClienteControlador clienteControlador;
     private final FacturaControlador facturaControlador;
+    private final AnticipoControlador anticipoControlador;
+
+    private final UndoManager undoManager;
 
     private final DefaultTableModel dtm;
     private TableRowSorter<DefaultTableModel> rowSorter;
@@ -49,8 +55,9 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
      *
      * @param clienteControlador
      * @param facturaControlador
+     * @param anticipoControlador
      */
-    public VistaContabilidad(ClienteControlador clienteControlador, FacturaControlador facturaControlador) {
+    public VistaContabilidad(ClienteControlador clienteControlador, FacturaControlador facturaControlador, AnticipoControlador anticipoControlador) {
         initComponents();
 
         this.facturaControlador = facturaControlador;
@@ -58,6 +65,12 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
 
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
+
+        this.anticipoControlador = anticipoControlador;
+        this.anticipoControlador.agregarObservador(this);
+
+        this.undoManager = UndoManager.getInstance();
+        this.undoManager.agregarObservador(this);
 
         this.dtm = (DefaultTableModel) jTable.getModel();
 
@@ -221,7 +234,7 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
         cargarTablaContabilidad();
     }//GEN-LAST:event_jSpinnerAnioStateChanged
 
-    private void showPopupPanel(Component parent, int x, int y, Factura factura) {
+    private void showPopupPanel(Component parent, int x, int y, Factura facturaOriginal) {
         // Crear el popup
         JPopupMenu popupMenu = new JPopupMenu();
         JPanel panel = new JPanel(new GridLayout(1, 1)); // Panel con 2 filas para los checkboxes
@@ -233,7 +246,7 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
         //facturadoCheckBox.setFont(FONT);
 
         // Si la Factura tiene el valor "Pagado" o "Facturado", preseleccionar los checkboxes
-        pagadoCheckBox.setSelected(factura.getPagado());
+        pagadoCheckBox.setSelected(facturaOriginal.getPagado());
         //facturadoCheckBox.setSelected(factura.getFacturado());
 
         // Agregar checkboxes al panel
@@ -248,39 +261,45 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
         guardarBtn.setFont(FONT);
 
         guardarBtn.addActionListener(e -> {
-            // Lógica para actualizar factura de la celda
+            // Lógica para numerar factura de la celda
             boolean pagado = pagadoCheckBox.isSelected();
             //boolean facturado = facturadoCheckBox.isSelected();
 
-            // Acturalizar la factura (ahora mismo solo el valor Pagado y Facturado)
-            factura.setPagado(pagado);
+            // Actualizar la factura (ahora mismo solo el valor Pagado)
+            Factura facturaModificada = new Factura(facturaOriginal);
+            facturaModificada.setPagado(pagado);
             //factura.setFacturado(facturado);
 
-            List<Cliente> clientes = clienteControlador.leerTodos();
-            for (Cliente clienteOriginal : clientes) {
-                double saldoDebe = facturaControlador.saldoFacturasNoPagadasCliente(clienteOriginal.getDNI());
-                double saldoAnticipa = facturaControlador.saldoFacturasNoNumeradas(clienteOriginal.getDNI());
-                Cliente clienteModificado = new Cliente(clienteOriginal);
-                if (saldoDebe != 0.0) {
-                    // El cliente debe
-                    clienteModificado.setSaldo(saldoDebe * -1);
-                    clienteModificado.setEstado(DEBE);
-                    clienteControlador.actualizar(clienteOriginal, clienteModificado);
-                } else if (saldoAnticipa != 0.0) {
-                    // El cliente Anticipa
-                    clienteModificado.setSaldo(saldoAnticipa);
-                    clienteModificado.setEstado(ANTICIPA);
-                    clienteControlador.actualizar(clienteOriginal, clienteModificado);
+            System.out.println(facturaOriginal);
+            System.out.println(facturaModificada);
+            // Actualizar Saldo de cliente al que le modificamos la factura
+            String clienteDNI = facturaOriginal.getClienteDNI();
+            Cliente clienteOriginal = clienteControlador.leer(clienteDNI);
+            
+            // EL PROBLEMA ESTÁ EN QUE, ESTOY INTENTANDO COGER LAS FACTURAS QUE NO TIENE PAGADAS ANTES DE ACTUALIZARLAS
+            facturaControlador.actualizar(facturaModificada);
+            
+            double saldoDebe = facturaControlador.saldoFacturasNoPagadasCliente(clienteDNI);
+            double saldoAnticipa = facturaControlador.saldoFacturasNoNumeradas(clienteDNI);
 
-                } else {
-                    // El saldo está a 0
-                    clienteModificado.setSaldo(saldoDebe);
-                    clienteModificado.setEstado(AL_DIA);
-                    clienteControlador.actualizar(clienteOriginal, clienteModificado);
-                }
+            Cliente clienteModificado = new Cliente(clienteOriginal);
+
+            if (saldoDebe != 0.0) {
+                // El cliente debe
+                clienteModificado.setSaldo(saldoDebe * -1);
+                clienteModificado.setEstado(DEBE);
+            } else if (saldoAnticipa != 0.0) {
+                // El cliente Anticipa
+                clienteModificado.setSaldo(saldoAnticipa);
+                clienteModificado.setEstado(ANTICIPA);
+            } else {
+                // El saldo está a 0
+                clienteModificado.setSaldo(saldoDebe);
+                clienteModificado.setEstado(AL_DIA);
             }
 
-            facturaControlador.actualizar(factura);
+            // Este SÍ es el Command definitivo
+            facturaControlador.actualizar(facturaOriginal, facturaModificada, clienteOriginal, clienteModificado);
 
             // Cerrar el popup
             popupMenu.setVisible(false);
@@ -363,7 +382,6 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
 
         rowSorter = new TableRowSorter<>(dtm);
         jTable.setRowSorter(rowSorter);
-
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

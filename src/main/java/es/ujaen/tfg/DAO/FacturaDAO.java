@@ -107,14 +107,14 @@ public class FacturaDAO implements InterfazDAO<Factura> {
     @Override
     public boolean actualizar(Factura f) {
         String letra = f.getLetra();
-        int numero = f.getNumero();
         LocalDate fecha = f.getFecha();
+        String clienteDNI = f.getClienteDNI();
         if (facturas != null) {
             for (int i = 0; i < facturas.size(); i++) {
                 String letraFactura = facturas.get(i).getLetra();
-                int numeroFactura = facturas.get(i).getNumero();
+                String clienteDNIFactura = facturas.get(i).getClienteDNI();
                 LocalDate fechaFactura = facturas.get(i).getFecha();
-                if (letra.equals(letraFactura) && numero == numeroFactura && fecha.isEqual(fechaFactura)) {
+                if (letra.equals(letraFactura) && clienteDNI.equals(clienteDNIFactura) && fecha.isEqual(fechaFactura)) {
                     facturas.set(i, f);
                     Utils.guardarDatosEnArchivo(FACTURAS_JSON, facturas);
                     return true;

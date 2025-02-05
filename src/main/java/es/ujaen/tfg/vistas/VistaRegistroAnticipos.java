@@ -9,7 +9,9 @@ import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.UndoManager;
 import static es.ujaen.tfg.utils.Utils.AL_DIA;
 import static es.ujaen.tfg.utils.Utils.ANTICIPA;
 import static es.ujaen.tfg.utils.Utils.ANTICIPOS_ACTIVOS;
@@ -36,6 +38,8 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
     private final ClienteControlador clienteControlador;
     private final AnticipoControlador anticipoControlador;
     private final FacturaControlador facturaControlador;
+
+    private final UndoManager undoManager;
 
     private Anticipo anticipoActual;
 
@@ -64,6 +68,10 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         this.anticipoControlador.agregarObservador(this);
 
         this.facturaControlador = facturaControlador;
+        this.facturaControlador.agregarObservador(this);
+
+        this.undoManager = UndoManager.getInstance();
+        this.undoManager.agregarObservador(this);
 
         this.dtm = (DefaultTableModel) jTable.getModel();
 
@@ -193,21 +201,27 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         // TODO add your handling code here:
         String idAnticipo = obtenerIdDeFilaSeleccionada(jTable, dtm);
-        Cliente clienteActualizar = null;
+        Cliente clienteOriginal = null;
         if (idAnticipo != null) {
             Anticipo anticipoEliminado = anticipoControlador.leer(idAnticipo);
             if (anticipoEliminado != null) {
                 // 1º Actualizar Saldo de Cliente
                 String clienteDNI = anticipoEliminado.getClienteDNI();
-                clienteActualizar = clienteControlador.leer(clienteDNI);
+                clienteOriginal = clienteControlador.leer(clienteDNI);
+
+                Cliente clienteModificado = actualizarSaldoCliente(clienteOriginal);
+
+                // 2º Tomar facturas no numeradas cliente
+                List<Factura> facturasAnticipadas = facturaControlador.facturasNoNumeradasCliente(clienteDNI);
                 // 2º Borrar Anticipo
-                anticipoControlador.borrar(anticipoEliminado);
+                anticipoControlador.borrar(anticipoEliminado, clienteOriginal, clienteModificado, facturasAnticipadas);
                 // 3º Borrar todas las facturas que tenga No Numeradas
-                facturaControlador.borrarFacturasNoNumeradasCliente(clienteDNI);
+                // Ahora eso tb lo tiene q hacer el Command de Borrar Anticipo
+                //facturaControlador.borrarFacturasNoNumeradasCliente(clienteDNI);
             }
         }
 
-        actualizarSaldoCliente(clienteActualizar);
+        //actualizarSaldoCliente(clienteActualizar);
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
     private void cargarTablaAnticipos() {
@@ -271,7 +285,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                     return false;
                 }
                 anticipoActual.setFechaString(value);
-                anticipoControlador.actualizar(anticipoActual);
+                anticipoControlador.numerar(anticipoActual);
                 return super.stopCellEditing();
             }
         };
@@ -310,7 +324,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 }
 
                 anticipoActual.setMontoString(nuevoMonto); // Actualizar monto solo si es válido
-                anticipoControlador.actualizar(anticipoActual);
+                anticipoControlador.numerar(anticipoActual);
                 agregarSufijo(montoTextField, EURO);
                 return super.stopCellEditing();
             }
@@ -333,7 +347,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                     return false;
                 }
                 anticipoActual.setMesesCubiertosString(value);
-                anticipoControlador.actualizar(anticipoActual);
+                anticipoControlador.numerar(anticipoActual);
                 return super.stopCellEditing();
             }
         };
@@ -374,7 +388,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 }
 
                 anticipoActual.setSaldoString(nuevoSaldo); // Actualizar saldo solo si es válido
-                anticipoControlador.actualizar(anticipoActual);
+                anticipoControlador.numerar(anticipoActual);
 
                 String clienteDNI = anticipoActual.getClienteDNI();
                 Cliente clienteActual = clienteControlador.leer(clienteDNI);
@@ -385,7 +399,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                     clienteActual.setEstado("Al día");
                 }
                 
-                clienteControlador.actualizar(clienteActual);
+                clienteControlador.numerar(clienteActual);
 
                 agregarSufijo(saldoTextField, EURO);
                 return super.stopCellEditing();
@@ -461,18 +475,20 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
 
     }
 
-    private void actualizarSaldoCliente(Cliente cliente) {
-        Anticipo anticipoActivo = anticipoControlador.anticipoActivo(cliente.getDNI());
+    private Cliente actualizarSaldoCliente(Cliente cliente) {
+        //Anticipo anticipoActivo = anticipoControlador.anticipoActivo(cliente.getDNI());
         Cliente clienteModificado = new Cliente(cliente);
-        if (anticipoActivo != null) {
-            clienteModificado.setSaldo(anticipoActivo.getSaldo());
-            clienteModificado.setEstado(ANTICIPA);
-        } else {
+        //if (anticipoActivo != null) {
+            //clienteModificado.setSaldo(anticipoActivo.getSaldo());
+            //clienteModificado.setEstado(ANTICIPA);
+        //} else {
             clienteModificado.setSaldo(0.0);
             clienteModificado.setEstado(AL_DIA);
-        }
+        //}
 
-        clienteControlador.actualizar(cliente, clienteModificado);
+        return clienteModificado;
+
+        //clienteControlador.numerar(cliente, clienteModificado);
     }
 
     @Override

@@ -17,6 +17,7 @@ import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
@@ -29,10 +30,10 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
 
     private final ClienteControlador clienteControlador;
     private TextAutoCompleter autoCompleterBuscadorClientes;
-    
+
     private final FacturaControlador facturaControlador;
     private final AnticipoControlador anticipoControlador;
-    
+
     private final UndoManager undoManager;
 
     private VistaAnadirModificarCliente vistaAnadirModificarCliente;
@@ -55,10 +56,13 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
 
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
-        
+
         this.facturaControlador = facturaControlador;
-        this.anticipoControlador = anticipoControlador;
+        this.facturaControlador.agregarObservador(this);
         
+        this.anticipoControlador = anticipoControlador;
+        this.anticipoControlador.agregarObservador(this);
+
         this.undoManager = UndoManager.getInstance();
         this.undoManager.agregarObservador(this);
 
@@ -67,8 +71,7 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         addTableSelectionListener();
         cargarTablaClientes();
         cargarAutocompletarBuscadorClientes();
-        
-        
+
     }
 
     /**
@@ -249,7 +252,7 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         // TODO add your handling code here:
         vistaAnadirModificarCliente = new VistaAnadirModificarCliente(parent, true, null, clienteControlador);
         vistaAnadirModificarCliente.setVisible(true);
-        
+
     }//GEN-LAST:event_jButtonAnadirActionPerformed
 
     private void jButtonModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonModificarActionPerformed
@@ -273,7 +276,7 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
                 //Borrar Cliente y Facturas y Anticipos asociados
                 clienteControlador.borrar(clienteEliminado);
                 facturaControlador.borrarFacturasCliente(DNI);
-                anticipoControlador.borrarAnticiposCliente(DNI);
+                //anticipoControlador.borrarAnticiposCliente(DNI);
             }
         }
     }//GEN-LAST:event_jButtonEliminarActionPerformed
@@ -383,7 +386,7 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
             }
         });
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAnadir;
     private javax.swing.JButton jButtonEliminar;

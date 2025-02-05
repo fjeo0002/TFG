@@ -515,7 +515,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         boolean pagado, facturado;
         double monto;
         Cliente clienteOriginal;
-        Cliente clienteModificado;
+        Cliente clienteModificado = null;
         String clienteDNI;
 
         JTextField dateField = (JTextField) jDateChooser.getDateEditor().getUiComponent();
@@ -533,7 +533,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         numero = facturaControlador.siguienteNumeroFacturaLetraAnio(letra, fecha);
         
-        ID = facturaControlador.generarIdFactura(letra, numero, fecha);
+        ID = facturaControlador.generarIdFactura(letra, numero, fecha, clienteDNI);
 
         Factura factura = new Factura(
                 ID,
@@ -581,7 +581,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
             // No hay Anticipos de ese cliente... se crea la factura normal
             facturaControlador.crear(factura);
         } else {
-            // Hay anticipos de ese cliente... hay que actualizar la factura: numero y facturado
+            // Hay anticipos de ese cliente... hay que numerar la factura: numero y facturado
             // El resto de campos ya se pusieron a la hora de crear el Anticipo
 
             // 1º: Recuperamos la factura que hacia de Anticipo
@@ -602,24 +602,31 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
                 return;
 
             } else {
-                facturaControlador.borrar(ultimaFacturaNoNumerada);
-                ultimaFacturaNoNumerada.setFacturado(facturado);
-                ultimaFacturaNoNumerada.setNumero(numero);
-                facturaControlador.crear(ultimaFacturaNoNumerada);
-                Anticipo anticipoActivoCliente = anticipoControlador.anticipoActivo(clienteDNI);
-                if (anticipoActivoCliente != null) {
-                    double saldoAnticipo = anticipoActivoCliente.getSaldo();
+                
+                Factura facturaNumerada = new Factura(ultimaFacturaNoNumerada);
+                
+                facturaNumerada.setFacturado(facturado);
+                facturaNumerada.setNumero(numero);
+                
+                Anticipo anticipoActivoOriginal = anticipoControlador.anticipoActivo(clienteDNI);
+                
+                Anticipo anticipoActivoModificado = new Anticipo(anticipoActivoOriginal);
+                
+                if (anticipoActivoOriginal != null) {
+                    double saldoAnticipo = anticipoActivoOriginal.getSaldo();
                     double nuevoSaldo = saldoAnticipo - monto;
-                    anticipoActivoCliente.setSaldo(nuevoSaldo);
-                    anticipoControlador.actualizar(anticipoActivoCliente);
+                                        
+                    anticipoActivoModificado.setSaldo(nuevoSaldo);
                     
                     clienteModificado = new Cliente(clienteOriginal);
                     clienteModificado.setSaldo(nuevoSaldo);
                     if (clienteModificado.getSaldo() == 0.0) {
                         clienteModificado.setEstado(AL_DIA);
                     }
-                    clienteControlador.actualizar(clienteOriginal, clienteModificado);
                 }
+                
+                facturaControlador.numerar(ultimaFacturaNoNumerada, facturaNumerada, clienteOriginal, clienteModificado, anticipoActivoOriginal, anticipoActivoModificado);
+                
             }
         }
 

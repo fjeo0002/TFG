@@ -4,12 +4,19 @@
  */
 package es.ujaen.tfg.controlador;
 
+import es.ujaen.tfg.DAO.AnticipoDAO;
+import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.DAO.FacturaDAO;
 import es.ujaen.tfg.modelo.Anticipo;
+import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
-import es.ujaen.tfg.utils.Utils;
+import es.ujaen.tfg.orden.Command;
+import es.ujaen.tfg.orden.CrearFacturaCommand;
+import es.ujaen.tfg.orden.ModificarFacturaCommand;
+import es.ujaen.tfg.orden.NumerarFacturaCommand;
+import es.ujaen.tfg.orden.UndoManager;
 import es.ujaen.tfg.utils.Utils.Mes;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -24,12 +31,18 @@ import java.util.List;
  */
 public class FacturaControlador implements Observable {
 
-    private List<Observador> observadores;
+    private final List<Observador> observadores;
     private final FacturaDAO facturaDAO;
+    private final ClienteDAO clienteDAO;
+    private final AnticipoDAO anticipoDAO;
+    private final UndoManager undoManager;
 
-    public FacturaControlador() throws IOException {
-        this.facturaDAO = new FacturaDAO();
+    public FacturaControlador(ClienteDAO clienteDAO, AnticipoDAO anticipoDAO, FacturaDAO facturaDAO) throws IOException {
+        this.clienteDAO = clienteDAO;
+        this.facturaDAO = facturaDAO;
+        this.anticipoDAO = anticipoDAO;
         this.observadores = new ArrayList<>();
+        this.undoManager = UndoManager.getInstance();
     }
 
     @Override
@@ -50,13 +63,33 @@ public class FacturaControlador implements Observable {
     }
 
     public boolean crear(Factura factura) {
-        facturaDAO.crear(factura);
+        //facturaDAO.crear(factura);
+        Command crearFactura = new CrearFacturaCommand(facturaDAO, factura);
+        undoManager.execute(crearFactura);
         notificarObservadores();
         return true;
     }
 
     public Factura leer(String id) {
         return facturaDAO.leer(id);
+    }
+
+    public boolean numerar(Factura facturaOriginal, Factura facturaModificada, Cliente clienteOriginal, Cliente clienteModificado, Anticipo anticipoOriginal, Anticipo anticipoModificado) {
+        //facturaDAO.numerar(factura);
+        Command numerarFactura = new NumerarFacturaCommand(facturaDAO, facturaOriginal, facturaModificada, clienteDAO, clienteOriginal, clienteModificado, anticipoDAO, anticipoOriginal, anticipoModificado);
+        undoManager.execute(numerarFactura);
+        notificarObservadores();
+        return true;
+
+    }
+
+    public boolean actualizar(Factura facturaOriginal, Factura facturaModificada, Cliente clienteOriginal, Cliente clienteModificado) {
+        //facturaDAO.numerar(factura);
+        Command actualizarFactura = new ModificarFacturaCommand(facturaDAO, facturaOriginal, facturaModificada, clienteDAO, clienteOriginal, clienteModificado);
+        undoManager.execute(actualizarFactura);
+        notificarObservadores();
+        return true;
+
     }
 
     public boolean actualizar(Factura factura) {
@@ -76,15 +109,15 @@ public class FacturaControlador implements Observable {
         return facturaDAO.leerTodos();
     }
 
-    public String generarIdFactura(String letra, int numero, LocalDate fecha) {
-        // Crear una clave única combinando los campos 'letra', 'numero' y 'fecha'
+    public String generarIdFactura(String letra, int numero, LocalDate fecha, String clienteDNI) {
+        // Crear una clave única combinando los campos 'letra', 'numero', 'fecha' y 'DNI'
         int numeroMes = fecha.getMonthValue();
         Mes mes = Mes.porNumero(numeroMes);
         String nombreMes = mes.getNombre();
-        
+
         int anio = fecha.getYear();
-        
-        String txt = letra + "-" + anio + "-" + nombreMes + "-" + numero;
+
+        String txt = letra + "-" + anio + "-" + nombreMes + "-" + numero + "-" + clienteDNI;
         return txt;
     }
 

@@ -27,8 +27,8 @@ public class LocalControlador implements Observable {
     private final LocalDAO localDAO;
     private final UndoManager undoManager;
 
-    public LocalControlador() throws IOException {
-        this.localDAO = new LocalDAO();
+    public LocalControlador(LocalDAO localDAO) throws IOException {
+        this.localDAO = localDAO;
         this.observadores = new ArrayList<>();
         this.undoManager = UndoManager.getInstance();
     }

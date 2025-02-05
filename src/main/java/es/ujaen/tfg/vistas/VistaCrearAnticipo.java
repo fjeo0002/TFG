@@ -12,6 +12,7 @@ import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.UndoManager;
 import static es.ujaen.tfg.utils.Utils.ANTICIPA;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_ANTICIPO_ACTIVO;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_ANTICIPO_ANTERIOR_FACTURA;
@@ -49,6 +50,8 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
     private final AnticipoControlador anticipoControlador;
     private final FacturaControlador facturaControlador;
 
+    //private final UndoManager undoManager;
+    
     private TextAutoCompleter autoCompleterBuscadorClientes;
 
     private boolean campoBuscadorClientesCorrecto;
@@ -75,7 +78,10 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         this.anticipoControlador = anticipoControlador;
 
         this.facturaControlador = facturaControlador;
-
+        /*
+        this.undoManager = UndoManager.getInstance();
+        this.undoManager.agregarObservador(this);
+        */
         this.campoBuscadorClientesCorrecto = false;
         this.campoFechaCorrecto = false;
 
@@ -316,10 +322,10 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
         double montoMes = monto / mesesCubiertos;
 
-        List<Factura> facturasACrear = new ArrayList<>();
+        List<Factura> facturasAnticipadas = new ArrayList<>();
         for (int i = 0; i < mesesCubiertos; i++) {
-            ID = facturaControlador.generarIdFactura(letra, numero, fecha);
-            
+            ID = facturaControlador.generarIdFactura(letra, numero, fecha, clienteDNI);
+
             Factura factura = new Factura(ID, letra, numero, fecha, pagado, facturado, montoMes, clienteDNI);
             boolean facturaRepetida = facturaControlador.facturaRepetida(factura);
             if (facturaRepetida) {
@@ -327,21 +333,27 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
                 return;
             }
             fecha = fecha.plusMonths(+1);
-            facturasACrear.add(factura);
+            facturasAnticipadas.add(factura);
         }
 
         // Finalmente, si todo ha salido bien:
-        // Creamos el Anticipo
-        anticipoControlador.crear(anticipo);
-        // Creamos las Facturas asociadas
-        for (Factura factura : facturasACrear) {
-            facturaControlador.crear(factura);
-        }
         // Actualizamos el saldo del cliente:
         clienteModificado = new Cliente(clienteOriginal);
         clienteModificado.setSaldo(saldo);
         clienteModificado.setEstado(ANTICIPA);
-        clienteControlador.actualizar(clienteOriginal, clienteModificado);
+        // Creamos el Anticipo + FacturasAnticipadas + actualizamos saldo de Cliente
+        anticipoControlador.crear(anticipo, clienteOriginal, clienteModificado, facturasAnticipadas);
+
+        // Creamos las Facturas asociadas
+        // Ahora las facturas anticipadas deben crearse en correlacion al Anticipo creado en el Command
+        /*
+        for (Factura factura : facturasACrear) {
+            facturaControlador.crear(factura);
+        }
+         */
+        
+        // Ahora el saldo del cliente debe actualizarse en correlacion al Anticipo creado en el Command
+        //clienteControlador.numerar(clienteOriginal, clienteModificado);
 
         dispose();
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed

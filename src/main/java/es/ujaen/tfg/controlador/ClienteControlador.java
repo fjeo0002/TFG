@@ -27,8 +27,9 @@ public class ClienteControlador implements Observable {
     private final ClienteDAO clienteDAO;
     private final UndoManager undoManager;
 
-    public ClienteControlador() throws IOException {
-        this.clienteDAO = new ClienteDAO();
+    public ClienteControlador(ClienteDAO clienteDAO) throws IOException {
+        //this.clienteDAO = new ClienteDAO();
+        this.clienteDAO = clienteDAO;
         this.observadores = new ArrayList<>();
         this.undoManager = UndoManager.getInstance();
     }

@@ -5,9 +5,17 @@
 package es.ujaen.tfg.controlador;
 
 import es.ujaen.tfg.DAO.AnticipoDAO;
+import es.ujaen.tfg.DAO.ClienteDAO;
+import es.ujaen.tfg.DAO.FacturaDAO;
 import es.ujaen.tfg.modelo.Anticipo;
+import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.orden.BorrarAnticipoCommand;
+import es.ujaen.tfg.orden.Command;
+import es.ujaen.tfg.orden.CrearAnticipoCommand;
+import es.ujaen.tfg.orden.UndoManager;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -22,10 +30,16 @@ public class AnticipoControlador implements Observable {
 
     private final List<Observador> observadores;
     private final AnticipoDAO anticipoDAO;
+    private final ClienteDAO clienteDAO;
+    private final FacturaDAO facturaDAO;
+    private final UndoManager undoManager;
 
-    public AnticipoControlador() throws IOException {
-        this.anticipoDAO = new AnticipoDAO();
+    public AnticipoControlador(ClienteDAO clienteDAO, AnticipoDAO anticipoDAO, FacturaDAO facturaDAO) throws IOException {
+        this.anticipoDAO = anticipoDAO;
         this.observadores = new ArrayList<>();
+        this.clienteDAO = clienteDAO;
+        this.facturaDAO = facturaDAO;
+        this.undoManager = UndoManager.getInstance();
     }
 
     @Override
@@ -45,8 +59,10 @@ public class AnticipoControlador implements Observable {
         }
     }
 
-    public boolean crear(Anticipo anticipo) {
-        anticipoDAO.crear(anticipo);
+    public boolean crear(Anticipo anticipo, Cliente clienteOriginal, Cliente clienteModificado, List<Factura> facturasACrear) {
+        //anticipoDAO.crear(anticipo);
+        Command crearAnticipo = new CrearAnticipoCommand(anticipoDAO, anticipo, clienteDAO, clienteOriginal, clienteModificado, facturaDAO, facturasACrear);
+        undoManager.execute(crearAnticipo);
         notificarObservadores();
         return true;
 
@@ -63,8 +79,10 @@ public class AnticipoControlador implements Observable {
 
     }
 
-    public boolean borrar(Anticipo anticipo) {
-        anticipoDAO.borrar(anticipo);
+    public boolean borrar(Anticipo anticipo, Cliente clienteOriginal, Cliente clienteModificado, List<Factura> facturasAnticipadas) {
+        //anticipoDAO.borrar(anticipo);
+        Command borrarAnticipo = new BorrarAnticipoCommand(anticipoDAO, anticipo, clienteDAO, clienteOriginal, clienteModificado, facturaDAO, facturasAnticipadas);
+        undoManager.execute(borrarAnticipo);
         notificarObservadores();
         return true;
     }
@@ -81,7 +99,6 @@ public class AnticipoControlador implements Observable {
     }
 
     public boolean anticipoRepetido(Anticipo a) {
-        // 1º Miramos que no sea uno igual:        
         List<Anticipo> anticipos = leerTodos();
         if (anticipos != null) {
             for (Anticipo anticipo : anticipos) {
@@ -153,7 +170,7 @@ public class AnticipoControlador implements Observable {
         }
         return null;
     }
-
+/*
     public boolean borrarAnticiposCliente(String clienteDNI) {
         List<Anticipo> anticiposCliente = anticiposCliente(clienteDNI);
         if (anticiposCliente != null) {
@@ -164,29 +181,5 @@ public class AnticipoControlador implements Observable {
         }
         return false;
     }
-    /*
-    public Anticipo obtenerUltimoAnticipo(Cliente cliente) {
-        List<Anticipo> anticipos = leerTodos();
-        if (anticipos != null) {
-            List<Anticipo> anticiposActivos = new ArrayList<>();
-            for (Anticipo anticipo : anticipos) {
-                if (anticipo.getClienteDNI().equals(cliente.getDNI()) && anticipo.getSaldo() > 0) {
-                    anticiposActivos.add(anticipo);
-                }
-            }
-            if (anticiposActivos.isEmpty()) {
-                Anticipo ultimoAnticipo = anticiposActivos.get(0); // Inicializar con el primero
-                for (Anticipo anticipo : anticiposActivos) {
-                    LocalDate fechaAnticipo = anticipo.getFecha();
-                    LocalDate fechaUltimoAnticipo = ultimoAnticipo.getFecha();
-                    if (fechaAnticipo.isAfter(fechaUltimoAnticipo)) {
-                        ultimoAnticipo = anticipo;
-                    }
-                }
-                return ultimoAnticipo;
-            }
-        }
-        return null;
-    }
-     */
+*/
 }

@@ -174,7 +174,7 @@ public class Cliente {
     public void setSaldo(double saldo) {
         this.saldo = saldo;
     }
-    
+
     @Exclude
     public void setSaldoString(String saldoStr) {
         this.saldo = convertirStringADouble(saldoStr);
@@ -182,15 +182,17 @@ public class Cliente {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 97 * hash + Objects.hashCode(this.DNI);
-        hash = 97 * hash + Objects.hashCode(this.nombre);
-        hash = 97 * hash + Objects.hashCode(this.alias);
-        hash = 97 * hash + Objects.hashCode(this.email);
-        hash = 97 * hash + Objects.hashCode(this.direccion);
-        hash = 97 * hash + Objects.hashCode(this.localidad);
-        hash = 97 * hash + Objects.hashCode(this.codigoPostal);
-        hash = 97 * hash + Objects.hashCode(this.tipo);
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(this.DNI);
+        hash = 53 * hash + Objects.hashCode(this.nombre);
+        hash = 53 * hash + Objects.hashCode(this.alias);
+        hash = 53 * hash + Objects.hashCode(this.email);
+        hash = 53 * hash + Objects.hashCode(this.direccion);
+        hash = 53 * hash + Objects.hashCode(this.localidad);
+        hash = 53 * hash + Objects.hashCode(this.codigoPostal);
+        hash = 53 * hash + Objects.hashCode(this.estado);
+        hash = 53 * hash + (int) (Double.doubleToLongBits(this.saldo) ^ (Double.doubleToLongBits(this.saldo) >>> 32));
+        hash = 53 * hash + Objects.hashCode(this.tipo);
         return hash;
     }
 
@@ -206,6 +208,9 @@ public class Cliente {
             return false;
         }
         final Cliente other = (Cliente) obj;
+        if (Double.doubleToLongBits(this.saldo) != Double.doubleToLongBits(other.saldo)) {
+            return false;
+        }
         if (!Objects.equals(this.DNI, other.DNI)) {
             return false;
         }
@@ -225,6 +230,9 @@ public class Cliente {
             return false;
         }
         if (!Objects.equals(this.codigoPostal, other.codigoPostal)) {
+            return false;
+        }
+        if (!Objects.equals(this.estado, other.estado)) {
             return false;
         }
         return Objects.equals(this.tipo, other.tipo);

@@ -5,6 +5,10 @@
 package es.ujaen.tfg.vistas;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import es.ujaen.tfg.DAO.AnticipoDAO;
+import es.ujaen.tfg.DAO.ClienteDAO;
+import es.ujaen.tfg.DAO.FacturaDAO;
+import es.ujaen.tfg.DAO.LocalDAO;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
@@ -41,6 +45,11 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     private final PreferenciasControlador preferenciasControlador;
 
     private final UndoManager undoManager;
+    
+    private final ClienteDAO clienteDAO;
+    private final FacturaDAO facturaDAO;
+    private final AnticipoDAO anticipoDAO;
+    private final LocalDAO localDAO;
 
     /**
      * Creates new form VistaPrincipal
@@ -51,20 +60,25 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         initComponents();
         setLocationRelativeTo(null);
         setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
+        
+        this.clienteDAO = new ClienteDAO();
+        this.facturaDAO = new FacturaDAO();
+        this.anticipoDAO = new AnticipoDAO();
+        this.localDAO = new LocalDAO();
 
-        this.clienteControlador = new ClienteControlador();
-        this.localControlador = new LocalControlador();
-        this.anticipoControlador = new AnticipoControlador();
-        this.facturaControlador = new FacturaControlador();
+        this.clienteControlador = new ClienteControlador(clienteDAO);
+        this.localControlador = new LocalControlador(localDAO);
+        this.anticipoControlador = new AnticipoControlador(clienteDAO, anticipoDAO, facturaDAO);
+        this.facturaControlador = new FacturaControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.preferenciasControlador = new PreferenciasControlador();
         
         this.clienteControlador.agregarObservador(this);
         this.localControlador.agregarObservador(this);
         this.anticipoControlador.agregarObservador(this);
         this.facturaControlador.agregarObservador(this);
-
+        
         this.undoManager = UndoManager.getInstance();
-
+        
         cargarVistaContabilidad();
         cargarVistaRegistroAnticipos();
 
@@ -320,7 +334,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     }
     
     private void cargarVistaContabilidad() {
-        vistaContabilidad = new VistaContabilidad(clienteControlador, facturaControlador);
+        vistaContabilidad = new VistaContabilidad(clienteControlador, facturaControlador, anticipoControlador);
         vistaContabilidad.setSize(jPanelContabilidad.getWidth(), jPanelContabilidad.getHeight());
         vistaContabilidad.setLocation(0, 0);
 
