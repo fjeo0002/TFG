@@ -65,12 +65,13 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
         }));
     }
 
-    @Override
-    public boolean crear(Cliente t) {
+    //@Override
+    public boolean crear(Cliente t, int index) {
         if (clientes == null) {
             clientes = new ArrayList<>();
         }
-        clientes.add(t);
+        //clientes.add(t);
+        clientes.add(index, t);
         Utils.guardarDatosEnArchivo(CLIENTES_JSON, clientes);
         return true;
     }
@@ -109,6 +110,11 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
     @Override
     public List<Cliente> leerTodos() {
         return clientes;
+    }
+
+    @Override
+    public boolean crear(Cliente t) {
+        return false;
     }
 
 }

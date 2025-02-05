@@ -9,17 +9,21 @@ package es.ujaen.tfg.modelo;
  * @author jota
  */
 public class Preferencias {
+
     private int iva;
     private int retencion;
+    private boolean facturasContiguas;
 
     public Preferencias() {
         this.iva = 21; // Valor predeterminado
         this.retencion = 19; // Valor predeterminado
+        this.facturasContiguas = true; // Valor predeterminado
     }
 
-    public Preferencias(int iva, int retencion) {
+    public Preferencias(int iva, int retencion, boolean facturasContiguas) {
         this.iva = iva;
         this.retencion = retencion;
+        this.facturasContiguas = facturasContiguas;
     }
 
     public int getIva() {
@@ -36,5 +40,13 @@ public class Preferencias {
 
     public void setRetencion(int retencion) {
         this.retencion = retencion;
+    }
+
+    public boolean getFacturasContiguas() {
+        return facturasContiguas;
+    }
+
+    public void setFacturasContiguas(boolean facturasContiguas) {
+        this.facturasContiguas = facturasContiguas;
     }
 }

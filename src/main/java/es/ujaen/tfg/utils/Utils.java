@@ -56,6 +56,7 @@ public class Utils {
     public static final String LOCALES_JSON = "locales.json";
     public static final String ANTICIPOS_JSON = "anticipos.json";
     public static final String FACTURAS_JSON = "facturas.json";
+    public static final String PREFERENCIAS_JSON = "preferencias.json";
     public static final String FIREBASE_JSON = "tfg-uja2425-fjeo0002-firebase-adminsdk-fbsvc-93c6ce5c57.json";
 
     public static final String CLIENTES_COLECCION = "clientes";
@@ -110,6 +111,8 @@ public class Utils {
     public static final String TODOS = "Todos";
     public static final String ANTICIPOS_ACTIVOS = "Anticipos Activos";
     public static final String ANTICIPOS_FINALIZADOS = "Anticipos Finalizados";
+    
+    public static final String FILTROS_APLICADOS = "* Filtros aplicados";
 
 // ----------------------------------------TITULOS----------------------------------------
     public static final String TITULO_VISTA_ANADIR_CLIENTE = "Añadir Nuevo Cliente";

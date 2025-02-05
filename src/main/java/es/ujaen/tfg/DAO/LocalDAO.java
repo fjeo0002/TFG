@@ -30,7 +30,8 @@ public final class LocalDAO implements InterfazDAO<Local> {
     public LocalDAO() throws IOException {
         this.locales = cargarDatosDesdeArchivo(
                 LOCALES_JSON,
-                new TypeToken<List<Local>>() {}.getType()
+                new TypeToken<List<Local>>() {
+                }.getType()
         );
         /*
         this.locales = cargarDatosDesdeFirebase(
@@ -38,7 +39,7 @@ public final class LocalDAO implements InterfazDAO<Local> {
                 LOCALES_COLECCION, 
                 Local.class
         );
-        */
+         */
         this.ultimoHashArchivo = calcularHashArchivo(LOCALES_JSON);
         iniciarSincronizacionPeriodica(
                 LOCALES_JSON,
@@ -65,12 +66,13 @@ public final class LocalDAO implements InterfazDAO<Local> {
         }));
     }
 
-    @Override
-    public boolean crear(Local local) {
+    //@Override
+    public boolean crear(Local local, int index) {
         if (locales == null) {
             locales = new ArrayList<>();
         }
-        locales.add(local);
+        //locales.add(local);
+        locales.add(index, local);
         Utils.guardarDatosEnArchivo(LOCALES_JSON, locales);
         return true;
     }
@@ -110,4 +112,10 @@ public final class LocalDAO implements InterfazDAO<Local> {
     public List<Local> leerTodos() {
         return locales;
     }
+
+    @Override
+    public boolean crear(Local t) {
+        return false;
+    }
+
 }

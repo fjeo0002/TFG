@@ -74,9 +74,9 @@ public class LocalControlador implements Observable {
 
     }
 
-    public boolean borrar(Local local) {
+    public boolean borrar(Local local, int index) {
         //localDAO.borrar(local);
-        Command borrarLocal = new BorrarLocalCommand(localDAO, local);
+        Command borrarLocal = new BorrarLocalCommand(localDAO, local, index);
         undoManager.execute(borrarLocal);
         notificarObservadores();
         return true;

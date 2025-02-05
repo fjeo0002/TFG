@@ -47,6 +47,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
         jSpinnerIVA = new javax.swing.JSpinner();
         jLabelRetencion = new javax.swing.JLabel();
         jSpinnerRetencion = new javax.swing.JSpinner();
+        jCheckBoxFacturasContiguas = new javax.swing.JCheckBox();
         jPanelPiePagina2 = new javax.swing.JPanel();
         jButtonCancelar = new javax.swing.JButton();
         jButtonAceptar = new javax.swing.JButton();
@@ -54,6 +55,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Preferencias");
         setName("VistaPreferencias"); // NOI18N
+        setSize(new java.awt.Dimension(348, 245));
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -109,6 +111,15 @@ public class VistaPreferencias extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jSpinnerRetencion, gridBagConstraints);
 
+        jCheckBoxFacturasContiguas.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jCheckBoxFacturasContiguas.setText("Facturas Contiguas");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jCheckBoxFacturasContiguas, gridBagConstraints);
+
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
 
         jPanelPiePagina2.setName(""); // NOI18N
@@ -138,7 +149,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 348, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -166,6 +177,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
         Preferencias preferencias = preferenciasControlador.obtenerPreferencias();
         jSpinnerIVA.setValue(preferencias.getIva());
         jSpinnerRetencion.setValue(preferencias.getRetencion());
+        jCheckBoxFacturasContiguas.setSelected(preferencias.getFacturasContiguas());
     }
     
     /**
@@ -174,7 +186,8 @@ public class VistaPreferencias extends javax.swing.JDialog {
     private void guardarPreferencias() {
         Preferencias nuevasPreferencias = new Preferencias(
                 (Integer) jSpinnerIVA.getValue(),
-                (Integer) jSpinnerRetencion.getValue()
+                (Integer) jSpinnerRetencion.getValue(),
+                (Boolean) jCheckBoxFacturasContiguas.isSelected()
         );
         preferenciasControlador.guardarPreferencias(nuevasPreferencias);
     }
@@ -182,6 +195,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAceptar;
     private javax.swing.JButton jButtonCancelar;
+    private javax.swing.JCheckBox jCheckBoxFacturasContiguas;
     private javax.swing.JLabel jLabelIVA;
     private javax.swing.JLabel jLabelRetencion;
     private javax.swing.JLabel jLabelTitulo;

@@ -6,6 +6,7 @@ package es.ujaen.tfg.controlador;
 
 import com.google.gson.Gson;
 import es.ujaen.tfg.modelo.Preferencias;
+import static es.ujaen.tfg.utils.Utils.PREFERENCIAS_JSON;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +17,6 @@ import java.nio.file.Paths;
  * @author jota
  */
 public class PreferenciasControlador {
-    private static final String FILE_PATH = "preferencias.json";
     private Preferencias preferencias;
 
     public PreferenciasControlador() {
@@ -28,10 +28,10 @@ public class PreferenciasControlador {
      */
     private Preferencias cargarPreferenciasDesdeArchivo() {
         try {
-            if (!Files.exists(Paths.get(FILE_PATH))) {  // Si no existe el archivo, creamos valores predeterminados
+            if (!Files.exists(Paths.get(PREFERENCIAS_JSON))) {  // Si no existe el archivo, creamos valores predeterminados
                 return crearPreferenciasPorDefecto();
             }
-            String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
+            String jsonData = new String(Files.readAllBytes(Paths.get(PREFERENCIAS_JSON)));
             return new Gson().fromJson(jsonData, Preferencias.class);
         } catch (IOException e) {
             return crearPreferenciasPorDefecto();
@@ -44,7 +44,7 @@ public class PreferenciasControlador {
      */
     public void guardarPreferencias(Preferencias nuevasPreferencias) {
         this.preferencias = nuevasPreferencias;
-        try (FileWriter writer = new FileWriter(FILE_PATH)) {
+        try (FileWriter writer = new FileWriter(PREFERENCIAS_JSON)) {
             new Gson().toJson(preferencias, writer);
         } catch (IOException e) {
         }

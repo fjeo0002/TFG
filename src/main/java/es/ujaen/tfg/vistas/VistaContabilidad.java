@@ -270,8 +270,6 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
             facturaModificada.setPagado(pagado);
             //factura.setFacturado(facturado);
 
-            System.out.println(facturaOriginal);
-            System.out.println(facturaModificada);
             // Actualizar Saldo de cliente al que le modificamos la factura
             String clienteDNI = facturaOriginal.getClienteDNI();
             Cliente clienteOriginal = clienteControlador.leer(clienteDNI);

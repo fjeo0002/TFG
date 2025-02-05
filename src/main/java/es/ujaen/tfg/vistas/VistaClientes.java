@@ -8,7 +8,9 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
+import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.UndoManager;
 import static es.ujaen.tfg.utils.Utils.ESTADO;
@@ -270,12 +272,15 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         // TODO add your handling code here:
         String DNI = obtenerIdDeFilaSeleccionada(jTable, dtm);
+        int fila = jTable.getSelectedRow();
         if (DNI != null) {
             Cliente clienteEliminado = clienteControlador.leer(DNI);
             if (clienteEliminado != null) {
                 //Borrar Cliente y Facturas y Anticipos asociados
-                clienteControlador.borrar(clienteEliminado);
-                facturaControlador.borrarFacturasCliente(DNI);
+                List<Factura> facturasCliente = facturaControlador.facturasCliente(DNI);
+                List<Anticipo> anticiposCliente = anticipoControlador.anticiposCliente(DNI);
+                clienteControlador.borrar(clienteEliminado, fila, facturasCliente, anticiposCliente);
+                //facturaControlador.borrarFacturasCliente(DNI);
                 //anticipoControlador.borrarAnticiposCliente(DNI);
             }
         }

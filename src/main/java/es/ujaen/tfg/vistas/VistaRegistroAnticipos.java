@@ -13,15 +13,16 @@ import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.UndoManager;
 import static es.ujaen.tfg.utils.Utils.AL_DIA;
-import static es.ujaen.tfg.utils.Utils.ANTICIPA;
 import static es.ujaen.tfg.utils.Utils.ANTICIPOS_ACTIVOS;
 import static es.ujaen.tfg.utils.Utils.ANTICIPOS_FINALIZADOS;
 import static es.ujaen.tfg.utils.Utils.EURO;
+import static es.ujaen.tfg.utils.Utils.FILTROS_APLICADOS;
 import static es.ujaen.tfg.utils.Utils.GUION;
 import es.ujaen.tfg.utils.Utils.Mes;
 import static es.ujaen.tfg.utils.Utils.TODOS;
 import static es.ujaen.tfg.utils.Utils.obtenerIdDeFilaSeleccionada;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.RowFilter;
@@ -41,7 +42,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
 
     private final UndoManager undoManager;
 
-    private Anticipo anticipoActual;
+    //private Anticipo anticipoActual;
 
     private VistaRegistroAnticiposFiltrarBusqueda vistaRegistroAnticiposFiltrarBusqueda;
     private final JFrame parent;
@@ -96,7 +97,9 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         jPanelFiltro = new javax.swing.JPanel();
         jLabelFiltrarBusqueda = new javax.swing.JLabel();
         jButtonFiltrarBusqueda = new javax.swing.JButton();
+        jLabelAdvertencia = new javax.swing.JLabel();
         jPanelBotones = new javax.swing.JPanel();
+        jButtonEliminarFiltros = new javax.swing.JButton();
         jButtonEliminar = new javax.swing.JButton();
         jPanelCuerpo = new javax.swing.JPanel();
         jScrollPaneTabla = new javax.swing.JScrollPane();
@@ -135,9 +138,23 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         });
         jPanelFiltro.add(jButtonFiltrarBusqueda);
 
+        jLabelAdvertencia.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertencia.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        jPanelFiltro.add(jLabelAdvertencia);
+
         jPanelMenu.add(jPanelFiltro);
 
         jPanelBotones.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+
+        jButtonEliminarFiltros.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonEliminarFiltros.setText("Eliminar Filtros");
+        jButtonEliminarFiltros.setEnabled(false);
+        jButtonEliminarFiltros.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEliminarFiltrosActionPerformed(evt);
+            }
+        });
+        jPanelBotones.add(jButtonEliminarFiltros);
 
         jButtonEliminar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonEliminar.setText("Eliminar");
@@ -193,9 +210,18 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         // TODO add your handling code here:
         vistaRegistroAnticiposFiltrarBusqueda = new VistaRegistroAnticiposFiltrarBusqueda(parent, true, clienteControlador);
         vistaRegistroAnticiposFiltrarBusqueda.setVisible(true);
+        if (vistaRegistroAnticiposFiltrarBusqueda.getAceptar()) {
+            List<String> filtros = vistaRegistroAnticiposFiltrarBusqueda.obtenerFiltros();
+            if (!hayFiltros(filtros)) {
+                jLabelAdvertencia.setText("");
+                jButtonEliminarFiltros.setEnabled(false);
+            } else {
+                jLabelAdvertencia.setText(FILTROS_APLICADOS);
+                jButtonEliminarFiltros.setEnabled(true);
+            }
 
-        List<String> filtros = vistaRegistroAnticiposFiltrarBusqueda.obtenerFiltros();
-        aplicarFiltros(filtros);
+            aplicarFiltros(filtros);
+        }
     }//GEN-LAST:event_jButtonFiltrarBusquedaActionPerformed
 
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
@@ -209,20 +235,107 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 String clienteDNI = anticipoEliminado.getClienteDNI();
                 clienteOriginal = clienteControlador.leer(clienteDNI);
 
-                Cliente clienteModificado = actualizarSaldoCliente(clienteOriginal);
+                Cliente clienteModificado = new Cliente(clienteOriginal);
 
+                clienteModificado.setSaldo(0.0);
+                clienteModificado.setEstado(AL_DIA);
                 // 2º Tomar facturas no numeradas cliente
                 List<Factura> facturasAnticipadas = facturaControlador.facturasNoNumeradasCliente(clienteDNI);
-                // 2º Borrar Anticipo
+                // 3º Borrar Anticipo
                 anticipoControlador.borrar(anticipoEliminado, clienteOriginal, clienteModificado, facturasAnticipadas);
-                // 3º Borrar todas las facturas que tenga No Numeradas
-                // Ahora eso tb lo tiene q hacer el Command de Borrar Anticipo
-                //facturaControlador.borrarFacturasNoNumeradasCliente(clienteDNI);
+
             }
         }
-
-        //actualizarSaldoCliente(clienteActualizar);
     }//GEN-LAST:event_jButtonEliminarActionPerformed
+
+    private void jButtonEliminarFiltrosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarFiltrosActionPerformed
+        // TODO add your handling code here:
+        List<String> filtros = new ArrayList<>();
+        filtros.add("");
+        filtros.add(TODOS);
+        filtros.add("");
+        filtros.add(GUION);
+        aplicarFiltros(filtros);
+        jButtonEliminarFiltros.setEnabled(false);
+        jLabelAdvertencia.setText("");
+    }//GEN-LAST:event_jButtonEliminarFiltrosActionPerformed
+
+    private boolean hayFiltros(List<String> filtros) {
+        String nombreAliasClienteFiltro = filtros.get(0);
+        String saldoFiltro = filtros.get(1);
+        String anioFiltro = filtros.get(2);
+        String mesFiltro = filtros.get(3);
+
+        if (nombreAliasClienteFiltro.isEmpty()
+                && saldoFiltro.equals(TODOS)
+                && anioFiltro.isEmpty()
+                && mesFiltro.equals(GUION)) {
+            return false;
+        }
+        return true;
+    }
+    
+    private void aplicarFiltros(List<String> filtros) {
+
+        String nombreAliasClienteFiltro = filtros.get(0);
+        String saldoFiltro = filtros.get(1);
+        String anioFiltro = filtros.get(2);
+        String mesFiltro = filtros.get(3);
+
+        // Filtrar utilizando un RowFilter personalizado
+        rowSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
+            public boolean include(RowFilter.Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                String ID = (String) entry.getValue(0); // Obtener ID de la fila
+                Anticipo anticipoFiltrado = anticipoControlador.leer(ID); // Obtener el anticipo correspondiente
+
+                // Extraer datos del anticipo
+                String clienteDNI = anticipoFiltrado.getClienteDNI();
+                Cliente cliente = clienteControlador.leer(clienteDNI);
+
+                String nombreCliente = cliente.getNombre().toLowerCase();
+                String aliasCliente = cliente.getAlias().toLowerCase();
+
+                double saldo = anticipoFiltrado.getSaldo();
+                LocalDate fecha = anticipoFiltrado.getFecha();
+
+                // Filtrar por cliente
+                if (!nombreAliasClienteFiltro.isEmpty()
+                        && !(nombreCliente.contains(nombreAliasClienteFiltro.toLowerCase())
+                        || aliasCliente.contains(nombreAliasClienteFiltro.toLowerCase()))) {
+                    return false;
+                }
+
+                // Filtrar por saldo
+                if (!saldoFiltro.equals(TODOS)) {
+                    if (saldoFiltro.equals(ANTICIPOS_ACTIVOS) && saldo <= 0) {
+                        return false;
+                    } else if (saldoFiltro.equals(ANTICIPOS_FINALIZADOS) && saldo > 0) {
+                        return false;
+                    }
+                }
+
+                // Filtrar por año
+                if (!anioFiltro.isEmpty()) {
+                    if (!anioFiltro.equals(String.valueOf(fecha.getYear()))) {
+                        return false;
+                    }
+                }
+
+                // Filtrar por mes (convertir mes textual a número si es necesario)
+                if (!mesFiltro.equals(GUION)) {
+                    Mes mes = Mes.porNombre(mesFiltro);
+                    int mesNumero = mes.getNumero();
+                    if (mesNumero != fecha.getMonthValue()) {
+                        return false;
+                    }
+                }
+
+                return true; // Si pasa todos los filtros, incluir la fila
+            }
+        });
+
+    }
 
     private void cargarTablaAnticipos() {
 
@@ -263,6 +376,11 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
                 jButtonEliminar.setEnabled(isRowSelected);
             }
         });
+    }
+    
+    @Override
+    public void actualizar() {
+        cargarTablaAnticipos();
     }
 
     /*
@@ -407,98 +525,33 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         };
         jTable.getColumnModel().getColumn(5).setCellEditor(saldoEditor);
     }
-     */
+     
     private void cargarDatosFilaSeleccionada() {
         String idAnticipo = obtenerIdDeFilaSeleccionada(jTable, dtm); // Columna del ID
         anticipoActual = anticipoControlador.leer(idAnticipo); // Recuperar el objeto Anticipo        
-    }
-
-    private void aplicarFiltros(List<String> filtros) {
-
-        String nombreAliasClienteFiltro = filtros.get(0);
-        String saldoFiltro = filtros.get(1);
-        String anioFiltro = filtros.get(2);
-        String mesFiltro = filtros.get(3);
-
-        // Filtrar utilizando un RowFilter personalizado
-        rowSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
-            @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                String ID = (String) entry.getValue(0); // Obtener ID de la fila
-                Anticipo anticipoFiltrado = anticipoControlador.leer(ID); // Obtener el anticipo correspondiente
-
-                // Extraer datos del anticipo
-                String clienteDNI = anticipoFiltrado.getClienteDNI();
-                Cliente cliente = clienteControlador.leer(clienteDNI);
-
-                String nombreCliente = cliente.getNombre().toLowerCase();
-                String aliasCliente = cliente.getAlias().toLowerCase();
-
-                double saldo = anticipoFiltrado.getSaldo();
-                LocalDate fecha = anticipoFiltrado.getFecha();
-
-                // Filtrar por cliente
-                if (!nombreAliasClienteFiltro.isEmpty()
-                        && !(nombreCliente.contains(nombreAliasClienteFiltro.toLowerCase())
-                        || aliasCliente.contains(nombreAliasClienteFiltro.toLowerCase()))) {
-                    return false;
-                }
-
-                // Filtrar por saldo
-                if (!saldoFiltro.equals(TODOS)) {
-                    if (saldoFiltro.equals(ANTICIPOS_ACTIVOS) && saldo <= 0) {
-                        return false;
-                    } else if (saldoFiltro.equals(ANTICIPOS_FINALIZADOS) && saldo > 0) {
-                        return false;
-                    }
-                }
-
-                // Filtrar por año
-                if (!anioFiltro.isEmpty()) {
-                    if (!anioFiltro.equals(String.valueOf(fecha.getYear()))) {
-                        return false;
-                    }
-                }
-
-                // Filtrar por mes (convertir mes textual a número si es necesario)
-                if (!mesFiltro.equals(GUION)) {
-                    Mes mes = Mes.porNombre(mesFiltro);
-                    int mesNumero = mes.getNumero();
-                    if (mesNumero != fecha.getMonthValue()) {
-                        return false;
-                    }
-                }
-
-                return true; // Si pasa todos los filtros, incluir la fila
-            }
-        });
-
     }
 
     private Cliente actualizarSaldoCliente(Cliente cliente) {
         //Anticipo anticipoActivo = anticipoControlador.anticipoActivo(cliente.getDNI());
         Cliente clienteModificado = new Cliente(cliente);
         //if (anticipoActivo != null) {
-            //clienteModificado.setSaldo(anticipoActivo.getSaldo());
-            //clienteModificado.setEstado(ANTICIPA);
+        //clienteModificado.setSaldo(anticipoActivo.getSaldo());
+        //clienteModificado.setEstado(ANTICIPA);
         //} else {
-            clienteModificado.setSaldo(0.0);
-            clienteModificado.setEstado(AL_DIA);
+        clienteModificado.setSaldo(0.0);
+        clienteModificado.setEstado(AL_DIA);
         //}
 
         return clienteModificado;
 
         //clienteControlador.numerar(cliente, clienteModificado);
     }
-
-    @Override
-    public void actualizar() {
-        cargarTablaAnticipos();
-    }
-
+    */
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonEliminar;
+    private javax.swing.JButton jButtonEliminarFiltros;
     private javax.swing.JButton jButtonFiltrarBusqueda;
+    private javax.swing.JLabel jLabelAdvertencia;
     private javax.swing.JLabel jLabelFiltrarBusqueda;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelBotones;

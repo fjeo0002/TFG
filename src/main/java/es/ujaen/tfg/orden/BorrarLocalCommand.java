@@ -14,10 +14,12 @@ import es.ujaen.tfg.modelo.Local;
 public class BorrarLocalCommand implements Command {
     private final LocalDAO localDAO;
     private final Local local;
+    private final int index;
 
-    public BorrarLocalCommand(LocalDAO localDAO, Local local) {
+    public BorrarLocalCommand(LocalDAO localDAO, Local local, int index) {
         this.localDAO = localDAO;
         this.local = local;
+        this.index = index;
     }
 
     @Override
@@ -27,6 +29,6 @@ public class BorrarLocalCommand implements Command {
 
     @Override
     public void undo() {
-        localDAO.crear(local);
+        localDAO.crear(local, index);
     }
 }

@@ -31,6 +31,8 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
     private final Border originalBorder;
     
     private boolean campoAnioCorrecto = true; // Si está vacío, no pasa nada, podemos filtrar por otro/s campo/s
+    
+    private boolean aceptar = false;
 
     /**
      * Creates new form VistaRegistroAnticiposFiltrarBusqueda
@@ -254,6 +256,7 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
 
     private void jButtonAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAceptarActionPerformed
         // TODO add your handling code here:
+        aceptar = true;
         dispose();
     }//GEN-LAST:event_jButtonAceptarActionPerformed
 
@@ -321,6 +324,10 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
     private void actualizarAutocompleter() {
         autoCompleterBuscadorClientes.removeAllItems();
         cargarAutocompletarBuscadorClientes();
+    }
+
+    public boolean getAceptar() {
+        return aceptar;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

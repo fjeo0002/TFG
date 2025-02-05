@@ -236,10 +236,11 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         // TODO add your handling code here:
         String codigo = obtenerIdDeFilaSeleccionada(jTable, dtm);
+        int fila = jTable.getSelectedRow();
         if (codigo != null) {
             Local localEliminado = localControlador.leer(codigo);
             if (localEliminado != null) {
-                localControlador.borrar(localEliminado);
+                localControlador.borrar(localEliminado, fila);
             }
         }
     }//GEN-LAST:event_jButtonEliminarActionPerformed

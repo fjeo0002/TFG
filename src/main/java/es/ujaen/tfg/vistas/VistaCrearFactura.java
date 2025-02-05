@@ -532,7 +532,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         letra = clienteOriginal.getTipo();
 
         numero = facturaControlador.siguienteNumeroFacturaLetraAnio(letra, fecha);
-        
+
         ID = facturaControlador.generarIdFactura(letra, numero, fecha, clienteDNI);
 
         Factura factura = new Factura(
@@ -561,20 +561,23 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         }
 
         // Las facturas, al menos para este caso específico, deben ser todas contiguas...
-        boolean facturaContigua = facturaControlador.facturaContigua(factura);
-        if (!facturaContigua) {
-            mostrarError(this, TITULO_FACTURA_CONTIGUA, MENSAJE_FACTURA_CONTIGUA);
-            // ¿Desea Hacerla aún así? --> Método de Confirmacion
-            // Limpiar Tabla 
-            dtm.setRowCount(0);
-            // Deshabilitar Boton GenerarFactura
-            jButtonGenerarFactura.setEnabled(false);
-            // Reinciar valor de total
-            total = 0.0;
-            actualizarLabelTotal();
-            return;
+        // Ahora con las preferencias pueden no serlo
+        boolean preferenciaFacturasContiguas = preferenciasControlador.obtenerPreferencias().getFacturasContiguas();
+        if (preferenciaFacturasContiguas == true) {
+            boolean facturaContigua = facturaControlador.facturaContigua(factura);
+            if (!facturaContigua) {
+                mostrarError(this, TITULO_FACTURA_CONTIGUA, MENSAJE_FACTURA_CONTIGUA);
+                // ¿Desea Hacerla aún así? --> Método de Confirmacion
+                // Limpiar Tabla 
+                dtm.setRowCount(0);
+                // Deshabilitar Boton GenerarFactura
+                jButtonGenerarFactura.setEnabled(false);
+                // Reinciar valor de total
+                total = 0.0;
+                actualizarLabelTotal();
+                return;
+            }
         }
-
         // Compruebo que sea un anticipo
         List<Factura> facturasNoNumeradasCliente = facturaControlador.facturasNoNumeradasCliente(clienteDNI);
         if (facturasNoNumeradasCliente == null || facturasNoNumeradasCliente.isEmpty()) {
@@ -602,31 +605,31 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
                 return;
 
             } else {
-                
+
                 Factura facturaNumerada = new Factura(ultimaFacturaNoNumerada);
-                
+
                 facturaNumerada.setFacturado(facturado);
                 facturaNumerada.setNumero(numero);
-                
+
                 Anticipo anticipoActivoOriginal = anticipoControlador.anticipoActivo(clienteDNI);
-                
+
                 Anticipo anticipoActivoModificado = new Anticipo(anticipoActivoOriginal);
-                
+
                 if (anticipoActivoOriginal != null) {
                     double saldoAnticipo = anticipoActivoOriginal.getSaldo();
                     double nuevoSaldo = saldoAnticipo - monto;
-                                        
+
                     anticipoActivoModificado.setSaldo(nuevoSaldo);
-                    
+
                     clienteModificado = new Cliente(clienteOriginal);
                     clienteModificado.setSaldo(nuevoSaldo);
                     if (clienteModificado.getSaldo() == 0.0) {
                         clienteModificado.setEstado(AL_DIA);
                     }
                 }
-                
+
                 facturaControlador.numerar(ultimaFacturaNoNumerada, facturaNumerada, clienteOriginal, clienteModificado, anticipoActivoOriginal, anticipoActivoModificado);
-                
+
             }
         }
 

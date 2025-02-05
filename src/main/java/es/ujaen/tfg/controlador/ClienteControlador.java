@@ -4,8 +4,12 @@
  */
 package es.ujaen.tfg.controlador;
 
+import es.ujaen.tfg.DAO.AnticipoDAO;
 import es.ujaen.tfg.DAO.ClienteDAO;
+import es.ujaen.tfg.DAO.FacturaDAO;
+import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
+import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.BorrarClienteCommand;
@@ -25,11 +29,15 @@ public class ClienteControlador implements Observable {
 
     private final List<Observador> observadores;
     private final ClienteDAO clienteDAO;
+    private final AnticipoDAO anticipoDAO;
+    private final FacturaDAO facturaDAO;
     private final UndoManager undoManager;
 
-    public ClienteControlador(ClienteDAO clienteDAO) throws IOException {
+    public ClienteControlador(ClienteDAO clienteDAO, AnticipoDAO anticipoDAO, FacturaDAO facturaDAO) throws IOException {
         //this.clienteDAO = new ClienteDAO();
         this.clienteDAO = clienteDAO;
+        this.anticipoDAO = anticipoDAO;
+        this.facturaDAO = facturaDAO;
         this.observadores = new ArrayList<>();
         this.undoManager = UndoManager.getInstance();
     }
@@ -74,9 +82,9 @@ public class ClienteControlador implements Observable {
         return false;
     }
 
-    public boolean borrar(Cliente cliente) {
+    public boolean borrar(Cliente cliente, int fila, List<Factura> facturasCliente, List<Anticipo> anticiposCliente) {
         //clienteDAO.borrar(cliente);
-        Command borrarCliente = new BorrarClienteCommand(clienteDAO, cliente);
+        Command borrarCliente = new BorrarClienteCommand(clienteDAO, cliente, fila, facturaDAO, facturasCliente, anticipoDAO, anticiposCliente);
         undoManager.execute(borrarCliente);
         notificarObservadores();
         return true;

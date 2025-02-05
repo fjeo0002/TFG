@@ -8,6 +8,7 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
+import es.ujaen.tfg.controlador.PreferenciasControlador;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
@@ -49,9 +50,9 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
     private final ClienteControlador clienteControlador;
     private final AnticipoControlador anticipoControlador;
     private final FacturaControlador facturaControlador;
+    private final PreferenciasControlador preferenciasControlador;
 
     //private final UndoManager undoManager;
-    
     private TextAutoCompleter autoCompleterBuscadorClientes;
 
     private boolean campoBuscadorClientesCorrecto;
@@ -65,8 +66,9 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
      * @param clienteControlador
      * @param anticipoControlador
      * @param facturaControlador
+     * @param preferenciasControlador
      */
-    public VistaCrearAnticipo(java.awt.Frame parent, boolean modal, ClienteControlador clienteControlador, AnticipoControlador anticipoControlador, FacturaControlador facturaControlador) {
+    public VistaCrearAnticipo(java.awt.Frame parent, boolean modal, ClienteControlador clienteControlador, AnticipoControlador anticipoControlador, FacturaControlador facturaControlador, PreferenciasControlador preferenciasControlador) {
         super(parent, modal);
         initComponents();
         this.parent = (JFrame) parent;
@@ -78,15 +80,15 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         this.anticipoControlador = anticipoControlador;
 
         this.facturaControlador = facturaControlador;
-        /*
-        this.undoManager = UndoManager.getInstance();
-        this.undoManager.agregarObservador(this);
-        */
+
+        this.preferenciasControlador = preferenciasControlador;
+
         this.campoBuscadorClientesCorrecto = false;
         this.campoFechaCorrecto = false;
 
         inicializarListenerFecha();
         cargarAutocompletarBuscadorClientes();
+
     }
 
     /**
@@ -351,10 +353,8 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
             facturaControlador.crear(factura);
         }
          */
-        
         // Ahora el saldo del cliente debe actualizarse en correlacion al Anticipo creado en el Command
         //clienteControlador.numerar(clienteOriginal, clienteModificado);
-
         dispose();
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
 
@@ -435,10 +435,14 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
             return false;
         }
         // 5º El anticipo debe ser contiguo a la ultima Factura del Cliente
-        boolean anticipoContiguoAUltimaFactura = facturaControlador.anticipoContiguoAUltimaFactura(anticipo);
-        if (!anticipoContiguoAUltimaFactura) {
-            mostrarError(parent, TITULO_ANTICIPO_CONTIGUO_FACTURA, MENSAJE_ANTICIPO_CONTIGUO_FACTURA);
-            return false;
+        // Ahora con las preferencias pueden no serlo
+        boolean preferenciaFacturasContiguas = preferenciasControlador.obtenerPreferencias().getFacturasContiguas();
+        if (preferenciaFacturasContiguas == true) {
+            boolean anticipoContiguoAUltimaFactura = facturaControlador.anticipoContiguoAUltimaFactura(anticipo);
+            if (!anticipoContiguoAUltimaFactura) {
+                mostrarError(parent, TITULO_ANTICIPO_CONTIGUO_FACTURA, MENSAJE_ANTICIPO_CONTIGUO_FACTURA);
+                return false;
+            }
         }
         // Ha pasado todos los filtros: Anticipo válido
         return true;

@@ -59,14 +59,14 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     public VistaPrincipal() throws IOException {
         initComponents();
         setLocationRelativeTo(null);
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
+        //setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
         
         this.clienteDAO = new ClienteDAO();
         this.facturaDAO = new FacturaDAO();
         this.anticipoDAO = new AnticipoDAO();
         this.localDAO = new LocalDAO();
 
-        this.clienteControlador = new ClienteControlador(clienteDAO);
+        this.clienteControlador = new ClienteControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.localControlador = new LocalControlador(localDAO);
         this.anticipoControlador = new AnticipoControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.facturaControlador = new FacturaControlador(clienteDAO, anticipoDAO, facturaDAO);
@@ -310,7 +310,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
 
     private void jButtonCrearAnticipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearAnticipoActionPerformed
         // TODO add your handling code here:
-        vistaCrearAnticipo = new VistaCrearAnticipo(this, true, clienteControlador, anticipoControlador, facturaControlador);
+        vistaCrearAnticipo = new VistaCrearAnticipo(this, true, clienteControlador, anticipoControlador, facturaControlador, preferenciasControlador);
         vistaCrearAnticipo.setVisible(true);
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
 
