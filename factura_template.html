@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+    <title>{{titulo}}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #d7e1ff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #222;
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #222;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .logo {
+            max-width: 125px;
+            height: auto;
+            position: absolute;
+            top: -18px;
+            right: 0px;
+        }
+
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .info-section div {
+            width: 48%;
+        }
+
+        .info-section h3 {
+            margin-bottom: 5px;
+            font-size: 16px;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        .info-section p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .invoice-details {
+            padding: 15px 0;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .invoice-details p {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .table-container {
+            width: 100%;
+            margin-top: 15px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #222;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .totals {
+            margin-top: 20px;
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #f5f8ff;
+            border-radius: 5px;
+        }
+
+        .total-final {
+            font-size: 20px;
+            background: black;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{titulo}}</h1>
+            <img src="file:iconoFondoTransparente.png" alt="Logo" class="logo"></img>
+        </div>
+
+        <div class="info-section">
+            <div>
+                <h3>{{empresa.nombre}}</h3>
+                <p>{{empresa.direccion}}<br />{{empresa.codigoPostal}} {{empresa.localidad}}<br />
+                   Tel: {{empresa.telefono}}<br />
+                   Email: {{empresa.email}}<br />
+                   DNI: {{empresa.dni}}</p>
+            </div>
+            <div>
+                <h3>{{cliente.nombre}}</h3>
+                <p>{{cliente.direccion}}<br /> 
+                    {{cliente.codigoPostal}} {{cliente.localidad}}<br />
+                CIF: {{cliente.cif}}</p>
+            </div>
+        </div>
+
+        <div class="invoice-details">
+            <p><strong>Nº Factura:</strong> {{factura.numero}}</p>
+            <p><strong>Fecha:</strong> {{factura.fecha}}</p>
+            <p><strong>Fecha Valor:</strong> {{factura.fechaValor}}</p>
+            <p><strong>Referencia:</strong></p>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th>Cantidad</th>
+                    <th>Artículo</th>
+                    <th>Precio</th>
+                    <th>IVA</th>
+                    <th>Retención</th>
+                    <th>Subtotal</th>
+                </tr>
+                {{#factura.articulos}}
+                <tr>
+                    <td>{{cantidad}}</td>
+                    <td>{{descripcion}}</td>
+                    <td>{{precio}} €</td>
+                    <td>{{iva}}%</td>
+                    <td>{{retencion}}%</td>
+                    <td>{{subtotal}} €</td>
+                </tr>
+                {{/factura.articulos}}
+            </table>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th>Base Imponible</th>
+                    <th>Importe IVA</th>
+                    <th>Importe Retención</th>
+                    <th>Descuento</th>
+                    <th>Dto P.Pago</th>
+                    <th>Importe R.E.</th>
+                </tr>
+                <tr>
+                    <td>{{factura.baseImponible}} €</td>
+                    <td>{{factura.importeIVA}} €</td>
+                    <td>{{factura.importeRetencion}} €</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>0.00 €</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="totals">
+            <p>TOTAL FACTURA: <span style="color: #192e64;">{{factura.total}} €</span></p>
+        </div>
+    </div>
+</body>
+</html>

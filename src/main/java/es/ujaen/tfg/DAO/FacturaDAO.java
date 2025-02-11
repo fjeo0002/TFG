@@ -89,21 +89,6 @@ public class FacturaDAO implements InterfazDAO<Factura> {
         return null;
     }
 
-    /*
-    public Factura leer(String letra, int numero, LocalDate fecha) {
-        if (facturas != null) {
-            for (Factura factura : facturas) {
-                String letraFactura = factura.getLetra();
-                int numeroFactura = factura.getNumero();
-                LocalDate fechaFactura = factura.getFecha();
-                if (letra.equals(letraFactura) && numero == numeroFactura && fecha.isEqual(fechaFactura)) {
-                    return factura;
-                }
-            }
-        }
-        return null;
-    }
-     */
     @Override
     public boolean actualizar(Factura f) {
         String letra = f.getLetra();

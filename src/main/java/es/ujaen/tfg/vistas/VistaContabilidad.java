@@ -150,6 +150,8 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
 
         jPanelCuerpo.setLayout(new javax.swing.BoxLayout(jPanelCuerpo, javax.swing.BoxLayout.Y_AXIS));
 
+        jScrollPaneTabla.setBackground(new java.awt.Color(245, 248, 255));
+
         jTable.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {

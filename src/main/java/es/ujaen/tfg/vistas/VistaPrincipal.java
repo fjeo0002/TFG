@@ -5,6 +5,7 @@
 package es.ujaen.tfg.vistas;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import es.ujaen.tfg.DAO.AnticipoDAO;
 import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.DAO.FacturaDAO;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 /**
  *
@@ -59,6 +61,8 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     public VistaPrincipal() throws IOException {
         initComponents();
         setLocationRelativeTo(null);
+        
+        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
         //setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
         
         this.clienteDAO = new ClienteDAO();
@@ -145,6 +149,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelBotonesPrincipales.setLayout(flowLayout1);
 
         jButtonPreferencias.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonPreferencias.setIcon(new FlatSVGIcon("svg/preferencias.svg"));
         jButtonPreferencias.setText("Preferencias");
         jButtonPreferencias.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         jButtonPreferencias.addActionListener(new java.awt.event.ActionListener() {
@@ -155,6 +160,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelBotonesPrincipales.add(jButtonPreferencias);
 
         jButtonCrearFactura.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonCrearFactura.setIcon(new FlatSVGIcon("svg/factura.svg"));
         jButtonCrearFactura.setText("Crear Factura");
         jButtonCrearFactura.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -164,6 +170,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelBotonesPrincipales.add(jButtonCrearFactura);
 
         jButtonCrearAnticipo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonCrearAnticipo.setIcon(new FlatSVGIcon("svg/anticipo.svg"));
         jButtonCrearAnticipo.setText("Crear Anticipo");
         jButtonCrearAnticipo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -173,6 +180,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelBotonesPrincipales.add(jButtonCrearAnticipo);
 
         jButtonDeshacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonDeshacer.setIcon(new FlatSVGIcon("svg/deshacer.svg"));
         jButtonDeshacer.setText("Deshacer");
         jButtonDeshacer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -182,6 +190,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelBotonesPrincipales.add(jButtonDeshacer);
 
         jButtonRehacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonRehacer.setIcon(new FlatSVGIcon("svg/rehacer.svg"));
         jButtonRehacer.setText("Rehacer");
         jButtonRehacer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -223,6 +232,9 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         );
 
         jTabbedPaneCategorias.addTab("Anticipos", jPanelAnticipos);
+
+        jTabbedPaneCategorias.setIconAt(0, new FlatSVGIcon("svg/contabilidad.svg"));
+        jTabbedPaneCategorias.setIconAt(1, new FlatSVGIcon("svg/registro_anticipos.svg"));
 
         jPanelPiePagina.setLayout(new java.awt.GridLayout(1, 2));
 

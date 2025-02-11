@@ -4,6 +4,7 @@
  */
 package es.ujaen.tfg.vistas;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
@@ -126,11 +127,11 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         jPanelFiltro.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jLabelFiltrarBusqueda.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelFiltrarBusqueda.setText("Filtrar Búsqueda");
         jPanelFiltro.add(jLabelFiltrarBusqueda);
 
         jButtonFiltrarBusqueda.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonFiltrarBusqueda.setIcon(new javax.swing.ImageIcon("C:\\Users\\jota\\Pictures\\carta.png")); // NOI18N
+        jButtonFiltrarBusqueda.setIcon(new FlatSVGIcon("svg/filtrar.svg"));
+        jButtonFiltrarBusqueda.setText("Filtrar Búsqueda");
         jButtonFiltrarBusqueda.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonFiltrarBusquedaActionPerformed(evt);
@@ -147,6 +148,7 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         jPanelBotones.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
         jButtonEliminarFiltros.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonEliminarFiltros.setIcon(new FlatSVGIcon("svg/eliminar_filtro.svg"));
         jButtonEliminarFiltros.setText("Eliminar Filtros");
         jButtonEliminarFiltros.setEnabled(false);
         jButtonEliminarFiltros.addActionListener(new java.awt.event.ActionListener() {
@@ -157,6 +159,8 @@ public class VistaRegistroAnticipos extends javax.swing.JPanel implements Observ
         jPanelBotones.add(jButtonEliminarFiltros);
 
         jButtonEliminar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonEliminar.setIcon(new FlatSVGIcon("svg/eliminar_anticipo.svg")
+        );
         jButtonEliminar.setText("Eliminar");
         jButtonEliminar.setEnabled(false);
         jButtonEliminar.addActionListener(new java.awt.event.ActionListener() {

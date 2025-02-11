@@ -4,6 +4,7 @@
  */
 package es.ujaen.tfg.vistas;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.mxrck.autocompleter.TextAutoCompleter;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.modelo.Local;
@@ -138,6 +139,7 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
         jPanelBotonesPrincipales.setLayout(new java.awt.GridBagLayout());
 
         jButtonAnadir.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonAnadir.setIcon(new FlatSVGIcon("svg/anadir_local.svg"));
         jButtonAnadir.setText("Añadir");
         jButtonAnadir.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         jButtonAnadir.addActionListener(new java.awt.event.ActionListener() {
@@ -153,6 +155,7 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
         jPanelBotonesPrincipales.add(jButtonAnadir, gridBagConstraints);
 
         jButtonModificar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonModificar.setIcon(new FlatSVGIcon("svg/modificar_local.svg"));
         jButtonModificar.setText("Modificar");
         jButtonModificar.setEnabled(false);
         jButtonModificar.addActionListener(new java.awt.event.ActionListener() {
@@ -168,6 +171,7 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
         jPanelBotonesPrincipales.add(jButtonModificar, gridBagConstraints);
 
         jButtonEliminar.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonEliminar.setIcon(new FlatSVGIcon("svg/eliminar_local.svg"));
         jButtonEliminar.setText("Eliminar");
         jButtonEliminar.setEnabled(false);
         jButtonEliminar.addActionListener(new java.awt.event.ActionListener() {

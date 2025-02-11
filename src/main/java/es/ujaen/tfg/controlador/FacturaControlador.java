@@ -4,12 +4,17 @@
  */
 package es.ujaen.tfg.controlador;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import es.ujaen.tfg.DAO.AnticipoDAO;
 import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.DAO.FacturaDAO;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
+import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.Command;
@@ -17,13 +22,24 @@ import es.ujaen.tfg.orden.CrearFacturaCommand;
 import es.ujaen.tfg.orden.ModificarFacturaCommand;
 import es.ujaen.tfg.orden.NumerarFacturaCommand;
 import es.ujaen.tfg.orden.UndoManager;
+import es.ujaen.tfg.utils.Utils;
 import es.ujaen.tfg.utils.Utils.Mes;
+import static es.ujaen.tfg.utils.Utils.TIPOA;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -62,9 +78,12 @@ public class FacturaControlador implements Observable {
         }
     }
 
-    public boolean crear(Factura factura) {
+    public boolean crear(Factura factura, boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion) {
         //facturaDAO.crear(factura);
-        Command crearFactura = new CrearFacturaCommand(facturaDAO, factura);
+        // 1º Habrá que generar el PDF para conseguir la ruta
+        StringWriter writer = generarFacturaPDF(factura, facturaAbono, locales, cantidades, IVA, retencion);
+        // 2º Modificar el Command para que, si se crea, CREAR el PDF y si se Deshace, borrarlo
+        Command crearFactura = new CrearFacturaCommand(facturaDAO, factura, writer);
         undoManager.execute(crearFactura);
         notificarObservadores();
         return true;
@@ -74,9 +93,18 @@ public class FacturaControlador implements Observable {
         return facturaDAO.leer(id);
     }
 
-    public boolean numerar(Factura facturaOriginal, Factura facturaModificada, Cliente clienteOriginal, Cliente clienteModificado, Anticipo anticipoOriginal, Anticipo anticipoModificado) {
+    public boolean numerar(Factura facturaOriginal, Factura facturaModificada, 
+            Cliente clienteOriginal, Cliente clienteModificado, 
+            Anticipo anticipoOriginal, Anticipo anticipoModificado,
+            boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion
+    ) {
+        StringWriter writer = generarFacturaPDF(facturaModificada, facturaAbono, locales, cantidades, IVA, retencion);
         //facturaDAO.numerar(factura);
-        Command numerarFactura = new NumerarFacturaCommand(facturaDAO, facturaOriginal, facturaModificada, clienteDAO, clienteOriginal, clienteModificado, anticipoDAO, anticipoOriginal, anticipoModificado);
+        Command numerarFactura = new NumerarFacturaCommand(facturaDAO, facturaOriginal, facturaModificada, 
+                clienteDAO, clienteOriginal, clienteModificado, 
+                anticipoDAO, anticipoOriginal, anticipoModificado,
+                writer
+        );
         undoManager.execute(numerarFactura);
         notificarObservadores();
         return true;
@@ -107,6 +135,131 @@ public class FacturaControlador implements Observable {
 
     public List<Factura> leerTodos() {
         return facturaDAO.leerTodos();
+    }
+
+    public StringWriter generarFacturaPDF(Factura f, boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion) {
+        StringWriter writer = new StringWriter();
+        try {
+            // Cargar la plantilla HTML
+            String plantilla = Files.readString(Paths.get("factura_template.html"), java.nio.charset.StandardCharsets.UTF_8);
+
+            // Datos de la factura
+            Map<String, Object> datos = new HashMap<>();
+
+            if (facturaAbono) {
+                datos.put("titulo", "FACTURA DE ABONO");
+            } else {
+                datos.put("titulo", "FACTURA");
+            }
+            // Datos de Empresa
+            Map<String, String> empresa = new HashMap<>();
+            empresa.put("nombre", "María del Carmen Armenteros de la Chica");
+            empresa.put("direccion", "Obispo González 11, Piso 3, Puerta D");
+            empresa.put("codigoPostal", "23002");
+            empresa.put("localidad", "Jaén");
+            empresa.put("telefono", "953320227 - 675407872");
+            empresa.put("email", "familiaortegaarmenteros@gmail.com");
+            empresa.put("dni", "25881967K");
+            datos.put("empresa", empresa);
+
+            String DNI = f.getClienteDNI();
+            Cliente c = clienteDAO.leer(DNI);
+            // Datos del Cliente
+            Map<String, String> cliente = new HashMap<>();
+            cliente.put("nombre", c.getNombre());
+            cliente.put("direccion", c.getDireccion());
+            cliente.put("codigoPostal", c.getCodigoPostal());
+            cliente.put("localidad", c.getLocalidad());
+            cliente.put("cif", c.getDNI());
+            datos.put("cliente", cliente);
+
+            // Datos de la Factura
+            Map<String, Object> factura = new HashMap<>();
+            factura.put("numero", c.getTipo() + "/" + f.getNumero());
+            factura.put("fecha", f.getFechaString());
+            factura.put("fechaValor", f.getFechaString());
+
+            // Lista de Artículos
+            List<Map<String, Object>> articulos = new ArrayList<>();
+
+            double IVADouble = IVA / 100.0 + 1.0;
+            double retencionDouble = retencion / 100.0 + 1.0;
+
+            double baseImponible = 0;
+            double importeIVA = 0;
+            double importeRetencion = 0;
+            double total = 0;
+
+            for (int i = 0; i < locales.size(); i++) {
+                Local l = locales.get(i);
+                int cantidad = cantidades.get(i);
+                double precio = l.getPrecio();
+                double subtotal = 0.0;
+                double sumarIVA = precio * IVADouble;
+                double restarRetencion = precio * retencionDouble;
+
+                // Calculamos Subtotal según el tipo de Cliente
+                if (TIPOA.equals(c.getTipo())) {
+                    subtotal = (sumarIVA - restarRetencion + precio) * cantidad;
+                } else {
+                    subtotal = l.getPrecio() * cantidad;
+                }
+
+                total += subtotal;
+                baseImponible += precio;
+                importeIVA = sumarIVA;
+                importeRetencion = restarRetencion;
+
+                articulos.add(Map.of("cantidad", cantidad,
+                        "descripcion", l.getNombre(),
+                        "precio", l.getPrecioString(),
+                        "iva", IVA,
+                        "retencion", retencion,
+                        "subtotal", Utils.convertirDoubleAString(subtotal))
+                );
+            }
+
+            factura.put("articulos", articulos);
+
+            // Totales
+            factura.put("baseImponible", Utils.convertirDoubleAString(baseImponible));
+            factura.put("importeIVA", Utils.convertirDoubleAString(importeIVA));
+            factura.put("importeRetencion", Utils.convertirDoubleAString(importeRetencion));
+
+            if (facturaAbono) {
+                factura.put("total", Utils.convertirDoubleAString(-total));
+            } else {
+                factura.put("total", Utils.convertirDoubleAString(total));
+            }
+
+            datos.put("factura", factura);
+
+            // Procesar la plantilla con Mustache
+            MustacheFactory mf = new DefaultMustacheFactory();
+            Mustache mustache = mf.compile(new StringReader(plantilla), "factura");
+            //StringWriter writer = new StringWriter();
+            mustache.execute(writer, datos).flush();
+/*
+            // Crear el HTML dinámico
+            Files.write(Paths.get("factura_"+f.getId()+".html"), writer.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+            // Pasar el HTML dinámico a PDF
+            try (OutputStream os = new FileOutputStream("Factura_"+f.getId()+".pdf")) {
+                PdfRendererBuilder builder = new PdfRendererBuilder();
+                builder.useFastMode();
+                builder.withUri("file:factura_"+f.getId()+".html");
+                builder.toStream(os);
+                builder.run();
+            } catch (Exception e) {
+            }
+
+            // Borrar el HTML dinámico
+            Files.delete(Paths.get("factura_"+f.getId()+".html"));
+*/
+        } catch (IOException e) {
+        }
+        
+        return writer;
     }
 
     public String generarIdFactura(String letra, int numero, LocalDate fecha, String clienteDNI) {
@@ -387,4 +540,5 @@ public class FacturaControlador implements Observable {
         // Entonces, no hay ninguna otra factura creada para el cliente, y siempre puede crearse
         return true;
     }
+
 }

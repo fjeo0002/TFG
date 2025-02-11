@@ -32,6 +32,12 @@
             <version>3.5.2</version>
             <type>jar</type>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.formdev/flatlaf-extras -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf-extras</artifactId>
+            <version>3.5.2</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/com.jtattoo/JTattoo -->
         <dependency>
             <groupId>com.jtattoo</groupId>
@@ -48,6 +54,18 @@
             <groupId>com.toedter</groupId>
             <artifactId>jcalendar</artifactId>
             <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>at.datenwort.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-pdfbox</artifactId>
+            <version>1.1.4</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.9.10</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
 </project>

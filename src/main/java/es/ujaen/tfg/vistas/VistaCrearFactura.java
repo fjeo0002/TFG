@@ -36,6 +36,7 @@ import static es.ujaen.tfg.utils.Utils.mostrarError;
 import static es.ujaen.tfg.utils.Utils.quitarSufijo;
 import static es.ujaen.tfg.utils.Utils.validarFecha;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
@@ -52,7 +53,12 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
     private Cliente clienteBuscado;
     private Local localBuscado;
+    private final List<Local> listaLocales;
+    private final List<Integer> listaCantidades;
     private double total;
+    private int IVA;
+    private int retencion;
+    private boolean preferenciaFacturaContigua;
 
     private final ClienteControlador clienteControlador;
     private final LocalControlador localControlador;
@@ -106,6 +112,13 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         this.jRadioButtonFactura.setSelected(true);
 
         this.dtm = (DefaultTableModel) jTable.getModel();
+
+        this.IVA = this.preferenciasControlador.obtenerPreferencias().getIva();
+        this.retencion = this.preferenciasControlador.obtenerPreferencias().getRetencion();
+        this.preferenciaFacturaContigua = this.preferenciasControlador.obtenerPreferencias().getFacturasContiguas();
+
+        this.listaLocales = new ArrayList<>();
+        this.listaCantidades = new ArrayList<>();
 
         this.total = 0.0;
 
@@ -562,8 +575,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         // Las facturas, al menos para este caso específico, deben ser todas contiguas...
         // Ahora con las preferencias pueden no serlo
-        boolean preferenciaFacturasContiguas = preferenciasControlador.obtenerPreferencias().getFacturasContiguas();
-        if (preferenciaFacturasContiguas == true) {
+        if (preferenciaFacturaContigua == true) {
             boolean facturaContigua = facturaControlador.facturaContigua(factura);
             if (!facturaContigua) {
                 mostrarError(this, TITULO_FACTURA_CONTIGUA, MENSAJE_FACTURA_CONTIGUA);
@@ -582,7 +594,8 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         List<Factura> facturasNoNumeradasCliente = facturaControlador.facturasNoNumeradasCliente(clienteDNI);
         if (facturasNoNumeradasCliente == null || facturasNoNumeradasCliente.isEmpty()) {
             // No hay Anticipos de ese cliente... se crea la factura normal
-            facturaControlador.crear(factura);
+            boolean facturaAbono = jRadioButtonFacturaAbono.isSelected();
+            facturaControlador.crear(factura, facturaAbono, listaLocales, listaCantidades, IVA, retencion);
         } else {
             // Hay anticipos de ese cliente... hay que numerar la factura: numero y facturado
             // El resto de campos ya se pusieron a la hora de crear el Anticipo
@@ -590,7 +603,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
             // 1º: Recuperamos la factura que hacia de Anticipo
             Factura ultimaFacturaNoNumerada = facturasNoNumeradasCliente.remove(0);
             // ¿Es realmente la Factura que acabo de crear igual al Anticipo que tenía creado?
-            boolean anticipoIgualAFactura = anticipoIgualAFactura(ultimaFacturaNoNumerada, factura);
+            boolean anticipoIgualAFactura = ultimaFacturaNoNumerada.equals(factura);
             // En caso de que NO sean iguales, advertimos al usuario
             if (!anticipoIgualAFactura) {
 
@@ -608,6 +621,8 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
                 Factura facturaNumerada = new Factura(ultimaFacturaNoNumerada);
 
+                ID = facturaControlador.generarIdFactura(letra, numero, fecha, clienteDNI);
+                facturaNumerada.setId(ID);
                 facturaNumerada.setFacturado(facturado);
                 facturaNumerada.setNumero(numero);
 
@@ -628,7 +643,10 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
                     }
                 }
 
-                facturaControlador.numerar(ultimaFacturaNoNumerada, facturaNumerada, clienteOriginal, clienteModificado, anticipoActivoOriginal, anticipoActivoModificado);
+                facturaControlador.numerar(ultimaFacturaNoNumerada, facturaNumerada, 
+                        clienteOriginal, clienteModificado, 
+                        anticipoActivoOriginal, anticipoActivoModificado,
+                        false, listaLocales, listaCantidades, IVA, retencion);
 
             }
         }
@@ -673,6 +691,10 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         String cantidad = jSpinnerCantidad.getValue().toString();
         String local = localBuscado.getNombre();
         String precioUnitario = localBuscado.getPrecioString() + EURO;
+
+        // Llevamos recuento de Locales y Cantidades
+        listaLocales.add(localBuscado);
+        listaCantidades.add(Integer.valueOf(cantidad));
 
         quitarSufijo(jLabelIVAValor, PORCENTAJE);
         quitarSufijo(jLabelRetencionValor, PORCENTAJE);
@@ -727,6 +749,10 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
             int col = jTable.getColumnModel().getColumnIndex(SUBTOTAL);
             String subtotal = (String) dtm.getValueAt(row, col);
             double subtotalDouble = convertirStringADouble(subtotal);
+
+            // Llevamos recuento de Locales y Cantidades
+            listaLocales.remove(row);
+            listaCantidades.remove(row);
 
             // Lo restamos del total y actualizamos
             total -= subtotalDouble;
@@ -853,13 +879,6 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         Preferencias preferencias = preferenciasControlador.obtenerPreferencias();
         jLabelIVAValor.setText(String.valueOf(preferencias.getIva()) + PORCENTAJE);
         jLabelRetencionValor.setText(String.valueOf(preferencias.getRetencion()) + PORCENTAJE);
-    }
-
-    private boolean anticipoIgualAFactura(Factura facturaAnticipo, Factura facturaCreada) {
-        if (!facturaAnticipo.equals(facturaCreada)) {
-            return false;
-        }
-        return true;
     }
 
     private void habilitarBotonAgregarLocal() {
