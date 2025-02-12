@@ -38,6 +38,7 @@ import static es.ujaen.tfg.utils.Utils.validarFecha;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -90,6 +91,9 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador, AnticipoControlador anticipoControlador, PreferenciasControlador preferenciasControlador) {
         initComponents();
         setLocationRelativeTo(null);
+        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
+        this.setIconImage(icon.getImage()); // Establecer el icono
+        
         this.parent = parent;
 
         this.clienteControlador = clienteControlador;

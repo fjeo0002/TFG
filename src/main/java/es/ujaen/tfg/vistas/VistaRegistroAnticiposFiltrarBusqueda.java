@@ -17,6 +17,7 @@ import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.ImageIcon;
 import javax.swing.border.Border;
 
 /**
@@ -45,6 +46,9 @@ public class VistaRegistroAnticiposFiltrarBusqueda extends javax.swing.JDialog i
         super(parent, modal);
         initComponents();
         setLocationRelativeTo(null);
+        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
+        this.setIconImage(icon.getImage()); // Establecer el icono
+        
         this.originalBorder = jTextFieldAnio.getBorder();
 
         this.clienteControlador = clienteControlador;

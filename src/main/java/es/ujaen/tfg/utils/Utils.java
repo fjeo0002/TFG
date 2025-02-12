@@ -162,7 +162,8 @@ public class Utils {
     public static final String PLACEHOLDER_DNI_CLIENTE = "12345678X";
     public static final String PLACEHOLDER_NOMBRE_CLIENTE = "Nombre Apellido1 Apellido2";
     public static final String PLACEHOLDER_ALIAS_CLIENTE = "Introduzca Alias de Cliente (opcional)";
-    public static final String PLACEHOLDER_EMAIL_CLIENTE = "nombre.123@gmail.com (opcional)";
+    public static final String PLACEHOLDER_EMAIL_CLIENTE_OPCIONAL = "nombre.123@gmail.com (opcional)";
+    public static final String PLACEHOLDER_EMAIL_CLIENTE = "nombre.123@gmail.com";
     public static final String PLACEHOLDER_DIRECCION_CLIENTE = "C/ Mirabueno, 9, 9ºB";
     public static final String PLACEHOLDER_LOCALIDAD_CLIENTE = "Localidad, Provincia";
     public static final String PLACEHOLDER_CODIGO_POSTAL_CLIENTE = "12345";

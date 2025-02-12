@@ -25,6 +25,7 @@ import static es.ujaen.tfg.utils.Utils.quitarSufijo;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 import static es.ujaen.tfg.utils.Utils.validarMonto;
 import java.util.UUID;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.border.Border;
 
@@ -59,6 +60,8 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         initComponents();
         this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
+        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
+        this.setIconImage(icon.getImage()); // Establecer el icono
 
         this.originalBorder = jTextFieldNombre.getBorder();
 

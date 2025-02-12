@@ -3,6 +3,7 @@
  */
 package es.ujaen.tfg;
 
+import es.ujaen.tfg.vistas.VistaInicioSesión;
 import es.ujaen.tfg.vistas.VistaPrincipal;
 
 /**
@@ -13,5 +14,6 @@ public class TFG {
 
     public static void main(String[] args) {
         VistaPrincipal.main(args);
+        //VistaInicioSesión.main(args);
     }
 }

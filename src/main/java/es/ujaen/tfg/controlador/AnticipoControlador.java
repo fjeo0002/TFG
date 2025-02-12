@@ -4,6 +4,9 @@
  */
 package es.ujaen.tfg.controlador;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
 import es.ujaen.tfg.DAO.AnticipoDAO;
 import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.DAO.FacturaDAO;
@@ -16,11 +19,19 @@ import es.ujaen.tfg.orden.BorrarAnticipoCommand;
 import es.ujaen.tfg.orden.Command;
 import es.ujaen.tfg.orden.CrearAnticipoCommand;
 import es.ujaen.tfg.orden.UndoManager;
+import es.ujaen.tfg.utils.Utils;
+import es.ujaen.tfg.utils.Utils.Mes;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -61,7 +72,11 @@ public class AnticipoControlador implements Observable {
 
     public boolean crear(Anticipo anticipo, Cliente clienteOriginal, Cliente clienteModificado, List<Factura> facturasACrear) {
         //anticipoDAO.crear(anticipo);
-        Command crearAnticipo = new CrearAnticipoCommand(anticipoDAO, anticipo, clienteDAO, clienteOriginal, clienteModificado, facturaDAO, facturasACrear);
+        StringWriter writer = generarAnticipoPDF(anticipo);
+        
+        Command crearAnticipo = new CrearAnticipoCommand(anticipoDAO, anticipo, 
+                clienteDAO, clienteOriginal, clienteModificado, 
+                facturaDAO, facturasACrear, writer);
         undoManager.execute(crearAnticipo);
         notificarObservadores();
         return true;
@@ -96,6 +111,65 @@ public class AnticipoControlador implements Observable {
                     .toList();
         }
         return null;
+    }
+
+    public StringWriter generarAnticipoPDF(Anticipo a) {
+        StringWriter writer = new StringWriter();
+        try {
+            // Cargar la plantilla HTML
+            String plantilla = Files.readString(Paths.get("anticipo_template.html"), java.nio.charset.StandardCharsets.UTF_8);
+
+            // Datos del anticipo
+            Map<String, Object> datos = new HashMap<>();
+            datos.put("titulo", "ANTICIPO");
+
+            // Datos de la Empresa
+            Map<String, String> empresa = new HashMap<>();
+            empresa.put("nombre", "María del Carmen Armenteros de la Chica");
+            empresa.put("direccion", "Obispo González 11, Piso 3, Puerta D");
+            empresa.put("codigoPostal", "23002");
+            empresa.put("localidad", "Jaén");
+            empresa.put("telefono", "953320227 - 675407872");
+            empresa.put("email", "familiaortegaarmenteros@gmail.com");
+            empresa.put("dni", "25881967K");
+            datos.put("empresa", empresa);
+
+            // Datos del Cliente
+            String DNI = a.getClienteDNI();
+            Cliente c = clienteDAO.leer(DNI);
+            Map<String, String> cliente = new HashMap<>();
+            cliente.put("nombre", c.getNombre());
+            cliente.put("direccion", c.getDireccion());
+            cliente.put("codigoPostal", c.getCodigoPostal());
+            cliente.put("localidad", c.getLocalidad());
+            cliente.put("cif", c.getDNI());
+            datos.put("cliente", cliente);
+
+            // Datos del Anticipo
+            
+            int dia = a.getFecha().getDayOfMonth();
+            Mes mes = Mes.porNumero(a.getFecha().getMonthValue());
+            int anio = a.getFecha().getYear();
+            
+            Map<String, Object> anticipo = new HashMap<>();
+            anticipo.put("fecha", a.getFechaString());
+            anticipo.put("dia", Utils.convertirEnteroAString(dia));
+            anticipo.put("mes", mes.getNombre());
+            anticipo.put("anio", anio);
+            anticipo.put("monto", Utils.convertirDoubleAString(a.getMonto()));
+            anticipo.put("mesesCubiertos", a.getMesesCubiertos());
+            datos.put("anticipo", anticipo);
+
+            // Procesar la plantilla con Mustache
+            MustacheFactory mf = new DefaultMustacheFactory();
+            Mustache mustache = mf.compile(new StringReader(plantilla), "anticipo");
+            mustache.execute(writer, datos).flush();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return writer;
     }
 
     public boolean anticipoRepetido(Anticipo a) {
@@ -170,7 +244,7 @@ public class AnticipoControlador implements Observable {
         }
         return null;
     }
-/*
+    /*
     public boolean borrarAnticiposCliente(String clienteDNI) {
         List<Anticipo> anticiposCliente = anticiposCliente(clienteDNI);
         if (anticiposCliente != null) {
@@ -181,5 +255,5 @@ public class AnticipoControlador implements Observable {
         }
         return false;
     }
-*/
+     */
 }

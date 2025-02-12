@@ -6,6 +6,7 @@ package es.ujaen.tfg.vistas;
 
 import es.ujaen.tfg.controlador.PreferenciasControlador;
 import es.ujaen.tfg.modelo.Preferencias;
+import javax.swing.ImageIcon;
 
 /**
  *
@@ -26,6 +27,8 @@ public class VistaPreferencias extends javax.swing.JDialog {
         initComponents();
         this.preferenciasControlador = preferenciasControlador;
         setLocationRelativeTo(null);
+        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
+        this.setIconImage(icon.getImage()); // Establecer el icono
         cargarPreferencias();
     }
 

@@ -66,6 +66,16 @@ public final class LocalDAO implements InterfazDAO<Local> {
         }));
     }
 
+    @Override
+    public boolean crear(Local t) {
+        if (locales == null) {
+            locales = new ArrayList<>();
+        }
+        locales.add(t);
+        Utils.guardarDatosEnArchivo(LOCALES_JSON, locales);
+        return true;
+    }
+    
     //@Override
     public boolean crear(Local local, int index) {
         if (locales == null) {
@@ -111,11 +121,6 @@ public final class LocalDAO implements InterfazDAO<Local> {
     @Override
     public List<Local> leerTodos() {
         return locales;
-    }
-
-    @Override
-    public boolean crear(Local t) {
-        return false;
     }
 
 }

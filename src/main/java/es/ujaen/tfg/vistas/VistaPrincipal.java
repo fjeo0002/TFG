@@ -18,6 +18,8 @@ import es.ujaen.tfg.controlador.PreferenciasControlador;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.UndoManager;
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,7 +49,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     private final PreferenciasControlador preferenciasControlador;
 
     private final UndoManager undoManager;
-    
+
     private final ClienteDAO clienteDAO;
     private final FacturaDAO facturaDAO;
     private final AnticipoDAO anticipoDAO;
@@ -61,10 +63,12 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     public VistaPrincipal() throws IOException {
         initComponents();
         setLocationRelativeTo(null);
-        
+        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
+        this.setIconImage(icon.getImage()); // Establecer el icono
+
         this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
         //setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
-        
+
         this.clienteDAO = new ClienteDAO();
         this.facturaDAO = new FacturaDAO();
         this.anticipoDAO = new AnticipoDAO();
@@ -75,21 +79,22 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         this.anticipoControlador = new AnticipoControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.facturaControlador = new FacturaControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.preferenciasControlador = new PreferenciasControlador();
-        
+
         this.clienteControlador.agregarObservador(this);
         this.localControlador.agregarObservador(this);
         this.anticipoControlador.agregarObservador(this);
         this.facturaControlador.agregarObservador(this);
-        
+
         this.undoManager = UndoManager.getInstance();
-        
+
         cargarVistaContabilidad();
         cargarVistaRegistroAnticipos();
 
         cargarVistaClientes();
         cargarVistaLocales();
-
+        
         actualizarEstadoBotones();
+        configurarAtajosTeclado();
     }
 
     /**
@@ -344,7 +349,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     public void actualizar() {
         actualizarEstadoBotones();
     }
-    
+
     private void cargarVistaContabilidad() {
         vistaContabilidad = new VistaContabilidad(clienteControlador, facturaControlador, anticipoControlador);
         vistaContabilidad.setSize(jPanelContabilidad.getWidth(), jPanelContabilidad.getHeight());
@@ -391,6 +396,32 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelLocales.add(vistaLocales, BorderLayout.CENTER);
         jPanelLocales.revalidate();
         jPanelLocales.repaint();
+    }
+
+    private void configurarAtajosTeclado() {
+        // Obtener InputMap y ActionMap
+        InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = getRootPane().getActionMap();
+
+        // Asignar Ctrl + Z para Deshacer
+        KeyStroke ctrlZ = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK);
+        inputMap.put(ctrlZ, "deshacerAccion");
+        actionMap.put("deshacerAccion", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                jButtonDeshacer.doClick(); // Simula el clic en el botón Deshacer
+            }
+        });
+
+        // Asignar Ctrl + Shift + Z para Rehacer
+        KeyStroke ctrlShiftZ = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
+        inputMap.put(ctrlShiftZ, "rehacerAccion");
+        actionMap.put("rehacerAccion", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                jButtonRehacer.doClick(); // Simula el clic en el botón Rehacer
+            }
+        });
     }
 
     /**

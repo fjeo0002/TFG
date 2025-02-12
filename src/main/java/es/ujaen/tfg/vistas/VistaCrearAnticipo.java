@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -73,6 +74,8 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         initComponents();
         this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
+        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
+        this.setIconImage(icon.getImage()); // Establecer el icono
 
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
