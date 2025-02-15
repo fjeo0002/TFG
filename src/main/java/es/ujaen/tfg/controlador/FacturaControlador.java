@@ -270,7 +270,8 @@ public class FacturaControlador implements Observable {
 
         int anio = fecha.getYear();
 
-        String txt = letra + "-" + anio + "-" + nombreMes + "-" + numero + "-" + clienteDNI;
+        //String txt = letra + "-" + anio + "-" + nombreMes + "-" + numero + "-" + clienteDNI;
+        String txt = letra + "-" + anio + "-" + nombreMes + "-" + clienteDNI;
         return txt;
     }
 

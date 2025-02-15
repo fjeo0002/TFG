@@ -58,9 +58,10 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     /**
      * Creates new form VistaPrincipal
      *
+     * @param userId
      * @throws java.io.IOException
      */
-    public VistaPrincipal() throws IOException {
+    public VistaPrincipal(String userId) throws IOException {
         initComponents();
         setLocationRelativeTo(null);
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
@@ -69,10 +70,10 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
         //setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
 
-        this.clienteDAO = new ClienteDAO();
-        this.facturaDAO = new FacturaDAO();
-        this.anticipoDAO = new AnticipoDAO();
-        this.localDAO = new LocalDAO();
+        this.clienteDAO = new ClienteDAO(userId);
+        this.facturaDAO = new FacturaDAO(userId);
+        this.anticipoDAO = new AnticipoDAO(userId);
+        this.localDAO = new LocalDAO(userId);
 
         this.clienteControlador = new ClienteControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.localControlador = new LocalControlador(localDAO);
@@ -427,12 +428,14 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     /**
      * @param args the command line arguments
      */
+    /*
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
+    /*
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -448,20 +451,23 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
                     javax.swing.UIManager.put("nimbusSelectionBackground", new java.awt.Color(80, 80, 80)); // Fondo de selección
                     javax.swing.UIManager.put("text", new java.awt.Color(230, 230, 230)); // Texto estándar
                      */
+/*
                     break;
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(VistaPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
+        //</editor-fold>
+/*
         //Aplicar LookAndFell FlatLaf
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
         } catch (UnsupportedLookAndFeelException e) {
         }
         /* Create and display the form */
+/*
         java.awt.EventQueue.invokeLater(() -> {
             try {
                 new VistaPrincipal().setVisible(true);
@@ -470,7 +476,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
             }
         });
     }
-
+*/
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonCrearAnticipo;
     private javax.swing.JButton jButtonCrearFactura;

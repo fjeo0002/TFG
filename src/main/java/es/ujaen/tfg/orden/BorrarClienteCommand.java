@@ -48,7 +48,8 @@ public class BorrarClienteCommand implements Command {
 
     @Override
     public void undo() {
-        clienteDAO.crear(cliente, fila);
+        //clienteDAO.crear(cliente, fila);
+        clienteDAO.crear(cliente);
         for (Anticipo a : anticiposCliente) {
             anticipoDAO.crear(a);
         }

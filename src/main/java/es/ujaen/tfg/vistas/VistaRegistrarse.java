@@ -5,24 +5,39 @@
 package es.ujaen.tfg.vistas;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.google.firebase.auth.FirebaseAuthException;
+import es.ujaen.tfg.DAO.UsuarioDAO;
+import es.ujaen.tfg.Firebase.FirebaseInitializer;
+import es.ujaen.tfg.controlador.UsuarioControlador;
+import es.ujaen.tfg.modelo.Usuario;
 import static es.ujaen.tfg.utils.Utils.ERROR_CODIGOPOSTAL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.ERROR_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.ERROR_DNI_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.ERROR_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.ERROR_NOMBRE_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.ERROR_TELEFONO;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_CODIGO_POSTAL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_DIRECCION_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_DNI_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_LOCALIDAD_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_NOMBRE_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_TELEFONO;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_CODIGO_POSTAL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_NOMBRE_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_TELEFONO;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
+import java.awt.HeadlessException;
+import java.io.IOException;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.border.Border;
 
 /**
@@ -39,16 +54,17 @@ public class VistaRegistrarse extends javax.swing.JFrame {
     private boolean campoNombreCorrecto;
     private boolean campoEmailCorrecto;
     private boolean campoCodigoPostalCorrecto;
-    
-    private boolean isPasswordVisible = false;
+    private boolean campoContrasenaCorrecto;
+    private boolean campoTelefonoCorrecto;
 
+    private boolean contrasenaVisible;
     /**
      * Creates new form VistaRegistrarse
      */
     public VistaRegistrarse() {
         initComponents();
         setLocationRelativeTo(null);
-        
+
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
 
@@ -58,6 +74,12 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         this.campoNombreCorrecto = false;
         this.campoEmailCorrecto = false;
         this.campoCodigoPostalCorrecto = false;
+        this.campoContrasenaCorrecto = false;
+        this.campoTelefonoCorrecto = false;
+        
+        this.contrasenaVisible = false;
+
+        this.jLabelAdvertenciaContrasena.setText(ERROR_CONTRASENA);
     }
 
     /**
@@ -71,8 +93,6 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jPanelPrincipal = new javax.swing.JPanel();
-        jPanelCabecera = new javax.swing.JPanel();
-        jLabelTitulo = new javax.swing.JLabel();
         jPanelCuerpo = new javax.swing.JPanel();
         jLabelDNI = new javax.swing.JLabel();
         jTextFieldDNI = new javax.swing.JTextField();
@@ -83,6 +103,11 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jLabelEmail = new javax.swing.JLabel();
         jTextFieldEmail = new javax.swing.JTextField();
         jLabelAdvertenciaEmail = new javax.swing.JLabel();
+        jLabelContrasena = new javax.swing.JLabel();
+        jPasswordField = new javax.swing.JPasswordField();
+        jLabelAdvertenciaContrasena = new javax.swing.JLabel();
+        jButtonMostrarContrasena = new javax.swing.JButton();
+        jLabelInicioSesion = new javax.swing.JLabel();
         jLabelDireccion = new javax.swing.JLabel();
         jTextFieldDireccion = new javax.swing.JTextField();
         jLabelLocalidad = new javax.swing.JLabel();
@@ -90,10 +115,11 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jLabelCodigoPostal = new javax.swing.JLabel();
         jTextFieldCodigoPostal = new javax.swing.JTextField();
         jLabelAdvertenciaCodigoPostal = new javax.swing.JLabel();
-        jLabelContrasena = new javax.swing.JLabel();
-        jPasswordField = new javax.swing.JPasswordField();
-        jLabelInicioSesion = new javax.swing.JLabel();
-        jButtonMostrarContrasena = new javax.swing.JButton();
+        jLabelTelefono = new javax.swing.JLabel();
+        jTextFieldTelefono = new javax.swing.JTextField();
+        jLabelAdvertenciaTelefono = new javax.swing.JLabel();
+        jPanelCabecera = new javax.swing.JPanel();
+        jLabelTitulo = new javax.swing.JLabel();
         jPanelPiePagina = new javax.swing.JPanel();
         jButtonRegistrarse = new javax.swing.JButton();
 
@@ -102,15 +128,9 @@ public class VistaRegistrarse extends javax.swing.JFrame {
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
-        jPanelCabecera.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-
-        jLabelTitulo.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabelTitulo.setText("Registrarse");
-        jPanelCabecera.add(jLabelTitulo);
-
-        jPanelPrincipal.add(jPanelCabecera, java.awt.BorderLayout.PAGE_START);
-
-        jPanelCuerpo.setLayout(new java.awt.GridBagLayout());
+        java.awt.GridBagLayout jPanelCuerpoLayout = new java.awt.GridBagLayout();
+        jPanelCuerpoLayout.columnWeights = new double[] {150.0, 200.0};
+        jPanelCuerpo.setLayout(jPanelCuerpoLayout);
 
         jLabelDNI.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelDNI.setText("DNI - CIF");
@@ -154,7 +174,6 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
@@ -256,11 +275,76 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelAdvertenciaEmail, gridBagConstraints);
 
-        jLabelDireccion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelDireccion.setText("Dirección");
+        jLabelContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelContrasena.setText("Contraseña");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelContrasena, gridBagConstraints);
+
+        jPasswordField.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jPasswordFieldKeyReleased(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jPasswordField, gridBagConstraints);
+
+        jLabelAdvertenciaContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaContrasena.setForeground(new java.awt.Color(0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaContrasena, gridBagConstraints);
+
+        jButtonMostrarContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
+        jButtonMostrarContrasena.setText("Mostrar Contraseña");
+        jButtonMostrarContrasena.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonMostrarContrasenaActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jButtonMostrarContrasena, gridBagConstraints);
+
+        jLabelInicioSesion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelInicioSesion.setForeground(java.awt.SystemColor.textHighlight);
+        jLabelInicioSesion.setText("<html><u>Ya estás registrado...</u></html>");
+        jLabelInicioSesion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jLabelInicioSesion.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabelInicioSesionMouseClicked(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelInicioSesion, gridBagConstraints);
+
+        jLabelDireccion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelDireccion.setText("Dirección");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
@@ -285,8 +369,8 @@ public class VistaRegistrarse extends javax.swing.JFrame {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -296,8 +380,8 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jLabelLocalidad.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelLocalidad.setText("Localidad");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
@@ -322,8 +406,8 @@ public class VistaRegistrarse extends javax.swing.JFrame {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -333,8 +417,8 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jLabelCodigoPostal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelCodigoPostal.setText("Código Postal");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
@@ -359,8 +443,8 @@ public class VistaRegistrarse extends javax.swing.JFrame {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -370,64 +454,71 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jLabelAdvertenciaCodigoPostal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelAdvertenciaCodigoPostal.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelAdvertenciaCodigoPostal, gridBagConstraints);
 
-        jLabelContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelContrasena.setText("Contraseña");
+        jLabelTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelTelefono.setText("Teléfono");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 16;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelContrasena, gridBagConstraints);
+        jPanelCuerpo.add(jLabelTelefono, gridBagConstraints);
 
-        jPasswordField.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldTelefono.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldTelefono.setText("9 dígitos sin espacios");
+        jTextFieldTelefono.setMinimumSize(new java.awt.Dimension(125, 26));
+        jTextFieldTelefono.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldTelefono.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldTelefonoFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldTelefonoFocusLost(evt);
+            }
+        });
+        jTextFieldTelefono.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldTelefonoKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 17;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jPasswordField, gridBagConstraints);
+        jPanelCuerpo.add(jTextFieldTelefono, gridBagConstraints);
 
-        jLabelInicioSesion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelInicioSesion.setForeground(java.awt.SystemColor.textHighlight);
-        jLabelInicioSesion.setText("<html><u>Ya estás registrado...</u></html>");
-        jLabelInicioSesion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jLabelInicioSesion.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jLabelInicioSesionMouseClicked(evt);
-            }
-        });
+        jLabelAdvertenciaTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaTelefono.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelInicioSesion, gridBagConstraints);
-
-        jButtonMostrarContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
-        jButtonMostrarContrasena.setText("Mostrar Contraseña");
-        jButtonMostrarContrasena.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonMostrarContrasenaActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 18;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jButtonMostrarContrasena, gridBagConstraints);
+        jPanelCuerpo.add(jLabelAdvertenciaTelefono, gridBagConstraints);
 
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
+
+        jPanelCabecera.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jLabelTitulo.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabelTitulo.setText("Registrarse");
+        jPanelCabecera.add(jLabelTitulo);
+
+        jPanelPrincipal.add(jPanelCabecera, java.awt.BorderLayout.PAGE_START);
 
         jPanelPiePagina.setName(""); // NOI18N
         jPanelPiePagina.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
@@ -448,11 +539,13 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 500, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanelPrincipal, javax.swing.GroupLayout.PREFERRED_SIZE, 596, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 705, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 605, Short.MAX_VALUE)
         );
 
         pack();
@@ -460,105 +553,56 @@ public class VistaRegistrarse extends javax.swing.JFrame {
 
     private void jButtonRegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRegistrarseActionPerformed
         // TODO add your handling code here:
+        // Obtener datos del formulario
+        String email = jTextFieldEmail.getText().trim();
+        String password = new String(jPasswordField.getPassword()).trim();
+        String nombre = jTextFieldNombre.getText().trim();
+        String dni = jTextFieldDNI.getText().trim();
+        String direccion = jTextFieldDireccion.getText().trim();
+        String localidad = jTextFieldLocalidad.getText().trim();
+        String codigoPostal = jTextFieldCodigoPostal.getText().trim();
+        String telefono = jTextFieldTelefono.getText().trim();
 
-        dispose();
+        try {
+            FirebaseInitializer firebase = FirebaseInitializer.getInstance();
+
+            // Comprobar si el usuario ya está registrado
+            UsuarioDAO usuarioDAO = new UsuarioDAO(email);
+            UsuarioControlador usuarioControlador = new UsuarioControlador(usuarioDAO);
+            Usuario usuario = usuarioControlador.leer(email);
+            
+            if (usuario != null) {
+                JOptionPane.showMessageDialog(this, "El usuario ya está registrado.");
+                return;
+            }
+            
+            // Crear objeto Usuario
+            usuario = new Usuario(email, password, nombre, dni, direccion, localidad, codigoPostal, telefono);
+
+            // Guardar usuario en Firestore y en caché con UsuarioControlador
+            usuarioControlador.crear(usuario);
+
+            JOptionPane.showMessageDialog(this, "Usuario registrado con éxito.");
+            // Abrir ventana de inicio de Sesion
+            vistaInicioSesión.setVisible(true);
+            this.setVisible(false);
+            //this.dispose();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error de conexión con Firebase.");
+        } catch (HeadlessException e) {
+            JOptionPane.showMessageDialog(this, "Error desconocido: " + e.getMessage());
+        }
     }//GEN-LAST:event_jButtonRegistrarseActionPerformed
 
-    private void jTextFieldCodigoPostalKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalKeyReleased
+    private void jTextFieldDNIFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusGained
         // TODO add your handling code here:
-        campoCodigoPostalCorrecto = validarCampoFormulario(
-                jTextFieldCodigoPostal,
-                jLabelAdvertenciaCodigoPostal,
-                ERROR_CODIGOPOSTAL_CLIENTE,
-                originalBorder,
-                texto -> texto.matches(VALIDACION_CODIGO_POSTAL_CLIENTE)
-        );
-        habilitarBotonAceptar();
-    }//GEN-LAST:event_jTextFieldCodigoPostalKeyReleased
+        quitarPlaceHolder(jTextFieldDNI, PLACEHOLDER_DNI_CLIENTE);
+    }//GEN-LAST:event_jTextFieldDNIFocusGained
 
-    private void jTextFieldCodigoPostalFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalFocusLost
+    private void jTextFieldDNIFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusLost
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldCodigoPostal, PLACEHOLDER_CODIGO_POSTAL_CLIENTE);
-    }//GEN-LAST:event_jTextFieldCodigoPostalFocusLost
-
-    private void jTextFieldCodigoPostalFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalFocusGained
-        // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldCodigoPostal, PLACEHOLDER_CODIGO_POSTAL_CLIENTE);
-    }//GEN-LAST:event_jTextFieldCodigoPostalFocusGained
-
-    private void jTextFieldLocalidadKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadKeyReleased
-        // TODO add your handling code here:
-        habilitarBotonAceptar();
-    }//GEN-LAST:event_jTextFieldLocalidadKeyReleased
-
-    private void jTextFieldLocalidadFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadFocusLost
-        // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldLocalidad, PLACEHOLDER_LOCALIDAD_CLIENTE);
-    }//GEN-LAST:event_jTextFieldLocalidadFocusLost
-
-    private void jTextFieldLocalidadFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadFocusGained
-        // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldLocalidad, PLACEHOLDER_LOCALIDAD_CLIENTE);
-    }//GEN-LAST:event_jTextFieldLocalidadFocusGained
-
-    private void jTextFieldDireccionKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldDireccionKeyReleased
-        // TODO add your handling code here:
-        habilitarBotonAceptar();
-    }//GEN-LAST:event_jTextFieldDireccionKeyReleased
-
-    private void jTextFieldDireccionFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusLost
-        // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldDireccion, PLACEHOLDER_DIRECCION_CLIENTE);
-    }//GEN-LAST:event_jTextFieldDireccionFocusLost
-
-    private void jTextFieldDireccionFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusGained
-        // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldDireccion, PLACEHOLDER_DIRECCION_CLIENTE);
-    }//GEN-LAST:event_jTextFieldDireccionFocusGained
-
-    private void jTextFieldEmailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldEmailKeyReleased
-        // TODO add your handling code here:
-        campoEmailCorrecto = validarCampoFormulario(
-                jTextFieldEmail,
-                jLabelAdvertenciaEmail,
-                ERROR_EMAIL_CLIENTE,
-                originalBorder,
-                texto -> texto.isEmpty() || texto.matches(VALIDACION_EMAIL_CLIENTE) || texto.equals(PLACEHOLDER_EMAIL_CLIENTE)
-        );
-        habilitarBotonAceptar();
-    }//GEN-LAST:event_jTextFieldEmailKeyReleased
-
-    private void jTextFieldEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusLost
-        // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
-    }//GEN-LAST:event_jTextFieldEmailFocusLost
-
-    private void jTextFieldEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusGained
-        // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
-    }//GEN-LAST:event_jTextFieldEmailFocusGained
-
-    private void jTextFieldNombreKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldNombreKeyReleased
-        // TODO add your handling code here:
-        campoNombreCorrecto = validarCampoFormulario(
-                jTextFieldNombre,
-                jLabelAdvertenciaNombre,
-                ERROR_NOMBRE_CLIENTE,
-                originalBorder,
-                texto -> !texto.isEmpty() && texto.matches(VALIDACION_NOMBRE_CLIENTE)
-        );
-        habilitarBotonAceptar();
-    }//GEN-LAST:event_jTextFieldNombreKeyReleased
-
-    private void jTextFieldNombreFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusLost
-        // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldNombre, PLACEHOLDER_NOMBRE_CLIENTE);
-    }//GEN-LAST:event_jTextFieldNombreFocusLost
-
-    private void jTextFieldNombreFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusGained
-        // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldNombre, PLACEHOLDER_NOMBRE_CLIENTE);
-    }//GEN-LAST:event_jTextFieldNombreFocusGained
+        agregarPlaceHolder(jTextFieldDNI, PLACEHOLDER_DNI_CLIENTE);
+    }//GEN-LAST:event_jTextFieldDNIFocusLost
 
     private void jTextFieldDNIKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldDNIKeyReleased
         // TODO add your handling code here:
@@ -569,18 +613,84 @@ public class VistaRegistrarse extends javax.swing.JFrame {
                 originalBorder,
                 texto -> !texto.isEmpty() && texto.matches(VALIDACION_DNI_CLIENTE)
         );
-        habilitarBotonAceptar();
+        habilitarBotonRegistrarse();
     }//GEN-LAST:event_jTextFieldDNIKeyReleased
 
-    private void jTextFieldDNIFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusLost
+    private void jTextFieldNombreFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusGained
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldDNI, PLACEHOLDER_DNI_CLIENTE);
-    }//GEN-LAST:event_jTextFieldDNIFocusLost
+        quitarPlaceHolder(jTextFieldNombre, PLACEHOLDER_NOMBRE_CLIENTE);
 
-    private void jTextFieldDNIFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusGained
+    }//GEN-LAST:event_jTextFieldNombreFocusGained
+
+    private void jTextFieldNombreFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNombreFocusLost
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldDNI, PLACEHOLDER_DNI_CLIENTE);
-    }//GEN-LAST:event_jTextFieldDNIFocusGained
+        agregarPlaceHolder(jTextFieldNombre, PLACEHOLDER_NOMBRE_CLIENTE);
+
+    }//GEN-LAST:event_jTextFieldNombreFocusLost
+
+    private void jTextFieldNombreKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldNombreKeyReleased
+        // TODO add your handling code here:
+        campoNombreCorrecto = validarCampoFormulario(
+                jTextFieldNombre,
+                jLabelAdvertenciaNombre,
+                ERROR_NOMBRE_CLIENTE,
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_NOMBRE_CLIENTE)
+        );
+        habilitarBotonRegistrarse();
+    }//GEN-LAST:event_jTextFieldNombreKeyReleased
+
+    private void jTextFieldEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
+
+    }//GEN-LAST:event_jTextFieldEmailFocusGained
+
+    private void jTextFieldEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
+
+    }//GEN-LAST:event_jTextFieldEmailFocusLost
+
+    private void jTextFieldEmailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldEmailKeyReleased
+        // TODO add your handling code here:
+        campoEmailCorrecto = validarCampoFormulario(
+                jTextFieldEmail,
+                jLabelAdvertenciaEmail,
+                ERROR_EMAIL_CLIENTE,
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_EMAIL_CLIENTE)
+        );
+        habilitarBotonRegistrarse();
+    }//GEN-LAST:event_jTextFieldEmailKeyReleased
+
+    private void jPasswordFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jPasswordFieldKeyReleased
+        // TODO add your handling code here:
+        String pss = new String(jPasswordField.getPassword());
+        JTextField jTextFieldPassword = new JTextField(pss);
+        JLabel jLabel = new JLabel();
+
+        campoContrasenaCorrecto = validarCampoFormulario(
+                jTextFieldPassword,
+                jLabel,
+                ERROR_CONTRASENA,
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_CONTRASENA)
+        );
+        habilitarBotonRegistrarse();
+    }//GEN-LAST:event_jPasswordFieldKeyReleased
+
+    private void jButtonMostrarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMostrarContrasenaActionPerformed
+        // TODO add your handling code here:
+        if (contrasenaVisible) {
+            jPasswordField.setEchoChar('•'); // Ocultar contraseña
+            jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
+        } else {
+            jPasswordField.setEchoChar((char) 0); // Mostrar contraseña
+            jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo.svg"));
+        }
+        contrasenaVisible = !contrasenaVisible;
+    }//GEN-LAST:event_jButtonMostrarContrasenaActionPerformed
 
     private void jLabelInicioSesionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelInicioSesionMouseClicked
         // TODO add your handling code here:
@@ -588,27 +698,100 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         this.setVisible(false);
     }//GEN-LAST:event_jLabelInicioSesionMouseClicked
 
-    private void jButtonMostrarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMostrarContrasenaActionPerformed
+    private void jTextFieldDireccionFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusGained
         // TODO add your handling code here:
-        if (isPasswordVisible) {
-            jPasswordField.setEchoChar('•'); // Ocultar contraseña
-            jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
-        } else {
-            jPasswordField.setEchoChar((char) 0); // Mostrar contraseña
-            jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo.svg"));
-        }
-        isPasswordVisible = !isPasswordVisible;
-    }//GEN-LAST:event_jButtonMostrarContrasenaActionPerformed
+        quitarPlaceHolder(jTextFieldDireccion, PLACEHOLDER_DIRECCION_CLIENTE);
 
-    private void habilitarBotonAceptar() {
+    }//GEN-LAST:event_jTextFieldDireccionFocusGained
+
+    private void jTextFieldDireccionFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldDireccion, PLACEHOLDER_DIRECCION_CLIENTE);
+
+    }//GEN-LAST:event_jTextFieldDireccionFocusLost
+
+    private void jTextFieldDireccionKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldDireccionKeyReleased
+        // TODO add your handling code here:
+        habilitarBotonRegistrarse();
+    }//GEN-LAST:event_jTextFieldDireccionKeyReleased
+
+    private void jTextFieldLocalidadFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldLocalidad, PLACEHOLDER_LOCALIDAD_CLIENTE);
+
+    }//GEN-LAST:event_jTextFieldLocalidadFocusGained
+
+    private void jTextFieldLocalidadFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldLocalidad, PLACEHOLDER_LOCALIDAD_CLIENTE);
+
+    }//GEN-LAST:event_jTextFieldLocalidadFocusLost
+
+    private void jTextFieldLocalidadKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldLocalidadKeyReleased
+        // TODO add your handling code here:
+        habilitarBotonRegistrarse();
+    }//GEN-LAST:event_jTextFieldLocalidadKeyReleased
+
+    private void jTextFieldCodigoPostalFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldCodigoPostal, PLACEHOLDER_CODIGO_POSTAL_CLIENTE);
+
+    }//GEN-LAST:event_jTextFieldCodigoPostalFocusGained
+
+    private void jTextFieldCodigoPostalFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldCodigoPostal, PLACEHOLDER_CODIGO_POSTAL_CLIENTE);
+
+    }//GEN-LAST:event_jTextFieldCodigoPostalFocusLost
+
+    private void jTextFieldCodigoPostalKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldCodigoPostalKeyReleased
+        // TODO add your handling code here:
+        campoCodigoPostalCorrecto = validarCampoFormulario(
+                jTextFieldCodigoPostal,
+                jLabelAdvertenciaCodigoPostal,
+                ERROR_CODIGOPOSTAL_CLIENTE,
+                originalBorder,
+                texto -> texto.matches(VALIDACION_CODIGO_POSTAL_CLIENTE)
+        );
+        habilitarBotonRegistrarse();
+    }//GEN-LAST:event_jTextFieldCodigoPostalKeyReleased
+
+    private void jTextFieldTelefonoFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldTelefonoFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldTelefono, PLACEHOLDER_TELEFONO);
+
+    }//GEN-LAST:event_jTextFieldTelefonoFocusGained
+
+    private void jTextFieldTelefonoFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldTelefonoFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldTelefono, PLACEHOLDER_TELEFONO);
+    }//GEN-LAST:event_jTextFieldTelefonoFocusLost
+
+    private void jTextFieldTelefonoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldTelefonoKeyReleased
+        // TODO add your handling code here:
+        campoTelefonoCorrecto = validarCampoFormulario(
+                jTextFieldTelefono,
+                jLabelAdvertenciaTelefono,
+                ERROR_TELEFONO,
+                originalBorder,
+                texto -> texto.matches(VALIDACION_TELEFONO)
+        );
+        habilitarBotonRegistrarse();
+    }//GEN-LAST:event_jTextFieldTelefonoKeyReleased
+
+    private void habilitarBotonRegistrarse() {
         if (campoDNICorrecto) {
             if (campoNombreCorrecto) {
                 if (campoEmailCorrecto) {
                     if (!jTextFieldDireccion.getText().trim().equals(PLACEHOLDER_DIRECCION_CLIENTE) && !jTextFieldDireccion.getText().trim().isEmpty()) {
                         if (!jTextFieldLocalidad.getText().trim().equals(PLACEHOLDER_LOCALIDAD_CLIENTE) && !jTextFieldLocalidad.getText().trim().isEmpty()) {
                             if (campoCodigoPostalCorrecto) {
-                                jButtonRegistrarse.setEnabled(true);
-                                return;
+                                if (campoContrasenaCorrecto) {
+                                    if (campoTelefonoCorrecto) {
+                                        jButtonRegistrarse.setEnabled(true);
+                                        return;
+                                    }
+                                }
                             }
                         }
                     }
@@ -625,14 +808,16 @@ public class VistaRegistrarse extends javax.swing.JFrame {
     public void setVistaInicioSesión(VistaInicioSesión vistaInicioSesión) {
         this.vistaInicioSesión = vistaInicioSesión;
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonMostrarContrasena;
     private javax.swing.JButton jButtonRegistrarse;
     private javax.swing.JLabel jLabelAdvertenciaCodigoPostal;
+    private javax.swing.JLabel jLabelAdvertenciaContrasena;
     private javax.swing.JLabel jLabelAdvertenciaDNI;
     private javax.swing.JLabel jLabelAdvertenciaEmail;
     private javax.swing.JLabel jLabelAdvertenciaNombre;
+    private javax.swing.JLabel jLabelAdvertenciaTelefono;
     private javax.swing.JLabel jLabelCodigoPostal;
     private javax.swing.JLabel jLabelContrasena;
     private javax.swing.JLabel jLabelDNI;
@@ -641,6 +826,7 @@ public class VistaRegistrarse extends javax.swing.JFrame {
     private javax.swing.JLabel jLabelInicioSesion;
     private javax.swing.JLabel jLabelLocalidad;
     private javax.swing.JLabel jLabelNombre;
+    private javax.swing.JLabel jLabelTelefono;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelCabecera;
     private javax.swing.JPanel jPanelCuerpo;
@@ -653,5 +839,6 @@ public class VistaRegistrarse extends javax.swing.JFrame {
     private javax.swing.JTextField jTextFieldEmail;
     private javax.swing.JTextField jTextFieldLocalidad;
     private javax.swing.JTextField jTextFieldNombre;
+    private javax.swing.JTextField jTextFieldTelefono;
     // End of variables declaration//GEN-END:variables
 }

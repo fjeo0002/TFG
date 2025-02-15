@@ -111,7 +111,7 @@ public class Utils {
     public static final String TODOS = "Todos";
     public static final String ANTICIPOS_ACTIVOS = "Anticipos Activos";
     public static final String ANTICIPOS_FINALIZADOS = "Anticipos Finalizados";
-    
+
     public static final String FILTROS_APLICADOS = "* Filtros aplicados";
 
 // ----------------------------------------TITULOS----------------------------------------
@@ -149,14 +149,27 @@ public class Utils {
     public static final String MENSAJE_FACTURA_ANTICIPO_DISTINTOS = "La factura a generar es distinta al anticipo que estaba creado";
 
 // ----------------------------------------ERRORES----------------------------------------
-    public static final String ERROR_DNI_CLIENTE = "* Introduce un DNI válido (8 números y 1 letra mayúscula)";
-    public static final String ERROR_NOMBRE_CLIENTE = "* Introduce un nombre válido (sin números ni caracteres especiales)";
+    public static final String ERROR_DNI_CLIENTE = "* DNI válido: 8 números y 1 mayúscula";
+    public static final String ERROR_NOMBRE_CLIENTE = "* Nombre válido: sin números ni caracteres especiales";
     public static final String ERROR_EMAIL_CLIENTE = "* Introduce un correo electrónico válido";
-    public static final String ERROR_CODIGOPOSTAL_CLIENTE = "* Introduce un código postal válido (5 dígitos)";
+    public static final String ERROR_CODIGOPOSTAL_CLIENTE = "* Código postal válido: 5 dígitos";
 
     public static final String ERROR_PRECIO_LOCAL = "* Introduce un número con 2 decimales";
 
     public static final String ERROR_ANIO = "* Introduce un año válido (4 dígitos)";
+
+    public static final String ERROR_TELEFONO = "* Teléfono válido: 9 dígitos";
+
+    public static final String ERROR_CONTRASENA_REPETIDA = "* La contraseñas deben coincidir";
+
+    public static final String ERROR_CONTRASENA = "<html>"
+            + "La contraseña debe cumplir con:<br>"
+            + "✔ Al menos 8 caracteres<br>"
+            + "✔ Al menos una letra mayúscula<br>"
+            + "✔ Al menos una letra minúscula<br>"
+            + "✔ Al menos un número<br>"
+            + "✔ Al menos un símbolo (@$!%*?&)"
+            + "</html>";
 
 // ----------------------------------------PLACEHOLDERS----------------------------------------    
     public static final String PLACEHOLDER_DNI_CLIENTE = "12345678X";
@@ -174,6 +187,8 @@ public class Utils {
 
     public static final String PLACEHOLDER_ANIO = "aaaa";
 
+    public static final String PLACEHOLDER_TELEFONO = "9 dígitos sin espacios";
+
 // ----------------------------------------VALIDACIONES----------------------------------------
     public static final String VALIDACION_DNI_CLIENTE = "\\d{8}[A-Z]";
     public static final String VALIDACION_NOMBRE_CLIENTE = "[a-zA-ZÁÉÍÓÚáéíóúÑñ\\s'-]+";
@@ -182,35 +197,11 @@ public class Utils {
 
     public static final String VALIDACION_ANIO = "^\\d{4}";
 
+    public static final String VALIDACION_CONTRASENA = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+
+    public static final String VALIDACION_TELEFONO = "^\\d{9}";
+
 // ========================================ENUMS========================================
-// ----------------------------------------ESTADOSALDO----------------------------------------
-    /*
-    public enum EstadoSaldo {
-        AL_DIA("Al día", 0.0),
-        ANTICIPA("Anticipa", 1.0),
-        DEBE("Debe", -1.0);
-
-        private final String estado;
-        private final double valor;
-
-        EstadoSaldo(String estado, double valor) {
-            this.estado = estado;
-            this.valor = valor;
-        }
-
-        public String getEstado() {
-            return estado;
-        }
-
-        public double getValor() {
-            return valor;
-        }
-
-        public String getValorString() {
-            return convertirDoubleAString(valor);
-        }
-    }
-     */
 // ----------------------------------------MES----------------------------------------
     public enum Mes {
         ENERO("Enero", 1),

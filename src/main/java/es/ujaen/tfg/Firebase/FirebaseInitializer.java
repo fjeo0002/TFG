@@ -8,12 +8,16 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import static es.ujaen.tfg.utils.Utils.FIREBASE_JSON;
 import java.io.FileInputStream;
 import java.io.IOException;
 
 public class FirebaseInitializer {
+
     // Clase Singleton
     private static FirebaseInitializer instance; // Instancia única
     private final Firestore db;

@@ -6,13 +6,24 @@ package es.ujaen.tfg.vistas;
 
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import es.ujaen.tfg.DAO.UsuarioDAO;
+import es.ujaen.tfg.Firebase.FirebaseInitializer;
+import es.ujaen.tfg.controlador.UsuarioControlador;
+import es.ujaen.tfg.modelo.Usuario;
+import static es.ujaen.tfg.utils.Utils.ERROR_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.ERROR_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
+import java.awt.HeadlessException;
+import java.io.IOException;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
@@ -25,12 +36,13 @@ public class VistaInicioSesión extends javax.swing.JFrame {
 
     private VistaRegistrarse vistaRegistrarse;
     private VistaRecuperarContrasena vistaRecuperarContrasena;
-    
+
     private boolean campoEmailCorrecto;
-    
+    private boolean campoContrasenaCorrecto;
+
     private final Border originalBorder;
-    
-    private boolean isPasswordVisible = false;
+
+    private boolean contrasenaVisible;
 
     /**
      * Creates new form VistaInicioSesión
@@ -38,13 +50,16 @@ public class VistaInicioSesión extends javax.swing.JFrame {
     public VistaInicioSesión() {
         initComponents();
         setLocationRelativeTo(null);
-        
+
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
-        
+
         this.originalBorder = jTextFieldEmail.getBorder();
 
         this.campoEmailCorrecto = false;
+        this.campoContrasenaCorrecto = false;
+
+        this.contrasenaVisible = false;
     }
 
     /**
@@ -144,6 +159,11 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         jPanelCuerpo.add(jLabelContrasena, gridBagConstraints);
 
         jPasswordField.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jPasswordFieldKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
@@ -224,7 +244,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE)
         );
 
         pack();
@@ -232,11 +252,41 @@ public class VistaInicioSesión extends javax.swing.JFrame {
 
     private void jButtonIniciarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonIniciarSesionActionPerformed
         // TODO add your handling code here:
-        String email, password;
-        email = jTextFieldEmail.getText();
-        password = new String(jPasswordField.getPassword());
-        dispose();
+        // Obtener datos del formulario
+        String email = jTextFieldEmail.getText().trim();
+        String password = new String(jPasswordField.getPassword()).trim();
+
+        try {
+            FirebaseInitializer firebase = FirebaseInitializer.getInstance();
+
+            // 🔹 Cargar usuario en caché desde Firestore
+            UsuarioDAO usuarioDAO = new UsuarioDAO(email);
+            UsuarioControlador usuarioControlador = new UsuarioControlador(usuarioDAO);
+            Usuario usuario = usuarioControlador.leer(email);
+
+            if (usuario != null) {
+                if (usuarioControlador.verificarCredenciales(email, password)) {
+                    JOptionPane.showMessageDialog(this, "Inicio de sesión exitoso.");
+                    abrirVistaPrincipal(email);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Las credenciales no son correctas");
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(this, "No se encontraron datos del usuario.");
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error al conectar con Firebase.");
+        } catch (HeadlessException e) {
+            JOptionPane.showMessageDialog(this, "Error desconocido: " + e.getMessage());
+        }
     }//GEN-LAST:event_jButtonIniciarSesionActionPerformed
+
+    private void abrirVistaPrincipal(String userId) throws IOException {
+        VistaPrincipal vistaPrincipal = new VistaPrincipal(userId);
+        vistaPrincipal.setVisible(true);
+        this.dispose(); // Cierra la ventana de inicio de sesión
+    }
 
     private void jTextFieldEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusGained
         // TODO add your handling code here:
@@ -254,9 +304,9 @@ public class VistaInicioSesión extends javax.swing.JFrame {
                 jLabelAdvertenciaEmail,
                 ERROR_EMAIL_CLIENTE,
                 originalBorder,
-                texto -> texto.isEmpty() || texto.matches(VALIDACION_EMAIL_CLIENTE) || texto.equals(PLACEHOLDER_EMAIL_CLIENTE)
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_EMAIL_CLIENTE)
         );
-        habilitarBotonAceptar();
+        habilitarBotonIniciarSesion();
     }//GEN-LAST:event_jTextFieldEmailKeyReleased
 
     private void jLabelOlvidoContrasenaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelOlvidoContrasenaMouseClicked
@@ -277,20 +327,38 @@ public class VistaInicioSesión extends javax.swing.JFrame {
 
     private void jButtonMostrarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMostrarContrasenaActionPerformed
         // TODO add your handling code here:
-        if (isPasswordVisible) {
-                    jPasswordField.setEchoChar('•'); // Ocultar contraseña
-                    jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
-                } else {
-                    jPasswordField.setEchoChar((char) 0); // Mostrar contraseña
-                    jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo.svg"));
-                }
-                isPasswordVisible = !isPasswordVisible;
+        if (contrasenaVisible) {
+            jPasswordField.setEchoChar('•'); // Ocultar contraseña
+            jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
+        } else {
+            jPasswordField.setEchoChar((char) 0); // Mostrar contraseña
+            jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo.svg"));
+        }
+        contrasenaVisible = !contrasenaVisible;
     }//GEN-LAST:event_jButtonMostrarContrasenaActionPerformed
 
-    private void habilitarBotonAceptar() {
+    private void jPasswordFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jPasswordFieldKeyReleased
+        // TODO add your handling code here:
+        String pss = new String(jPasswordField.getPassword());
+        JTextField jTextFieldPassword = new JTextField(pss);
+        JLabel jLabel = new JLabel();
+
+        campoContrasenaCorrecto = validarCampoFormulario(
+                jTextFieldPassword,
+                jLabel,
+                ERROR_CONTRASENA,
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_CONTRASENA)
+        );
+        habilitarBotonIniciarSesion();
+    }//GEN-LAST:event_jPasswordFieldKeyReleased
+
+    private void habilitarBotonIniciarSesion() {
         if (campoEmailCorrecto) {
-            jButtonIniciarSesion.setEnabled(true);
-            return;
+            if (campoContrasenaCorrecto) {
+                jButtonIniciarSesion.setEnabled(true);
+                return;
+            }
         }
         jButtonIniciarSesion.setEnabled(false);
     }
@@ -309,16 +377,24 @@ public class VistaInicioSesión extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(VistaInicioSesión.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(VistaInicioSesión.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(VistaInicioSesión.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(VistaInicioSesión.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(VistaInicioSesión.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(VistaInicioSesión.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(VistaInicioSesión.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(VistaInicioSesión.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 

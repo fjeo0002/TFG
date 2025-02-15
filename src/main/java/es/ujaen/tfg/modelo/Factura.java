@@ -112,7 +112,7 @@ public class Factura {
         this.fecha = fecha;
     }
 
-    public void setFecha(String fecha) {
+    public void setFechaString(String fecha) {
         this.fecha = convertirStringAFecha(fecha);
     }
 

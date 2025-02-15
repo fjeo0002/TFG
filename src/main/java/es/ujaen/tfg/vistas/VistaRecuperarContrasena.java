@@ -5,9 +5,30 @@
 package es.ujaen.tfg.vistas;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import java.awt.Image;
-import javax.swing.Icon;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import es.ujaen.tfg.DAO.UsuarioDAO;
+import es.ujaen.tfg.Firebase.FirebaseInitializer;
+import es.ujaen.tfg.controlador.UsuarioControlador;
+import es.ujaen.tfg.modelo.Usuario;
+import es.ujaen.tfg.utils.Utils;
+import static es.ujaen.tfg.utils.Utils.ERROR_CONTRASENA;
+import static es.ujaen.tfg.utils.Utils.ERROR_CONTRASENA_REPETIDA;
+import static es.ujaen.tfg.utils.Utils.ERROR_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_CONTRASENA;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
+import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+import javax.swing.border.Border;
 
 /**
  *
@@ -18,7 +39,13 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
     private VistaRegistrarse vistaRegistrarse;
     private VistaInicioSesión vistaInicioSesión;
 
-    private boolean isPasswordVisible = false;
+    private boolean campoContrasenaCorrecto;
+    private boolean campoRepetirCorrecto;
+    private boolean campoEmailCorrecto;
+
+    private boolean contrasenaVisible = false;
+
+    private final Border originalBorder;
 
     /**
      * Creates new form VistaRecuperarContrasena
@@ -26,9 +53,19 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
     public VistaRecuperarContrasena() {
         initComponents();
         setLocationRelativeTo(null);
-        
+
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
+
+        this.originalBorder = jPasswordFieldNueva.getBorder();
+
+        this.campoEmailCorrecto = false;
+        this.campoContrasenaCorrecto = false;
+        this.campoRepetirCorrecto = false;
+
+        this.contrasenaVisible = false;
+
+        this.jLabelAdvertenciaNueva.setText(ERROR_CONTRASENA);
     }
 
     /**
@@ -45,14 +82,18 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         jPanelCabecera = new javax.swing.JPanel();
         jLabelTitulo = new javax.swing.JLabel();
         jPanelCuerpo = new javax.swing.JPanel();
+        jLabelEmail = new javax.swing.JLabel();
+        jTextFieldEmail = new javax.swing.JTextField();
+        jLabelAdvertenciaEmail = new javax.swing.JLabel();
         jLabelNuevaContrasena = new javax.swing.JLabel();
         jPasswordFieldNueva = new javax.swing.JPasswordField();
-        jLabelAdvertenciaEmail = new javax.swing.JLabel();
+        jLabelAdvertenciaNueva = new javax.swing.JLabel();
         jLabelRepetirContrasena = new javax.swing.JLabel();
         jPasswordFieldRepetir = new javax.swing.JPasswordField();
+        jLabelAdvertenciaRepetir = new javax.swing.JLabel();
+        jButtonMostrarContrasena = new javax.swing.JButton();
         jLabelInicioSesion = new javax.swing.JLabel();
         jLabelRegistrarse = new javax.swing.JLabel();
-        jButtonMostrarContrasena = new javax.swing.JButton();
         jPanelPiePagina = new javax.swing.JPanel();
         jButtonCambiarContrasena = new javax.swing.JButton();
 
@@ -71,23 +112,41 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
 
         jPanelCuerpo.setLayout(new java.awt.GridBagLayout());
 
-        jLabelNuevaContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelNuevaContrasena.setText("Nueva Contraseña");
+        jLabelEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelEmail.setText("E-mail");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelNuevaContrasena, gridBagConstraints);
+        jPanelCuerpo.add(jLabelEmail, gridBagConstraints);
 
-        jPasswordFieldNueva.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldEmail.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldEmail.setText("nombre.123@gmail.com");
+        jTextFieldEmail.setMinimumSize(new java.awt.Dimension(125, 26));
+        jTextFieldEmail.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldEmail.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextFieldEmailFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jTextFieldEmailFocusLost(evt);
+            }
+        });
+        jTextFieldEmail.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldEmailKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jPasswordFieldNueva, gridBagConstraints);
+        jPanelCuerpo.add(jTextFieldEmail, gridBagConstraints);
 
         jLabelAdvertenciaEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelAdvertenciaEmail.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
@@ -100,23 +159,88 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelAdvertenciaEmail, gridBagConstraints);
 
-        jLabelRepetirContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelRepetirContrasena.setText("Repetir Contraseña");
+        jLabelNuevaContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelNuevaContrasena.setText("Nueva Contraseña");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelRepetirContrasena, gridBagConstraints);
+        jPanelCuerpo.add(jLabelNuevaContrasena, gridBagConstraints);
 
-        jPasswordFieldRepetir.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jPasswordFieldNueva.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jPasswordFieldNueva.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jPasswordFieldNuevaKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jPasswordFieldNueva, gridBagConstraints);
+
+        jLabelAdvertenciaNueva.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaNueva.setForeground(new java.awt.Color(0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaNueva, gridBagConstraints);
+
+        jLabelRepetirContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelRepetirContrasena.setText("Repetir Contraseña");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelRepetirContrasena, gridBagConstraints);
+
+        jPasswordFieldRepetir.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jPasswordFieldRepetir.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jPasswordFieldRepetirKeyReleased(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jPasswordFieldRepetir, gridBagConstraints);
+
+        jLabelAdvertenciaRepetir.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaRepetir.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jLabelAdvertenciaRepetir, gridBagConstraints);
+
+        jButtonMostrarContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
+        jButtonMostrarContrasena.setText("Mostrar Contraseña");
+        jButtonMostrarContrasena.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonMostrarContrasenaActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        jPanelCuerpo.add(jButtonMostrarContrasena, gridBagConstraints);
 
         jLabelInicioSesion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelInicioSesion.setForeground(java.awt.SystemColor.textHighlight);
@@ -129,7 +253,7 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelInicioSesion, gridBagConstraints);
@@ -145,25 +269,10 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelRegistrarse, gridBagConstraints);
-
-        jButtonMostrarContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
-        jButtonMostrarContrasena.setText("Mostrar Contraseña");
-        jButtonMostrarContrasena.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonMostrarContrasenaActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jButtonMostrarContrasena, gridBagConstraints);
 
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
 
@@ -190,7 +299,7 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 569, Short.MAX_VALUE)
         );
 
         pack();
@@ -206,7 +315,7 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
 
     private void jButtonMostrarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMostrarContrasenaActionPerformed
         // TODO add your handling code here:
-        if (isPasswordVisible) {
+        if (contrasenaVisible) {
             jPasswordFieldRepetir.setEchoChar('•'); // Ocultar contraseña
             jPasswordFieldNueva.setEchoChar('•'); // Ocultar contraseña
             jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
@@ -215,12 +324,49 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
             jPasswordFieldNueva.setEchoChar((char) 0); // Mostrar contraseña
             jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo.svg"));
         }
-        isPasswordVisible = !isPasswordVisible;
+        contrasenaVisible = !contrasenaVisible;
     }//GEN-LAST:event_jButtonMostrarContrasenaActionPerformed
 
     private void jButtonCambiarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCambiarContrasenaActionPerformed
         // TODO add your handling code here:
-        dispose();
+
+        String email = jTextFieldEmail.getText().trim();
+        String nuevaContrasena = new String(jPasswordFieldNueva.getPassword()).trim();
+
+        try {
+            FirebaseInitializer firebase = FirebaseInitializer.getInstance();
+            UsuarioDAO usuarioDAO = new UsuarioDAO(email);
+            UsuarioControlador usuarioControlador = new UsuarioControlador(usuarioDAO);
+            Usuario usuarioOriginal = usuarioControlador.leer(email);
+
+            if (usuarioOriginal != null) {
+                String antiguaContrasena = usuarioOriginal.getContrasena();
+                String nuevaContrasenaHash = Usuario.hashContrasena(nuevaContrasena);
+                
+                if (!antiguaContrasena.equals(nuevaContrasenaHash)) {
+                    Usuario usuarioModificado = new Usuario(usuarioOriginal);
+                    usuarioModificado.setContrasena(nuevaContrasena);
+                    
+                    usuarioControlador.actualizar(usuarioOriginal, usuarioModificado);
+
+                    JOptionPane.showMessageDialog(this, "Contraseña cambiada con éxito.");
+
+                    // Abrir ventana de inicio de Sesion
+                    vistaInicioSesión.setVisible(true);
+                    this.setVisible(false);
+                    
+                } else {
+                    JOptionPane.showMessageDialog(this, "La nueva contraseña no puede ser igual que la contraseña anterior");
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(this, "No se encontraron datos del usuario.");
+            }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error al actualizar la contraseña.");
+        }
+
     }//GEN-LAST:event_jButtonCambiarContrasenaActionPerformed
 
     private void jLabelInicioSesionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelInicioSesionMouseClicked
@@ -228,6 +374,71 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         vistaInicioSesión.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_jLabelInicioSesionMouseClicked
+
+    private void jPasswordFieldNuevaKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jPasswordFieldNuevaKeyReleased
+        // TODO add your handling code here:
+        String pss = new String(jPasswordFieldNueva.getPassword());
+        JTextField jTextFieldPassword = new JTextField(pss);
+        JLabel jLabel = new JLabel();
+
+        campoContrasenaCorrecto = validarCampoFormulario(
+                jTextFieldPassword,
+                jLabel,
+                ERROR_CONTRASENA,
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_CONTRASENA)
+        );
+        habilitarBotonCambiarContrasena();
+    }//GEN-LAST:event_jPasswordFieldNuevaKeyReleased
+
+    private void jPasswordFieldRepetirKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jPasswordFieldRepetirKeyReleased
+        // TODO add your handling code here:
+        String pss = new String(jPasswordFieldNueva.getPassword());
+        String pssRepetida = new String(jPasswordFieldRepetir.getPassword());
+
+        if (!pss.equals(pssRepetida)) {
+            jLabelAdvertenciaRepetir.setText(ERROR_CONTRASENA_REPETIDA);
+            campoRepetirCorrecto = false;
+        } else {
+            jLabelAdvertenciaRepetir.setText("");
+            campoRepetirCorrecto = true;
+        }
+
+        habilitarBotonCambiarContrasena();
+    }//GEN-LAST:event_jPasswordFieldRepetirKeyReleased
+
+    private void jTextFieldEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusGained
+        // TODO add your handling code here:
+        quitarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
+    }//GEN-LAST:event_jTextFieldEmailFocusGained
+
+    private void jTextFieldEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusLost
+        // TODO add your handling code here:
+        agregarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
+    }//GEN-LAST:event_jTextFieldEmailFocusLost
+
+    private void jTextFieldEmailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldEmailKeyReleased
+        // TODO add your handling code here:
+        campoEmailCorrecto = validarCampoFormulario(jTextFieldEmail,
+                jLabelAdvertenciaEmail,
+                ERROR_EMAIL_CLIENTE,
+                originalBorder,
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_EMAIL_CLIENTE)
+        );
+        habilitarBotonCambiarContrasena();
+    }//GEN-LAST:event_jTextFieldEmailKeyReleased
+
+    private void habilitarBotonCambiarContrasena() {
+        if (campoEmailCorrecto) {
+            if (campoRepetirCorrecto) {
+                if (campoContrasenaCorrecto) {
+                    jButtonCambiarContrasena.setEnabled(true);
+                    return;
+                }
+            }
+        }
+        jButtonCambiarContrasena.setEnabled(false);
+    }
 
     public VistaRegistrarse getVistaRegistrarse() {
         return vistaRegistrarse;
@@ -249,6 +460,9 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
     private javax.swing.JButton jButtonCambiarContrasena;
     private javax.swing.JButton jButtonMostrarContrasena;
     private javax.swing.JLabel jLabelAdvertenciaEmail;
+    private javax.swing.JLabel jLabelAdvertenciaNueva;
+    private javax.swing.JLabel jLabelAdvertenciaRepetir;
+    private javax.swing.JLabel jLabelEmail;
     private javax.swing.JLabel jLabelInicioSesion;
     private javax.swing.JLabel jLabelNuevaContrasena;
     private javax.swing.JLabel jLabelRegistrarse;
@@ -260,5 +474,6 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
     private javax.swing.JPanel jPanelPrincipal;
     private javax.swing.JPasswordField jPasswordFieldNueva;
     private javax.swing.JPasswordField jPasswordFieldRepetir;
+    private javax.swing.JTextField jTextFieldEmail;
     // End of variables declaration//GEN-END:variables
 }

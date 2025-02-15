@@ -29,6 +29,7 @@ public class BorrarLocalCommand implements Command {
 
     @Override
     public void undo() {
+        //localDAO.crear(local);
         localDAO.crear(local, index);
     }
 }
