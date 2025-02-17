@@ -18,7 +18,7 @@ public class Usuario {
     private String email;
     private String contrasena;
     private String nombre;
-    private String dni;
+    private String DNI;
     private String direccion;
     private String localidad;
     private String codigoPostal;
@@ -32,7 +32,7 @@ public class Usuario {
         //this.contrasena = contrasena;
         setContrasena(contrasena);
         this.nombre = nombre;
-        this.dni = dni;
+        this.DNI = dni;
         this.direccion = direccion;
         this.localidad = localidad;
         this.codigoPostal = codigoPostal;
@@ -43,7 +43,7 @@ public class Usuario {
         this.email = u.email;
         this.contrasena = u.contrasena;
         this.nombre = u.nombre;
-        this.dni = u.dni;
+        this.DNI = u.DNI;
         this.direccion = u.direccion;
         this.localidad = u.localidad;
         this.codigoPostal = u.codigoPostal;
@@ -56,6 +56,10 @@ public class Usuario {
 
     public void setContrasena(String contrasena) {
         this.contrasena = hashContrasena(contrasena);
+    }
+    
+    public void setContrasenaSinHashear(String contrasena) {
+        this.contrasena = contrasena;
     }
 
     public static String hashContrasena(String contraseña) {
@@ -84,12 +88,12 @@ public class Usuario {
         this.nombre = nombre;
     }
 
-    public String getDni() {
-        return dni;
+    public String getDNI() {
+        return DNI;
     }
 
-    public void setDni(String dni) {
-        this.dni = dni;
+    public void setDNI(String DNI) {
+        this.DNI = DNI;
     }
 
     public String getDireccion() {
@@ -130,7 +134,7 @@ public class Usuario {
         hash = 73 * hash + Objects.hashCode(this.email);
         hash = 73 * hash + Objects.hashCode(this.contrasena);
         hash = 73 * hash + Objects.hashCode(this.nombre);
-        hash = 73 * hash + Objects.hashCode(this.dni);
+        hash = 73 * hash + Objects.hashCode(this.DNI);
         hash = 73 * hash + Objects.hashCode(this.direccion);
         hash = 73 * hash + Objects.hashCode(this.localidad);
         hash = 73 * hash + Objects.hashCode(this.codigoPostal);
@@ -159,7 +163,7 @@ public class Usuario {
         if (!Objects.equals(this.nombre, other.nombre)) {
             return false;
         }
-        if (!Objects.equals(this.dni, other.dni)) {
+        if (!Objects.equals(this.DNI, other.DNI)) {
             return false;
         }
         if (!Objects.equals(this.direccion, other.direccion)) {
@@ -176,7 +180,7 @@ public class Usuario {
 
     @Override
     public String toString() {
-        return "Usuario{" + "email=" + email + ", contrasena=" + contrasena + ", nombre=" + nombre + ", dni=" + dni + ", direccion=" + direccion + ", localidad=" + localidad + ", codigoPostal=" + codigoPostal + ", telefono=" + telefono + '}';
+        return "Usuario{" + "email=" + email + ", contrasena=" + contrasena + ", nombre=" + nombre + ", dni=" + DNI + ", direccion=" + direccion + ", localidad=" + localidad + ", codigoPostal=" + codigoPostal + ", telefono=" + telefono + '}';
     }
 
 }

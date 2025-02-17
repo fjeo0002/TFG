@@ -4,54 +4,54 @@
  */
 package es.ujaen.tfg.vistas;
 
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import es.ujaen.tfg.DAO.UsuarioDAO;
-import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.controlador.UsuarioControlador;
 import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.utils.Utils;
 import static es.ujaen.tfg.utils.Utils.ERROR_CODIGOPOSTAL_CLIENTE;
-import static es.ujaen.tfg.utils.Utils.ERROR_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.ERROR_DNI_CLIENTE;
-import static es.ujaen.tfg.utils.Utils.ERROR_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.ERROR_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.ERROR_TELEFONO;
-import static es.ujaen.tfg.utils.Utils.MENSAJE_ERROR_FIREBASE;
-import static es.ujaen.tfg.utils.Utils.MENSAJE_USUARIO_REGISTRADO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_CONFIRMACION_ELIMINACION_USUARIO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_ELIMINACION_USUARIO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_USUARIO_MODIFICADO;
+import static es.ujaen.tfg.utils.Utils.NEGRO;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_CODIGO_POSTAL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_DIRECCION_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_DNI_CLIENTE;
-import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_LOCALIDAD_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_TELEFONO;
+import static es.ujaen.tfg.utils.Utils.TITULO_CONFIRMACION_ELIMINACION_USUARIO;
+import static es.ujaen.tfg.utils.Utils.TITULO_ELIMINACION_USUARIO;
+import static es.ujaen.tfg.utils.Utils.TITULO_USUARIO_MODIFICADO;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_CODIGO_POSTAL_CLIENTE;
-import static es.ujaen.tfg.utils.Utils.VALIDACION_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CLIENTE;
-import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_TELEFONO;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import static es.ujaen.tfg.utils.Utils.TITULO_USUARIO_YA_REGISTRADO;
-import static es.ujaen.tfg.utils.Utils.MENSAJE_USUARIO_YA_REGISTRADO;
-import static es.ujaen.tfg.utils.Utils.TITULO_ERROR_FIREBASE;
-import static es.ujaen.tfg.utils.Utils.TITULO_USUARIO_REGISTRADO;
 
 /**
  *
  * @author jota
  */
-public class VistaRegistrarse extends javax.swing.JFrame {
+public class VistaUsuario extends javax.swing.JFrame {
 
     private VistaInicioSesión vistaInicioSesión;
+
+    private Usuario usuarioModificado;
+    private Usuario usuarioOriginal;
+
+    private final UsuarioControlador usuarioControlador;
 
     private final Border originalBorder;
 
@@ -59,15 +59,18 @@ public class VistaRegistrarse extends javax.swing.JFrame {
     private boolean campoNombreCorrecto;
     private boolean campoEmailCorrecto;
     private boolean campoCodigoPostalCorrecto;
-    private boolean campoContrasenaCorrecto;
     private boolean campoTelefonoCorrecto;
 
-    private boolean contrasenaVisible;
+    private final JFrame parent;
 
     /**
      * Creates new form VistaRegistrarse
+     *
+     * @param parent
+     * @param usuario
+     * @param usuarioControlador
      */
-    public VistaRegistrarse() throws IOException {
+    public VistaUsuario(JFrame parent, Usuario usuario, UsuarioControlador usuarioControlador) {
         initComponents();
         setLocationRelativeTo(null);
 
@@ -75,21 +78,15 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         this.setIconImage(icon.getImage()); // Establecer el icono
 
         this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
-        
-        FirebaseInitializer.getInstance();
+
+        this.parent = parent;
 
         this.originalBorder = jTextFieldDNI.getBorder();
 
-        this.campoDNICorrecto = false;
-        this.campoNombreCorrecto = false;
-        this.campoEmailCorrecto = false;
-        this.campoCodigoPostalCorrecto = false;
-        this.campoContrasenaCorrecto = false;
-        this.campoTelefonoCorrecto = false;
+        this.usuarioControlador = usuarioControlador;
 
-        this.contrasenaVisible = false;
+        cargarVistaUsuario(usuario);
 
-        this.jLabelAdvertenciaContrasena.setText(ERROR_CONTRASENA);
     }
 
     /**
@@ -110,14 +107,9 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jLabelNombre = new javax.swing.JLabel();
         jTextFieldNombre = new javax.swing.JTextField();
         jLabelAdvertenciaNombre = new javax.swing.JLabel();
-        jLabelEmail = new javax.swing.JLabel();
-        jTextFieldEmail = new javax.swing.JTextField();
-        jLabelAdvertenciaEmail = new javax.swing.JLabel();
-        jLabelContrasena = new javax.swing.JLabel();
-        jPasswordField = new javax.swing.JPasswordField();
-        jLabelAdvertenciaContrasena = new javax.swing.JLabel();
-        jButtonMostrarContrasena = new javax.swing.JButton();
-        jLabelInicioSesion = new javax.swing.JLabel();
+        jLabelTelefono = new javax.swing.JLabel();
+        jTextFieldTelefono = new javax.swing.JTextField();
+        jLabelAdvertenciaTelefono = new javax.swing.JLabel();
         jLabelDireccion = new javax.swing.JLabel();
         jTextFieldDireccion = new javax.swing.JTextField();
         jLabelLocalidad = new javax.swing.JLabel();
@@ -125,17 +117,23 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jLabelCodigoPostal = new javax.swing.JLabel();
         jTextFieldCodigoPostal = new javax.swing.JTextField();
         jLabelAdvertenciaCodigoPostal = new javax.swing.JLabel();
-        jLabelTelefono = new javax.swing.JLabel();
-        jTextFieldTelefono = new javax.swing.JTextField();
-        jLabelAdvertenciaTelefono = new javax.swing.JLabel();
         jPanelCabecera = new javax.swing.JPanel();
         jLabelTitulo = new javax.swing.JLabel();
         jPanelPiePagina = new javax.swing.JPanel();
-        jButtonRegistrarse = new javax.swing.JButton();
+        jButtonEliminarUsuario = new javax.swing.JButton();
+        jButtonModificarUsuario = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Registro");
         setResizable(false);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -238,32 +236,32 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelAdvertenciaNombre, gridBagConstraints);
 
-        jLabelEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelEmail.setText("E-mail");
+        jLabelTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelTelefono.setText("Teléfono");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelEmail, gridBagConstraints);
+        jPanelCuerpo.add(jLabelTelefono, gridBagConstraints);
 
-        jTextFieldEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jTextFieldEmail.setForeground(new java.awt.Color(153, 153, 153));
-        jTextFieldEmail.setText("nombre.123@gmail.com");
-        jTextFieldEmail.setMinimumSize(new java.awt.Dimension(125, 26));
-        jTextFieldEmail.setPreferredSize(new java.awt.Dimension(125, 26));
-        jTextFieldEmail.addFocusListener(new java.awt.event.FocusAdapter() {
+        jTextFieldTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextFieldTelefono.setForeground(new java.awt.Color(153, 153, 153));
+        jTextFieldTelefono.setText("9 dígitos sin espacios");
+        jTextFieldTelefono.setMinimumSize(new java.awt.Dimension(125, 26));
+        jTextFieldTelefono.setPreferredSize(new java.awt.Dimension(125, 26));
+        jTextFieldTelefono.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                jTextFieldEmailFocusGained(evt);
+                jTextFieldTelefonoFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                jTextFieldEmailFocusLost(evt);
+                jTextFieldTelefonoFocusLost(evt);
             }
         });
-        jTextFieldEmail.addKeyListener(new java.awt.event.KeyAdapter() {
+        jTextFieldTelefono.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextFieldEmailKeyReleased(evt);
+                jTextFieldTelefonoKeyReleased(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -273,10 +271,10 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jTextFieldEmail, gridBagConstraints);
+        jPanelCuerpo.add(jTextFieldTelefono, gridBagConstraints);
 
-        jLabelAdvertenciaEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelAdvertenciaEmail.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
+        jLabelAdvertenciaTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelAdvertenciaTelefono.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
@@ -284,72 +282,7 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelAdvertenciaEmail, gridBagConstraints);
-
-        jLabelContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelContrasena.setText("Contraseña");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelContrasena, gridBagConstraints);
-
-        jPasswordField.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                jPasswordFieldKeyReleased(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jPasswordField, gridBagConstraints);
-
-        jLabelAdvertenciaContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelAdvertenciaContrasena.setForeground(new java.awt.Color(0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelAdvertenciaContrasena, gridBagConstraints);
-
-        jButtonMostrarContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
-        jButtonMostrarContrasena.setText("Mostrar Contraseña");
-        jButtonMostrarContrasena.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonMostrarContrasenaActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jButtonMostrarContrasena, gridBagConstraints);
-
-        jLabelInicioSesion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelInicioSesion.setForeground(java.awt.SystemColor.textHighlight);
-        jLabelInicioSesion.setText("<html><u>Ya estás registrado...</u></html>");
-        jLabelInicioSesion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jLabelInicioSesion.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jLabelInicioSesionMouseClicked(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelInicioSesion, gridBagConstraints);
+        jPanelCuerpo.add(jLabelAdvertenciaTelefono, gridBagConstraints);
 
         jLabelDireccion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelDireccion.setText("Dirección");
@@ -473,60 +406,12 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelAdvertenciaCodigoPostal, gridBagConstraints);
 
-        jLabelTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelTelefono.setText("Teléfono");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelTelefono, gridBagConstraints);
-
-        jTextFieldTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jTextFieldTelefono.setForeground(new java.awt.Color(153, 153, 153));
-        jTextFieldTelefono.setText("9 dígitos sin espacios");
-        jTextFieldTelefono.setMinimumSize(new java.awt.Dimension(125, 26));
-        jTextFieldTelefono.setPreferredSize(new java.awt.Dimension(125, 26));
-        jTextFieldTelefono.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                jTextFieldTelefonoFocusGained(evt);
-            }
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                jTextFieldTelefonoFocusLost(evt);
-            }
-        });
-        jTextFieldTelefono.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextFieldTelefonoKeyReleased(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jTextFieldTelefono, gridBagConstraints);
-
-        jLabelAdvertenciaTelefono.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelAdvertenciaTelefono.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelAdvertenciaTelefono, gridBagConstraints);
-
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
 
         jPanelCabecera.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jLabelTitulo.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabelTitulo.setText("Registro");
+        jLabelTitulo.setText("Modificar Usuario");
         jPanelCabecera.add(jLabelTitulo);
 
         jPanelPrincipal.add(jPanelCabecera, java.awt.BorderLayout.PAGE_START);
@@ -534,15 +419,24 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jPanelPiePagina.setName(""); // NOI18N
         jPanelPiePagina.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
-        jButtonRegistrarse.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonRegistrarse.setText("Registrarse");
-        jButtonRegistrarse.setEnabled(false);
-        jButtonRegistrarse.addActionListener(new java.awt.event.ActionListener() {
+        jButtonEliminarUsuario.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonEliminarUsuario.setText("Eliminar Usuario");
+        jButtonEliminarUsuario.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonRegistrarseActionPerformed(evt);
+                jButtonEliminarUsuarioActionPerformed(evt);
             }
         });
-        jPanelPiePagina.add(jButtonRegistrarse);
+        jPanelPiePagina.add(jButtonEliminarUsuario);
+
+        jButtonModificarUsuario.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonModificarUsuario.setText("Modificar Usuario");
+        jButtonModificarUsuario.setEnabled(false);
+        jButtonModificarUsuario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonModificarUsuarioActionPerformed(evt);
+            }
+        });
+        jPanelPiePagina.add(jButtonModificarUsuario);
 
         jPanelPrincipal.add(jPanelPiePagina, java.awt.BorderLayout.PAGE_END);
 
@@ -556,17 +450,45 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 621, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 391, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButtonRegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRegistrarseActionPerformed
+    private void cargarVistaUsuario(Usuario usuario) {
+
+        this.jTextFieldDNI.setText(usuario.getDNI().trim());
+        this.jTextFieldNombre.setText(usuario.getNombre().trim());
+        this.jTextFieldDireccion.setText(usuario.getDireccion().trim());
+        this.jTextFieldLocalidad.setText(usuario.getLocalidad().trim());
+        this.jTextFieldCodigoPostal.setText(usuario.getCodigoPostal().trim());
+        this.jTextFieldTelefono.setText(usuario.getTelefono().trim());
+
+        this.jTextFieldDNI.setForeground(NEGRO);
+        this.jTextFieldNombre.setForeground(NEGRO);
+        this.jTextFieldDireccion.setForeground(NEGRO);
+        this.jTextFieldLocalidad.setForeground(NEGRO);
+        this.jTextFieldCodigoPostal.setForeground(NEGRO);
+        this.jTextFieldTelefono.setForeground(NEGRO);
+
+        this.jButtonModificarUsuario.setEnabled(true);
+
+        this.campoDNICorrecto = true;
+        this.campoNombreCorrecto = true;
+        this.campoEmailCorrecto = true;
+        this.campoCodigoPostalCorrecto = true;
+        this.campoTelefonoCorrecto = true;
+        this.usuarioModificado = new Usuario(usuario);
+        this.usuarioOriginal = new Usuario(usuario);
+
+    }
+
+    private void jButtonModificarUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonModificarUsuarioActionPerformed
         // TODO add your handling code here:
         // Obtener datos del formulario
-        String email = jTextFieldEmail.getText().trim();
-        String password = new String(jPasswordField.getPassword()).trim();
+        String email = usuarioOriginal.getEmail();
+        String password = usuarioOriginal.getContrasena();
         String nombre = jTextFieldNombre.getText().trim();
         String dni = jTextFieldDNI.getText().trim();
         String direccion = jTextFieldDireccion.getText().trim();
@@ -574,33 +496,22 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         String codigoPostal = jTextFieldCodigoPostal.getText().trim();
         String telefono = jTextFieldTelefono.getText().trim();
 
-        try {
-            // Comprobar si el usuario ya está registrado
-            UsuarioDAO usuarioDAO = new UsuarioDAO(email);
-            UsuarioControlador usuarioControlador = new UsuarioControlador(usuarioDAO);
-            Usuario usuario = usuarioControlador.leer(email);
+        // Crear objeto UsuarioModificado
+        usuarioModificado = new Usuario(email, password, nombre, dni, direccion, localidad, codigoPostal, telefono);
+        // La contraseña que tenemos ahora mismo es la hasheada, pero con el constructor la está hasheando 2 veces
+        //Ponemos la contraseña sin hashearla 2 veces
+        usuarioModificado.setContrasenaSinHashear(password);
 
-            System.out.println(usuario);
-            
-            if (usuario != null) {
-                Utils.mostrarAdvertencia(this, TITULO_USUARIO_YA_REGISTRADO, MENSAJE_USUARIO_YA_REGISTRADO);
-                return;
-            }
+        // Guardar usuario en Firestore y en caché con UsuarioControlador
+        usuarioControlador.actualizar(usuarioOriginal, usuarioModificado);
 
-            // Crear objeto Usuario
-            usuario = new Usuario(email, password, nombre, dni, direccion, localidad, codigoPostal, telefono);
+        Utils.mostrarInformacion(this, TITULO_USUARIO_MODIFICADO, MENSAJE_USUARIO_MODIFICADO);
+        // Abrir ventana de inicio de Sesion
+        dispose();
+        parent.setEnabled(true);
+        //this.dispose();
 
-            // Guardar usuario en Firestore y en caché con UsuarioControlador
-            usuarioControlador.crear(usuario);
-            Utils.mostrarInformacion(this, TITULO_USUARIO_REGISTRADO, MENSAJE_USUARIO_REGISTRADO);
-            // Abrir ventana de inicio de Sesion
-            vistaInicioSesión.setVisible(true);
-            this.setVisible(false);
-            //this.dispose();
-        } catch (IOException e) {
-            Utils.mostrarError(this, TITULO_ERROR_FIREBASE, MENSAJE_ERROR_FIREBASE);
-        }
-    }//GEN-LAST:event_jButtonRegistrarseActionPerformed
+    }//GEN-LAST:event_jButtonModificarUsuarioActionPerformed
 
     private void jTextFieldDNIFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDNIFocusGained
         // TODO add your handling code here:
@@ -647,64 +558,6 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         );
         habilitarBotonRegistrarse();
     }//GEN-LAST:event_jTextFieldNombreKeyReleased
-
-    private void jTextFieldEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusGained
-        // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
-
-    }//GEN-LAST:event_jTextFieldEmailFocusGained
-
-    private void jTextFieldEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusLost
-        // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
-
-    }//GEN-LAST:event_jTextFieldEmailFocusLost
-
-    private void jTextFieldEmailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldEmailKeyReleased
-        // TODO add your handling code here:
-        campoEmailCorrecto = validarCampoFormulario(
-                jTextFieldEmail,
-                jLabelAdvertenciaEmail,
-                ERROR_EMAIL_CLIENTE,
-                originalBorder,
-                texto -> !texto.isEmpty() && texto.matches(VALIDACION_EMAIL_CLIENTE)
-        );
-        habilitarBotonRegistrarse();
-    }//GEN-LAST:event_jTextFieldEmailKeyReleased
-
-    private void jPasswordFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jPasswordFieldKeyReleased
-        // TODO add your handling code here:
-        String pss = new String(jPasswordField.getPassword());
-        JTextField jTextFieldPassword = new JTextField(pss);
-        JLabel jLabel = new JLabel();
-
-        campoContrasenaCorrecto = validarCampoFormulario(
-                jTextFieldPassword,
-                jLabel,
-                ERROR_CONTRASENA,
-                originalBorder,
-                texto -> !texto.isEmpty() && texto.matches(VALIDACION_CONTRASENA)
-        );
-        habilitarBotonRegistrarse();
-    }//GEN-LAST:event_jPasswordFieldKeyReleased
-
-    private void jButtonMostrarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMostrarContrasenaActionPerformed
-        // TODO add your handling code here:
-        if (contrasenaVisible) {
-            jPasswordField.setEchoChar('•'); // Ocultar contraseña
-            jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo_cerrado.svg"));
-        } else {
-            jPasswordField.setEchoChar((char) 0); // Mostrar contraseña
-            jButtonMostrarContrasena.setIcon(new FlatSVGIcon("svg/ojo.svg"));
-        }
-        contrasenaVisible = !contrasenaVisible;
-    }//GEN-LAST:event_jButtonMostrarContrasenaActionPerformed
-
-    private void jLabelInicioSesionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelInicioSesionMouseClicked
-        // TODO add your handling code here:
-        vistaInicioSesión.setVisible(true);
-        this.setVisible(false);
-    }//GEN-LAST:event_jLabelInicioSesionMouseClicked
 
     private void jTextFieldDireccionFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldDireccionFocusGained
         // TODO add your handling code here:
@@ -787,6 +640,41 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         habilitarBotonRegistrarse();
     }//GEN-LAST:event_jTextFieldTelefonoKeyReleased
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        // TODO add your handling code here:
+        parent.setEnabled(true);
+    }//GEN-LAST:event_formWindowClosing
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        // TODO add your handling code here:
+        parent.setEnabled(false);
+    }//GEN-LAST:event_formWindowOpened
+
+    private void jButtonEliminarUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarUsuarioActionPerformed
+        // TODO add your handling code here:
+        // Mensaje de confirmación
+        int opcion = Utils.mostrarConfirmacion(this, TITULO_CONFIRMACION_ELIMINACION_USUARIO, MENSAJE_CONFIRMACION_ELIMINACION_USUARIO);
+
+        // Si el usuario confirma (Opción "Sí")
+        if (opcion == JOptionPane.YES_OPTION) {
+            usuarioControlador.borrar(usuarioOriginal);
+
+            Utils.mostrarInformacion(this, TITULO_ELIMINACION_USUARIO, MENSAJE_ELIMINACION_USUARIO);
+
+            try {
+                vistaInicioSesión = new VistaInicioSesión();
+            } catch (IOException ex) {
+                Logger.getLogger(VistaUsuario.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            parent.setEnabled(true);
+            parent.dispose();
+
+            vistaInicioSesión.setVisible(true);
+            this.dispose();
+        }
+    }//GEN-LAST:event_jButtonEliminarUsuarioActionPerformed
+
     private void habilitarBotonRegistrarse() {
         if (campoDNICorrecto) {
             if (campoNombreCorrecto) {
@@ -794,11 +682,9 @@ public class VistaRegistrarse extends javax.swing.JFrame {
                     if (!jTextFieldDireccion.getText().trim().equals(PLACEHOLDER_DIRECCION_CLIENTE) && !jTextFieldDireccion.getText().trim().isEmpty()) {
                         if (!jTextFieldLocalidad.getText().trim().equals(PLACEHOLDER_LOCALIDAD_CLIENTE) && !jTextFieldLocalidad.getText().trim().isEmpty()) {
                             if (campoCodigoPostalCorrecto) {
-                                if (campoContrasenaCorrecto) {
-                                    if (campoTelefonoCorrecto) {
-                                        jButtonRegistrarse.setEnabled(true);
-                                        return;
-                                    }
+                                if (campoTelefonoCorrecto) {
+                                    jButtonModificarUsuario.setEnabled(true);
+                                    return;
                                 }
                             }
                         }
@@ -806,32 +692,19 @@ public class VistaRegistrarse extends javax.swing.JFrame {
                 }
             }
         }
-        jButtonRegistrarse.setEnabled(false);
-    }
-
-    public VistaInicioSesión getVistaInicioSesión() {
-        return vistaInicioSesión;
-    }
-
-    public void setVistaInicioSesión(VistaInicioSesión vistaInicioSesión) {
-        this.vistaInicioSesión = vistaInicioSesión;
+        jButtonModificarUsuario.setEnabled(false);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonMostrarContrasena;
-    private javax.swing.JButton jButtonRegistrarse;
+    private javax.swing.JButton jButtonEliminarUsuario;
+    private javax.swing.JButton jButtonModificarUsuario;
     private javax.swing.JLabel jLabelAdvertenciaCodigoPostal;
-    private javax.swing.JLabel jLabelAdvertenciaContrasena;
     private javax.swing.JLabel jLabelAdvertenciaDNI;
-    private javax.swing.JLabel jLabelAdvertenciaEmail;
     private javax.swing.JLabel jLabelAdvertenciaNombre;
     private javax.swing.JLabel jLabelAdvertenciaTelefono;
     private javax.swing.JLabel jLabelCodigoPostal;
-    private javax.swing.JLabel jLabelContrasena;
     private javax.swing.JLabel jLabelDNI;
     private javax.swing.JLabel jLabelDireccion;
-    private javax.swing.JLabel jLabelEmail;
-    private javax.swing.JLabel jLabelInicioSesion;
     private javax.swing.JLabel jLabelLocalidad;
     private javax.swing.JLabel jLabelNombre;
     private javax.swing.JLabel jLabelTelefono;
@@ -840,11 +713,9 @@ public class VistaRegistrarse extends javax.swing.JFrame {
     private javax.swing.JPanel jPanelCuerpo;
     private javax.swing.JPanel jPanelPiePagina;
     private javax.swing.JPanel jPanelPrincipal;
-    private javax.swing.JPasswordField jPasswordField;
     private javax.swing.JTextField jTextFieldCodigoPostal;
     private javax.swing.JTextField jTextFieldDNI;
     private javax.swing.JTextField jTextFieldDireccion;
-    private javax.swing.JTextField jTextFieldEmail;
     private javax.swing.JTextField jTextFieldLocalidad;
     private javax.swing.JTextField jTextFieldNombre;
     private javax.swing.JTextField jTextFieldTelefono;

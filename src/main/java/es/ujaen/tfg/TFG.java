@@ -4,7 +4,6 @@
 package es.ujaen.tfg;
 
 import es.ujaen.tfg.vistas.VistaInicioSesión;
-import es.ujaen.tfg.vistas.VistaPrincipal;
 
 /**
  *
@@ -12,8 +11,7 @@ import es.ujaen.tfg.vistas.VistaPrincipal;
  */
 public class TFG {
 
-    public static void main(String[] args) {
-        //VistaPrincipal.main(args);
+    public static void main(String[] args) throws InstantiationException, ClassNotFoundException, IllegalAccessException {
         VistaInicioSesión.main(args);
     }
 }

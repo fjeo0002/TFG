@@ -10,23 +10,35 @@ import es.ujaen.tfg.DAO.UsuarioDAO;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.controlador.UsuarioControlador;
 import es.ujaen.tfg.modelo.Usuario;
+import es.ujaen.tfg.utils.Utils;
 import static es.ujaen.tfg.utils.Utils.ERROR_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.ERROR_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_ERROR_CREDENCIALES;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_ERROR_FIREBASE;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_INICIO_SESION;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_USUARIO_NO_EXISTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.TITULO_ERROR_CREDENCIALES;
+import static es.ujaen.tfg.utils.Utils.TITULO_ERROR_FIREBASE;
+import static es.ujaen.tfg.utils.Utils.TITULO_INICIO_SESION;
+import static es.ujaen.tfg.utils.Utils.TITULO_USUARIO_NO_EXISTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
-import java.awt.HeadlessException;
+import java.awt.Color;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 
 /**
  *
@@ -34,8 +46,12 @@ import javax.swing.border.Border;
  */
 public class VistaInicioSesión extends javax.swing.JFrame {
 
+    private VistaPrincipal vistaPrincipal;
     private VistaRegistrarse vistaRegistrarse;
     private VistaRecuperarContrasena vistaRecuperarContrasena;
+
+    private UsuarioControlador usuarioControlador;
+    private UsuarioDAO usuarioDAO;
 
     private boolean campoEmailCorrecto;
     private boolean campoContrasenaCorrecto;
@@ -47,12 +63,16 @@ public class VistaInicioSesión extends javax.swing.JFrame {
     /**
      * Creates new form VistaInicioSesión
      */
-    public VistaInicioSesión() {
+    public VistaInicioSesión() throws IOException {
         initComponents();
         setLocationRelativeTo(null);
 
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
+
+        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        FirebaseInitializer.getInstance();
 
         this.originalBorder = jTextFieldEmail.getBorder();
 
@@ -89,6 +109,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Inicio de Sesión");
+        setResizable(false);
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
@@ -225,6 +246,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         jPanelPiePagina.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
         jButtonIniciarSesion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonIniciarSesion.setIcon(new FlatSVGIcon("svg/iniciar_sesion.svg"));
         jButtonIniciarSesion.setText("Iniciar Sesión");
         jButtonIniciarSesion.setEnabled(false);
         jButtonIniciarSesion.addActionListener(new java.awt.event.ActionListener() {
@@ -244,7 +266,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
         );
 
         pack();
@@ -256,34 +278,34 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         String email = jTextFieldEmail.getText().trim();
         String password = new String(jPasswordField.getPassword()).trim();
 
+        Usuario usuario = null;
         try {
-            FirebaseInitializer firebase = FirebaseInitializer.getInstance();
-
-            // 🔹 Cargar usuario en caché desde Firestore
-            UsuarioDAO usuarioDAO = new UsuarioDAO(email);
-            UsuarioControlador usuarioControlador = new UsuarioControlador(usuarioDAO);
-            Usuario usuario = usuarioControlador.leer(email);
-
-            if (usuario != null) {
-                if (usuarioControlador.verificarCredenciales(email, password)) {
-                    JOptionPane.showMessageDialog(this, "Inicio de sesión exitoso.");
-                    abrirVistaPrincipal(email);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Las credenciales no son correctas");
-                }
-
-            } else {
-                JOptionPane.showMessageDialog(this, "No se encontraron datos del usuario.");
-            }
+            usuarioDAO = new UsuarioDAO(email);
+            usuarioControlador = new UsuarioControlador(usuarioDAO);
+            usuario = usuarioControlador.leer(email);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Error al conectar con Firebase.");
-        } catch (HeadlessException e) {
-            JOptionPane.showMessageDialog(this, "Error desconocido: " + e.getMessage());
+            Utils.mostrarError(this, TITULO_ERROR_FIREBASE, MENSAJE_ERROR_FIREBASE);
+            return; // Detener ejecución si hay error de conexión
+        }
+
+        if (usuario != null) {
+            if (usuarioControlador.verificarCredenciales(email, password)) {
+                Utils.mostrarInformacion(this, TITULO_INICIO_SESION, MENSAJE_INICIO_SESION);
+                try {
+                    abrirVistaPrincipal(email);
+                } catch (IOException ex) {
+                    Logger.getLogger(VistaInicioSesión.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                Utils.mostrarError(this, TITULO_ERROR_CREDENCIALES, MENSAJE_ERROR_CREDENCIALES);
+            }
+        } else {
+            Utils.mostrarError(this, TITULO_USUARIO_NO_EXISTE, MENSAJE_USUARIO_NO_EXISTE);
         }
     }//GEN-LAST:event_jButtonIniciarSesionActionPerformed
 
-    private void abrirVistaPrincipal(String userId) throws IOException {
-        VistaPrincipal vistaPrincipal = new VistaPrincipal(userId);
+    private void abrirVistaPrincipal(String email) throws IOException {
+        vistaPrincipal = new VistaPrincipal(email);
         vistaPrincipal.setVisible(true);
         this.dispose(); // Cierra la ventana de inicio de sesión
     }
@@ -310,16 +332,24 @@ public class VistaInicioSesión extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextFieldEmailKeyReleased
 
     private void jLabelOlvidoContrasenaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelOlvidoContrasenaMouseClicked
-        // TODO add your handling code here:
-        vistaRecuperarContrasena = new VistaRecuperarContrasena();
+        try {
+            // TODO add your handling code here:
+            vistaRecuperarContrasena = new VistaRecuperarContrasena();
+        } catch (IOException ex) {
+            Logger.getLogger(VistaInicioSesión.class.getName()).log(Level.SEVERE, null, ex);
+        }
         vistaRecuperarContrasena.setVistaInicioSesión(this);
         vistaRecuperarContrasena.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_jLabelOlvidoContrasenaMouseClicked
 
     private void jLabelRegistrarseMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelRegistrarseMouseClicked
-        // TODO add your handling code here:
-        vistaRegistrarse = new VistaRegistrarse();
+        try {
+            // TODO add your handling code here:
+            vistaRegistrarse = new VistaRegistrarse();
+        } catch (IOException ex) {
+            Logger.getLogger(VistaInicioSesión.class.getName()).log(Level.SEVERE, null, ex);
+        }
         vistaRegistrarse.setVistaInicioSesión(this);
         vistaRegistrarse.setVisible(true);
         this.setVisible(false);
@@ -366,7 +396,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void main(String args[]) throws InstantiationException, ClassNotFoundException, IllegalAccessException {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -399,12 +429,79 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         //</editor-fold>
 
         try {
+            /*
+            // Configuración de tonalidades azules en todos los componentes
+            UIManager.put("Component.accentColor", new Color(30, 144, 255)); // Azul DodgerBlue
+            UIManager.put("Component.focusColor", new Color(0, 120, 215)); // Azul Windows 10
+            UIManager.put("Component.selectionBackground", new Color(0, 102, 204)); // Azul más oscuro para selección
+
+            // Configuración de botones
+            UIManager.put("Button.background", new Color(64, 156, 255));
+            UIManager.put("Button.foreground", Color.WHITE);
+            UIManager.put("Button.hoverBackground", new Color(0, 120, 215));
+            UIManager.put("Button.focusedBackground", new Color(0, 102, 204));
+            UIManager.put("Button.pressedBackground", new Color(0, 90, 180));
+
+            // Campos de texto
+            UIManager.put("TextComponent.background", new Color(225, 245, 254)); // Azul muy claro
+            UIManager.put("TextComponent.foreground", new Color(13, 71, 161)); // Azul oscuro
+            UIManager.put("TextComponent.selectionBackground", new Color(30, 136, 229));
+            UIManager.put("TextComponent.selectionForeground", Color.WHITE);
+            UIManager.put("TextComponent.border", BorderFactory.createLineBorder(new Color(30, 136, 229), 1));
+
+            // Fondos de paneles y ventanas
+            UIManager.put("Panel.background", new Color(240, 248, 255)); // Azul muy claro
+            UIManager.put("Frame.background", new Color(240, 248, 255));
+            UIManager.put("Dialog.background", new Color(240, 248, 255));
+
+            // Tablas
+            UIManager.put("Table.background", new Color(225, 245, 254));
+            UIManager.put("Table.foreground", new Color(13, 71, 161));
+            UIManager.put("Table.selectionBackground", new Color(30, 136, 229));
+            UIManager.put("Table.selectionForeground", Color.WHITE);
+            UIManager.put("Table.gridColor", new Color(144, 202, 249));
+
+            // Menús
+            UIManager.put("MenuBar.background", new Color(187, 222, 251));
+            UIManager.put("Menu.foreground", new Color(13, 71, 161));
+            UIManager.put("Menu.selectionBackground", new Color(30, 136, 229));
+
+            // Scrollbars
+            UIManager.put("ScrollBar.thumb", new Color(100, 181, 246));
+            UIManager.put("ScrollBar.thumbHover", new Color(33, 150, 243));
+
+            // JTabbedPane (pestañas)
+            UIManager.put("TabbedPane.background", new Color(240, 248, 255)); // Fondo claro
+            UIManager.put("TabbedPane.selectedBackground", new Color(30, 136, 229)); // Azul al seleccionar
+            UIManager.put("TabbedPane.unselectedBackground", new Color(187, 222, 251)); // Azul suave
+            UIManager.put("TabbedPane.foreground", new Color(13, 71, 161)); // Azul oscuro para texto
+
+            // Barra de título (cerrar, minimizar, maximizar)
+            UIManager.put("TitlePane.background", new Color(30, 136, 229)); // Azul de fondo
+            UIManager.put("TitlePane.foreground", Color.WHITE); // Texto en blanco
+            UIManager.put("TitlePane.buttonBackground", new Color(0, 120, 215)); // Botones en azul oscuro
+            UIManager.put("TitlePane.buttonForeground", Color.WHITE); // Texto de los botones en blanco
+            UIManager.put("TitlePane.buttonHoverBackground", new Color(0, 90, 180)); // Efecto hover
+            */
+            // Aplicar LookAndFeel
             UIManager.setLookAndFeel(new FlatLightLaf());
+
         } catch (UnsupportedLookAndFeelException e) {
         }
-        /* Create and display the form */
+
+        /*
+        try {
+            UIManager.setLookAndFeel("com.jtattoo.plaf.fast.FastLookAndFeel");
+        } catch (UnsupportedLookAndFeelException e) {
+        }
+         */
+ /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            new VistaInicioSesión().setVisible(true);
+            try {
+                new VistaInicioSesión().setVisible(true);
+            } catch (IOException ex) {
+                Logger.getLogger(VistaInicioSesión.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
     }
 

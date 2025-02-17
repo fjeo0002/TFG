@@ -7,6 +7,7 @@ package es.ujaen.tfg.vistas;
 import es.ujaen.tfg.controlador.PreferenciasControlador;
 import es.ujaen.tfg.modelo.Preferencias;
 import javax.swing.ImageIcon;
+import javax.swing.border.EmptyBorder;
 
 /**
  *
@@ -29,6 +30,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
         setLocationRelativeTo(null);
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
+        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
         cargarPreferencias();
     }
 
@@ -58,6 +60,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Preferencias");
         setName("VistaPreferencias"); // NOI18N
+        setResizable(false);
         setSize(new java.awt.Dimension(348, 245));
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
@@ -156,7 +159,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 283, Short.MAX_VALUE)
         );
 
         pack();

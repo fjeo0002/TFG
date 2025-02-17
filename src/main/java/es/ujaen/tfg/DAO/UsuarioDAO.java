@@ -6,19 +6,10 @@ package es.ujaen.tfg.DAO;
 
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
-import com.google.gson.Gson;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Usuario;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  *
@@ -26,6 +17,100 @@ import java.util.concurrent.Executors;
  */
 public final class UsuarioDAO implements InterfazDAO<Usuario> {
 
+    
+    private final Firestore db;
+    private final String email;
+
+    public UsuarioDAO(String email) throws IOException {
+        this.db = FirebaseInitializer.getInstance().getDb();
+        this.email = email;
+    }
+
+    // ✅ CREAR usuario en Firebase y luego actualizar caché
+    @Override
+    public boolean crear(Usuario usuario) {
+        try {
+            // 🔹 Guardar usuario en Firebase primero
+            db.collection("usuarios").document(usuario.getEmail()).set(usuario).get();
+            
+            return true;
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Error al crear usuario en Firebase: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    // ✅ LEER usuario directamente desde Firebase
+    @Override
+    public Usuario leer(String id) {
+        try {
+            DocumentSnapshot document = db.collection("usuarios").document(id).get().get();
+
+            if (document.exists()) {
+                Usuario usuario = document.toObject(Usuario.class);
+                return usuario;
+            } else {
+                return null; // 🔹 Usuario no encontrado
+            }
+
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Error al leer usuario desde Firebase: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ✅ ACTUALIZAR usuario en Firebase y luego actualizar caché
+    @Override
+    public boolean actualizar(Usuario usuario) {
+        try {
+            db.collection("usuarios").document(email).set(usuario).get();
+            return true;
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Error al actualizar usuario en Firebase: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ✅ BORRAR usuario correctamente al cerrar sesión
+    @Override
+    public boolean borrar(Usuario usuario) {
+        try {
+            // 🔹 Borrar de Firebase
+            db.collection("usuarios").document(email).delete().get();
+
+            return true;
+        } catch (InterruptedException | ExecutionException  e) {
+            System.err.println("Error al borrar usuario: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ✅ VERIFICAR credenciales en Firebase
+    public boolean verificarCredenciales(String email, String password) {
+        try {
+            DocumentSnapshot document = db.collection("usuarios").document(email).get().get();
+
+            if (document.exists()) {
+                String contrasenaGuardada = document.getString("contrasena");
+
+                if (contrasenaGuardada != null && contrasenaGuardada.equals(Usuario.hashContrasena(password))) {
+                    return true;
+                }
+            }
+            return false;
+
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Error al verificar credenciales: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ✅ LEER TODOS (no aplica, solo hay un usuario logueado)
+    @Override
+    public java.util.List<Usuario> leerTodos() {
+        throw new UnsupportedOperationException("Operación no soportada para UsuarioDAO.");
+    }
+    /*
     private final Firestore db;
     private final String email;
     private Usuario usuarioCache;
@@ -36,7 +121,7 @@ public final class UsuarioDAO implements InterfazDAO<Usuario> {
     public UsuarioDAO(String email) throws IOException {
         this.db = FirebaseInitializer.getInstance().getDb();
         this.email = email;
-        this.usuarioCache = cargarDesdeCache();
+        //this.usuarioCache = cargarDesdeCache();
         if (this.usuarioCache == null) {
             sincronizarDesdeFirebase();
         }
@@ -85,17 +170,18 @@ public final class UsuarioDAO implements InterfazDAO<Usuario> {
     }
 
     // ✅ Guardar cambios en Firebase antes de cerrar la aplicación
-    private void agregarShutdownHook() {
+    private void agregarShutdownHook() throws IOException {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (cambiosPendientes) {
                 sincronizarConFirebase();
             }
             executorService.shutdown();
         }));
+        //Files.delete(Paths.get(CACHE_FILE));
     }
 
     // ✅ Sincronizar caché con Firebase en segundo plano
-    private void sincronizarConFirebase() {
+    public void sincronizarConFirebase() {
         executorService.submit(() -> {
             if (usuarioCache != null) {
                 db.collection("usuarios").document(email).set(usuarioCache);
@@ -155,6 +241,8 @@ public final class UsuarioDAO implements InterfazDAO<Usuario> {
         try {
             // Obtener el documento del usuario directamente
             DocumentSnapshot document = db.collection("usuarios").document(email).get().get();
+            
+            if(document == null) return false;
 
             // Obtener la contraseña almacenada y compararla con el hash de la ingresada
             String contrasenaGuardada = document.getString("contrasena");
@@ -172,4 +260,5 @@ public final class UsuarioDAO implements InterfazDAO<Usuario> {
             return false;
         }
     }
+    */
 }

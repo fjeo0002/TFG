@@ -13,6 +13,7 @@ import es.ujaen.tfg.DAO.FacturaDAO;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
+import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.BorrarAnticipoCommand;
@@ -70,9 +71,9 @@ public class AnticipoControlador implements Observable {
         }
     }
 
-    public boolean crear(Anticipo anticipo, Cliente clienteOriginal, Cliente clienteModificado, List<Factura> facturasACrear) {
+    public boolean crear(Anticipo anticipo, Cliente clienteOriginal, Cliente clienteModificado, List<Factura> facturasACrear, Usuario usuario) {
         //anticipoDAO.crear(anticipo);
-        StringWriter writer = generarAnticipoPDF(anticipo);
+        StringWriter writer = generarAnticipoPDF(anticipo, usuario);
         
         Command crearAnticipo = new CrearAnticipoCommand(anticipoDAO, anticipo, 
                 clienteDAO, clienteOriginal, clienteModificado, 
@@ -113,7 +114,7 @@ public class AnticipoControlador implements Observable {
         return null;
     }
 
-    public StringWriter generarAnticipoPDF(Anticipo a) {
+    public StringWriter generarAnticipoPDF(Anticipo a, Usuario u) {
         StringWriter writer = new StringWriter();
         try {
             // Cargar la plantilla HTML
@@ -125,13 +126,13 @@ public class AnticipoControlador implements Observable {
 
             // Datos de la Empresa
             Map<String, String> empresa = new HashMap<>();
-            empresa.put("nombre", "María del Carmen Armenteros de la Chica");
-            empresa.put("direccion", "Obispo González 11, Piso 3, Puerta D");
-            empresa.put("codigoPostal", "23002");
-            empresa.put("localidad", "Jaén");
-            empresa.put("telefono", "953320227 - 675407872");
-            empresa.put("email", "familiaortegaarmenteros@gmail.com");
-            empresa.put("dni", "25881967K");
+            empresa.put("nombre", u.getNombre());
+            empresa.put("direccion", u.getDireccion());
+            empresa.put("codigoPostal", u.getCodigoPostal());
+            empresa.put("localidad", u.getLocalidad());
+            empresa.put("telefono", u.getTelefono());
+            empresa.put("email", u.getEmail());
+            empresa.put("dni", u.getDNI());
             datos.put("empresa", empresa);
 
             // Datos del Cliente

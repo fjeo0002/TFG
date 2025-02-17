@@ -15,6 +15,7 @@ import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.modelo.Local;
+import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.observer.Observable;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.Command;
@@ -78,10 +79,10 @@ public class FacturaControlador implements Observable {
         }
     }
 
-    public boolean crear(Factura factura, boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion) {
+    public boolean crear(Factura factura, boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion, Usuario usuario) {
         //facturaDAO.crear(factura);
         // 1º Habrá que generar el PDF para conseguir la ruta
-        StringWriter writer = generarFacturaPDF(factura, facturaAbono, locales, cantidades, IVA, retencion);
+        StringWriter writer = generarFacturaPDF(factura, facturaAbono, locales, cantidades, IVA, retencion, usuario);
         // 2º Modificar el Command para que, si se crea, CREAR el PDF y si se Deshace, borrarlo
         Command crearFactura = new CrearFacturaCommand(facturaDAO, factura, writer);
         undoManager.execute(crearFactura);
@@ -96,9 +97,10 @@ public class FacturaControlador implements Observable {
     public boolean numerar(Factura facturaOriginal, Factura facturaModificada, 
             Cliente clienteOriginal, Cliente clienteModificado, 
             Anticipo anticipoOriginal, Anticipo anticipoModificado,
-            boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion
+            boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion,
+            Usuario usuario
     ) {
-        StringWriter writer = generarFacturaPDF(facturaModificada, facturaAbono, locales, cantidades, IVA, retencion);
+        StringWriter writer = generarFacturaPDF(facturaModificada, facturaAbono, locales, cantidades, IVA, retencion, usuario);
         //facturaDAO.numerar(factura);
         Command numerarFactura = new NumerarFacturaCommand(facturaDAO, facturaOriginal, facturaModificada, 
                 clienteDAO, clienteOriginal, clienteModificado, 
@@ -137,7 +139,7 @@ public class FacturaControlador implements Observable {
         return facturaDAO.leerTodos();
     }
 
-    public StringWriter generarFacturaPDF(Factura f, boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion) {
+    public StringWriter generarFacturaPDF(Factura f, boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion, Usuario u) {
         StringWriter writer = new StringWriter();
         try {
             // Cargar la plantilla HTML
@@ -153,13 +155,13 @@ public class FacturaControlador implements Observable {
             }
             // Datos de Empresa
             Map<String, String> empresa = new HashMap<>();
-            empresa.put("nombre", "María del Carmen Armenteros de la Chica");
-            empresa.put("direccion", "Obispo González 11, Piso 3, Puerta D");
-            empresa.put("codigoPostal", "23002");
-            empresa.put("localidad", "Jaén");
-            empresa.put("telefono", "953320227 - 675407872");
-            empresa.put("email", "familiaortegaarmenteros@gmail.com");
-            empresa.put("dni", "25881967K");
+            empresa.put("nombre", u.getNombre());
+            empresa.put("direccion", u.getDireccion());
+            empresa.put("codigoPostal", u.getCodigoPostal());
+            empresa.put("localidad", u.getLocalidad());
+            empresa.put("telefono", u.getTelefono());
+            empresa.put("email", u.getEmail());
+            empresa.put("dni", u.getDNI());
             datos.put("empresa", empresa);
 
             String DNI = f.getClienteDNI();
@@ -239,23 +241,7 @@ public class FacturaControlador implements Observable {
             Mustache mustache = mf.compile(new StringReader(plantilla), "factura");
             //StringWriter writer = new StringWriter();
             mustache.execute(writer, datos).flush();
-/*
-            // Crear el HTML dinámico
-            Files.write(Paths.get("factura_"+f.getId()+".html"), writer.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
-            // Pasar el HTML dinámico a PDF
-            try (OutputStream os = new FileOutputStream("Factura_"+f.getId()+".pdf")) {
-                PdfRendererBuilder builder = new PdfRendererBuilder();
-                builder.useFastMode();
-                builder.withUri("file:factura_"+f.getId()+".html");
-                builder.toStream(os);
-                builder.run();
-            } catch (Exception e) {
-            }
-
-            // Borrar el HTML dinámico
-            Files.delete(Paths.get("factura_"+f.getId()+".html"));
-*/
         } catch (IOException e) {
         }
         

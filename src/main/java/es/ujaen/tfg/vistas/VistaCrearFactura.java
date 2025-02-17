@@ -15,6 +15,7 @@ import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.modelo.Preferencias;
+import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.observer.Observador;
 import static es.ujaen.tfg.utils.Utils.AL_DIA;
 import static es.ujaen.tfg.utils.Utils.EURO;
@@ -41,6 +42,7 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -67,6 +69,8 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private final AnticipoControlador anticipoControlador;
     private final PreferenciasControlador preferenciasControlador;
 
+    private final Usuario usuario;
+
     private TextAutoCompleter autoCompleterBuscadorClientes;
     private TextAutoCompleter autoCompleterBuscadorLocales;
 
@@ -87,13 +91,16 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
      * @param facturaControlador
      * @param anticipoControlador
      * @param preferenciasControlador
+     * @param usuario
      */
-    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador, AnticipoControlador anticipoControlador, PreferenciasControlador preferenciasControlador) {
+    public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador, AnticipoControlador anticipoControlador, PreferenciasControlador preferenciasControlador, Usuario usuario) {
         initComponents();
         setLocationRelativeTo(null);
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
         
+        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
+
         this.parent = parent;
 
         this.clienteControlador = clienteControlador;
@@ -108,6 +115,8 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         this.anticipoControlador = anticipoControlador;
 
         this.preferenciasControlador = preferenciasControlador;
+
+        this.usuario = usuario;
 
         this.campoBuscadorClientesCorrecto = false;
         this.campoFechaCorrecto = false;
@@ -131,6 +140,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         cargarAutocompletarBuscadorClientes();
         cargarAutocompletarBuscadorLocales();
         cargarPreferencias();
+
     }
 
     /**
@@ -185,6 +195,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Crear Factura");
+        setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -583,7 +594,6 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
             boolean facturaContigua = facturaControlador.facturaContigua(factura);
             if (!facturaContigua) {
                 mostrarError(this, TITULO_FACTURA_CONTIGUA, MENSAJE_FACTURA_CONTIGUA);
-                // ¿Desea Hacerla aún así? --> Método de Confirmacion
                 // Limpiar Tabla 
                 dtm.setRowCount(0);
                 // Deshabilitar Boton GenerarFactura
@@ -599,7 +609,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         if (facturasNoNumeradasCliente == null || facturasNoNumeradasCliente.isEmpty()) {
             // No hay Anticipos de ese cliente... se crea la factura normal
             boolean facturaAbono = jRadioButtonFacturaAbono.isSelected();
-            facturaControlador.crear(factura, facturaAbono, listaLocales, listaCantidades, IVA, retencion);
+            facturaControlador.crear(factura, facturaAbono, listaLocales, listaCantidades, IVA, retencion, usuario);
         } else {
             // Hay anticipos de ese cliente... hay que numerar la factura: numero y facturado
             // El resto de campos ya se pusieron a la hora de crear el Anticipo
@@ -647,10 +657,10 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
                     }
                 }
 
-                facturaControlador.numerar(ultimaFacturaNoNumerada, facturaNumerada, 
-                        clienteOriginal, clienteModificado, 
+                facturaControlador.numerar(ultimaFacturaNoNumerada, facturaNumerada,
+                        clienteOriginal, clienteModificado,
                         anticipoActivoOriginal, anticipoActivoModificado,
-                        false, listaLocales, listaCantidades, IVA, retencion);
+                        false, listaLocales, listaCantidades, IVA, retencion, usuario);
 
             }
         }

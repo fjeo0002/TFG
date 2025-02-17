@@ -76,7 +76,6 @@ public class VistaContabilidad extends javax.swing.JPanel implements Observador 
 
         this.jSpinnerAnio.setValue(LocalDate.now().getYear());
         this.anio = LocalDate.now().getYear();
-        //this.jSpinnerAnio.setValue(2024);
 
         cargarTablaContabilidad();
     }

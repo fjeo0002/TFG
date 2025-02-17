@@ -4,35 +4,16 @@
  */
 package es.ujaen.tfg.utils;
 
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import java.awt.Color;
 import java.awt.Font;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -133,6 +114,21 @@ public class Utils {
     public static final String TITULO_FACTURA_CONTIGUA = "Factura No Contigua";
     public static final String TITULO_FACTURA_ANTICIPO_DISTINTOS = "Factura distinta a Anticipo";
 
+    public static final String TITULO_CONTRASENA_CAMBIADA = "Contraseña Modificada";
+    public static final String TITULO_CONTRASENA_IGUAL = "Contraseña No Modificada";
+
+    public static final String TITULO_ERROR_FIREBASE = "Error de conexión";
+
+    public static final String TITULO_INICIO_SESION = "Inicio de Sesión";
+    public static final String TITULO_ERROR_CREDENCIALES = "Credenciales incorrectas";
+    public static final String TITULO_USUARIO_NO_EXISTE = "Usuario inexistente";
+    public static final String TITULO_USUARIO_YA_REGISTRADO = "Usuario registrado.";
+    public static final String TITULO_USUARIO_REGISTRADO = "Registro completado";
+    public static final String TITULO_USUARIO_MODIFICADO = "Usuario modificado.";
+
+    public static final String TITULO_CONFIRMACION_ELIMINACION_USUARIO = "Confirmación de eliminación";
+    public static final String TITULO_ELIMINACION_USUARIO = "Cuenta eliminada";
+
 // ----------------------------------------MENSAJES---------------------------------------- 
     public static final String MENSAJE_CLIENTE_REPETIDO = "El cliente ya ha sido registrado";
 
@@ -148,6 +144,21 @@ public class Utils {
     public static final String MENSAJE_FACTURA_CONTIGUA = "La factura a generar debe ser contigua a la última creada del cliente";
     public static final String MENSAJE_FACTURA_ANTICIPO_DISTINTOS = "La factura a generar es distinta al anticipo que estaba creado";
 
+    public static final String MENSAJE_CONTRASENA_CAMBIADA = "Contraseña cambiada con éxito";
+    public static final String MENSAJE_CONTRASENA_IGUAL = "La nueva contraseña no puede ser igual a la anterior";
+
+    public static final String MENSAJE_ERROR_FIREBASE = "Error al conectar con Firebase.";
+
+    public static final String MENSAJE_INICIO_SESION = "Inicio de sesión exitoso.";
+    public static final String MENSAJE_ERROR_CREDENCIALES = "Las credenciales no son correctas.";
+    public static final String MENSAJE_USUARIO_NO_EXISTE = "No se encontraron datos del usuario.";
+    public static final String MENSAJE_USUARIO_YA_REGISTRADO = "El usuario ya está registrado.";
+    public static final String MENSAJE_USUARIO_REGISTRADO = "Usuario registrado con éxito.";
+    public static final String MENSAJE_USUARIO_MODIFICADO = "Usuario modificado con éxito.";
+
+    public static final String MENSAJE_CONFIRMACION_ELIMINACION_USUARIO = "¿Estás seguro de que deseas eliminar tu cuenta? Más adelante podrás recuperar tus datos en caso de volver a registrarse.";
+    public static final String MENSAJE_ELIMINACION_USUARIO = "Tu cuenta ha sido eliminada correctamente.";
+    
 // ----------------------------------------ERRORES----------------------------------------
     public static final String ERROR_DNI_CLIENTE = "* DNI válido: 8 números y 1 mayúscula";
     public static final String ERROR_NOMBRE_CLIENTE = "* Nombre válido: sin números ni caracteres especiales";
@@ -257,130 +268,6 @@ public class Utils {
     }
 
 // ========================================METODOS========================================
-// ----------------------------------------FIREBASE----------------------------------------
-    public static <T> void sincronizarConFirebase(
-            String archivoJson,
-            String coleccionFirebase,
-            String ultimoHashArchivo,
-            List<T> lista,
-            Function<T, String> getID
-    ) throws IOException {
-        Firestore db = FirebaseInitializer.getInstance().getDb();
-        String hashActual = calcularHashArchivo(archivoJson);
-
-        if (!hashActual.equals(ultimoHashArchivo)) {
-            // Obtener los documentos actuales de Firebase
-            List<String> listaFirebase = new ArrayList<>();
-            try {
-                QuerySnapshot querySnapshot = db.collection(coleccionFirebase).get().get();
-                for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
-                    listaFirebase.add(document.getId());
-                }
-            } catch (InterruptedException | ExecutionException e) {
-            }
-
-            // Sincronizar objetos locales con Firebase
-            for (T item : lista) {
-                try {
-                    db.collection(coleccionFirebase).document(getID.apply(item)).set(item).get();
-                } catch (InterruptedException | ExecutionException e) {
-                }
-            }
-
-            // Eliminar objetos de Firebase que ya no están en el archivo local
-            /*
-            for (String itemFirebase : listaFirebase) {
-                boolean existe = false;
-                for (T item : listaLocal) {
-                    if (getId.apply(item).equals(itemFirebase)) {
-                        existe = true;
-                        break;
-                    }
-                }
-                if (!existe) {
-                    try {
-                        db.collection(coleccionFirebase).document(itemFirebase).delete().get();
-                    } catch (InterruptedException | ExecutionException e) {
-                    }
-                }
-            }
-             */
-            for (String firebaseId : listaFirebase) {
-                boolean existsInLocal = lista.stream().anyMatch(item -> getID.apply(item).equals(firebaseId));
-                if (!existsInLocal) {
-                    try {
-                        db.collection(coleccionFirebase).document(firebaseId).delete().get();
-                    } catch (InterruptedException | ExecutionException e) {
-                    }
-                }
-            }
-            ultimoHashArchivo = hashActual;
-        }
-    }
-
-    public static <T> void iniciarSincronizacionPeriodica(
-            String archivoJson,
-            String coleccionFirebase,
-            String ultimoHashArchivo,
-            List<T> lista,
-            Function<T, String> getID
-    ) {
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                sincronizarConFirebase(archivoJson, coleccionFirebase, ultimoHashArchivo, lista, getID);
-            } catch (IOException ex) {
-            }
-        }, 0, 1, TimeUnit.MINUTES); // Sincronización cada minuto
-    }
-
-    public static <T> List<T> cargarDatosDesdeArchivo(String archivoJson, Type listType) {
-        try {
-            if (!Files.exists(Paths.get(archivoJson))) { // Si el archivo no existe
-                return new ArrayList<>(); // Retornar lista vacía
-            }
-            String jsonData = new String(Files.readAllBytes(Paths.get(archivoJson))); // Leer archivo JSON
-            return gson.fromJson(jsonData, listType); // Convertir JSON a lista de objetos
-        } catch (IOException e) {
-            return new ArrayList<>(); // En caso de error, retornar lista vacía
-        }
-    }
-
-    public static <T> void guardarDatosEnArchivo(String archivoJson, List<T> lista) {
-        try (FileWriter writer = new FileWriter(archivoJson)) {
-            gson.toJson(lista, writer);
-        } catch (IOException e) {
-        }
-    }
-
-    public static <T> List<T> cargarDatosDesdeFirebase(String archivoJson, String coleccionFirebase, Class<T> clase) throws IOException {
-        Firestore db = FirebaseInitializer.getInstance().getDb();
-        try {
-            QuerySnapshot querySnapshot = db.collection(coleccionFirebase).get().get();
-            List<T> lista = new ArrayList<>();
-            for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
-                T objeto = document.toObject(clase); // Mapear documento a clase
-                lista.add(objeto);
-            }
-            Utils.guardarDatosEnArchivo(archivoJson, lista); // Guardar datos en el archivo local
-            return lista;
-        } catch (InterruptedException | ExecutionException e) {
-            return new ArrayList<>();
-        }
-    }
-
-// ----------------------------------------HASH----------------------------------------
-    public static String calcularHashArchivo(String filePath) throws IOException {
-        byte[] fileBytes = Files.readAllBytes(Paths.get(filePath)); // Leer contenido del archivo
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256"); // Algoritmo SHA-256
-            byte[] hashBytes = digest.digest(fileBytes); // Calcular el hash
-            return Base64.getEncoder().encodeToString(hashBytes); // Convertir a Base64
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al calcular el hash del archivo", e);
-        }
-    }
-
 // ----------------------------------------PARSEAR----------------------------------------
     public static double convertirStringADouble(String doubleStr) {
         if (doubleStr == null || doubleStr.isEmpty()) {
@@ -539,46 +426,59 @@ public class Utils {
             return false;
         }
     }
-
-    /*
-    public static boolean validarMesesCubiertos(String meses) {
-        try {
-            int value = Integer.parseInt(meses.trim());
-            return value > 0;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    public static boolean validarSaldo(String saldo) {
-        String regex = "^\\d+(,\\d{2})?";
-        if (!saldo.matches(regex)) {
-            return false;
-        }
-
-        try {
-            String numericPart = saldo.replace(",", ".");
-            double value = Double.parseDouble(numericPart);
-            return value >= 0;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-     */
 // ----------------------------------------JOPTIONS----------------------------------------
-    public static void mostrarError(JFrame parent, String titulo, String mensaje) {
-        // Cambiar la fuente global del JOptionPane
-        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+    // Mensaje de Información
 
-        // Mostrar el JOptionPane con la fuente personalizada
+    public static void mostrarInformacion(JFrame parent, String titulo, String mensaje) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        JOptionPane.showMessageDialog(parent, mensaje, titulo, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    // Mensaje de Advertencia
+    public static void mostrarAdvertencia(JFrame parent, String titulo, String mensaje) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        JOptionPane.showMessageDialog(parent, mensaje, titulo, JOptionPane.WARNING_MESSAGE);
+    }
+
+    // Mensaje de Error
+    public static void mostrarError(JFrame parent, String titulo, String mensaje) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
         JOptionPane.showMessageDialog(parent, mensaje, titulo, JOptionPane.ERROR_MESSAGE);
     }
 
-    public static int mostrarConfirmacion(JFrame parent, String titulo, String mensaje) {
-        // Cambiar la fuente global del JOptionPane
+    // Mensaje de Pregunta
+    public static void mostrarPregunta(JFrame parent, String titulo, String mensaje) {
         UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        JOptionPane.showMessageDialog(parent, mensaje, titulo, JOptionPane.QUESTION_MESSAGE);
+    }
 
-        // Mostrar el JOptionPane con la fuente personalizada
-        return JOptionPane.showConfirmDialog(parent, mensaje, titulo, JOptionPane.OK_CANCEL_OPTION);
+    // Confirmación con botones Sí/No
+    public static int mostrarConfirmacion(JFrame parent, String titulo, String mensaje) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        return JOptionPane.showConfirmDialog(parent, mensaje, titulo, JOptionPane.YES_NO_OPTION);
+    }
+
+    // Confirmación con botones Sí/No/Cancelar
+    public static int mostrarConfirmacionExtendida(JFrame parent, String titulo, String mensaje) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        return JOptionPane.showConfirmDialog(parent, mensaje, titulo, JOptionPane.YES_NO_CANCEL_OPTION);
+    }
+
+    // Entrada de texto
+    public static String mostrarSolicitarTexto(JFrame parent, String titulo, String mensaje) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        return JOptionPane.showInputDialog(parent, mensaje, titulo, JOptionPane.QUESTION_MESSAGE);
+    }
+
+    // Entrada con selección en ComboBox
+    public static String mostrarSolicitarSeleccion(JFrame parent, String titulo, String mensaje, String[] opciones) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        return (String) JOptionPane.showInputDialog(parent, mensaje, titulo, JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
+    }
+
+    // Opción personalizada
+    public static int mostrarOpcionPersonalizada(JFrame parent, String titulo, String mensaje, String[] opciones) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        return JOptionPane.showOptionDialog(parent, mensaje, titulo, JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
     }
 }

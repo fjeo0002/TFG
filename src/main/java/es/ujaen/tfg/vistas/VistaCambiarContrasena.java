@@ -5,34 +5,19 @@
 package es.ujaen.tfg.vistas;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import es.ujaen.tfg.DAO.UsuarioDAO;
-import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.controlador.UsuarioControlador;
 import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.utils.Utils;
 import static es.ujaen.tfg.utils.Utils.ERROR_CONTRASENA;
 import static es.ujaen.tfg.utils.Utils.ERROR_CONTRASENA_REPETIDA;
-import static es.ujaen.tfg.utils.Utils.ERROR_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_CONTRASENA_CAMBIADA;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_CONTRASENA_IGUAL;
-import static es.ujaen.tfg.utils.Utils.MENSAJE_ERROR_FIREBASE;
-import static es.ujaen.tfg.utils.Utils.MENSAJE_USUARIO_NO_EXISTE;
-import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.TITULO_CONTRASENA_CAMBIADA;
 import static es.ujaen.tfg.utils.Utils.TITULO_CONTRASENA_IGUAL;
-import static es.ujaen.tfg.utils.Utils.TITULO_ERROR_FIREBASE;
-import static es.ujaen.tfg.utils.Utils.TITULO_USUARIO_NO_EXISTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_CONTRASENA;
-import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
-import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
-import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
@@ -42,41 +27,52 @@ import javax.swing.border.EmptyBorder;
  *
  * @author jota
  */
-public class VistaRecuperarContrasena extends javax.swing.JFrame {
+public class VistaCambiarContrasena extends javax.swing.JFrame {
 
-    private VistaRegistrarse vistaRegistrarse;
-    private VistaInicioSesión vistaInicioSesión;
+    private final Usuario usuarioModificado;
+    private final Usuario usuarioOriginal;
 
+    private final UsuarioControlador usuarioControlador;
+    
     private boolean campoContrasenaCorrecto;
     private boolean campoRepetirCorrecto;
-    private boolean campoEmailCorrecto;
 
     private boolean contrasenaVisible = false;
 
     private final Border originalBorder;
+    
+    private final JFrame parent;
 
     /**
      * Creates new form VistaRecuperarContrasena
+     * @param parent
+     * @param usuario
+     * @param usuarioControlador
      */
-    public VistaRecuperarContrasena() throws IOException {
+    public VistaCambiarContrasena(JFrame parent, Usuario usuario, UsuarioControlador usuarioControlador) {
         initComponents();
         setLocationRelativeTo(null);
 
+        this.parent = parent;
+        
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
+
         this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
-
-        FirebaseInitializer.getInstance();
-
+        
         this.originalBorder = jPasswordFieldNueva.getBorder();
 
-        this.campoEmailCorrecto = false;
         this.campoContrasenaCorrecto = false;
         this.campoRepetirCorrecto = false;
 
         this.contrasenaVisible = false;
 
         this.jLabelAdvertenciaNueva.setText(ERROR_CONTRASENA);
+        this.usuarioControlador = usuarioControlador;
+        
+        this.usuarioModificado = new Usuario(usuario);
+        this.usuarioOriginal = new Usuario(usuario);
+        
     }
 
     /**
@@ -93,9 +89,6 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         jPanelCabecera = new javax.swing.JPanel();
         jLabelTitulo = new javax.swing.JLabel();
         jPanelCuerpo = new javax.swing.JPanel();
-        jLabelEmail = new javax.swing.JLabel();
-        jTextFieldEmail = new javax.swing.JTextField();
-        jLabelAdvertenciaEmail = new javax.swing.JLabel();
         jLabelNuevaContrasena = new javax.swing.JLabel();
         jPasswordFieldNueva = new javax.swing.JPasswordField();
         jLabelAdvertenciaNueva = new javax.swing.JLabel();
@@ -103,73 +96,32 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         jPasswordFieldRepetir = new javax.swing.JPasswordField();
         jLabelAdvertenciaRepetir = new javax.swing.JLabel();
         jButtonMostrarContrasena = new javax.swing.JButton();
-        jLabelInicioSesion = new javax.swing.JLabel();
-        jLabelRegistrarse = new javax.swing.JLabel();
         jPanelPiePagina = new javax.swing.JPanel();
         jButtonCambiarContrasena = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Recuperar contraseña");
         setResizable(false);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
         jPanelCabecera.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jLabelTitulo.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabelTitulo.setText("Recuperar Contraseña");
+        jLabelTitulo.setText("Modificar Contraseña");
         jPanelCabecera.add(jLabelTitulo);
 
         jPanelPrincipal.add(jPanelCabecera, java.awt.BorderLayout.PAGE_START);
 
         jPanelCuerpo.setLayout(new java.awt.GridBagLayout());
-
-        jLabelEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelEmail.setText("E-mail");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelEmail, gridBagConstraints);
-
-        jTextFieldEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jTextFieldEmail.setForeground(new java.awt.Color(153, 153, 153));
-        jTextFieldEmail.setText("nombre.123@gmail.com");
-        jTextFieldEmail.setMinimumSize(new java.awt.Dimension(125, 26));
-        jTextFieldEmail.setPreferredSize(new java.awt.Dimension(125, 26));
-        jTextFieldEmail.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                jTextFieldEmailFocusGained(evt);
-            }
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                jTextFieldEmailFocusLost(evt);
-            }
-        });
-        jTextFieldEmail.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextFieldEmailKeyReleased(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jTextFieldEmail, gridBagConstraints);
-
-        jLabelAdvertenciaEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelAdvertenciaEmail.setForeground(javax.swing.UIManager.getDefaults().getColor("Actions.Red"));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelAdvertenciaEmail, gridBagConstraints);
 
         jLabelNuevaContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelNuevaContrasena.setText("Nueva Contraseña");
@@ -254,38 +206,6 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jButtonMostrarContrasena, gridBagConstraints);
 
-        jLabelInicioSesion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelInicioSesion.setForeground(java.awt.SystemColor.textHighlight);
-        jLabelInicioSesion.setText("<html><u>Ya estás registrado...</u></html>");
-        jLabelInicioSesion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jLabelInicioSesion.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jLabelInicioSesionMouseClicked(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelInicioSesion, gridBagConstraints);
-
-        jLabelRegistrarse.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelRegistrarse.setForeground(java.awt.SystemColor.textHighlight);
-        jLabelRegistrarse.setText("<html><u>Registrarse</u></html>");
-        jLabelRegistrarse.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jLabelRegistrarse.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jLabelRegistrarseMouseClicked(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelRegistrarse, gridBagConstraints);
-
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
 
         jPanelPiePagina.setName(""); // NOI18N
@@ -311,23 +231,11 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 569, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 444, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jLabelRegistrarseMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelRegistrarseMouseClicked
-        try {
-            // TODO add your handling code here:
-            vistaRegistrarse = new VistaRegistrarse();
-        } catch (IOException ex) {
-            Logger.getLogger(VistaRecuperarContrasena.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        vistaRegistrarse.setVistaInicioSesión(vistaInicioSesión);
-        vistaRegistrarse.setVisible(true);
-        this.setVisible(false);
-    }//GEN-LAST:event_jLabelRegistrarseMouseClicked
 
     private void jButtonMostrarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMostrarContrasenaActionPerformed
         // TODO add your handling code here:
@@ -345,50 +253,25 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
 
     private void jButtonCambiarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCambiarContrasenaActionPerformed
         // TODO add your handling code here:
-
-        String email = jTextFieldEmail.getText().trim();
         String nuevaContrasena = new String(jPasswordFieldNueva.getPassword()).trim();
 
-        try {
-            UsuarioDAO usuarioDAO = new UsuarioDAO(email);
-            UsuarioControlador usuarioControlador = new UsuarioControlador(usuarioDAO);
-            Usuario usuarioOriginal = usuarioControlador.leer(email);
+        String antiguaContrasena = usuarioOriginal.getContrasena();
+        String nuevaContrasenaHash = Usuario.hashContrasena(nuevaContrasena);
+        if (!antiguaContrasena.equals(nuevaContrasenaHash)) {
 
-            if (usuarioOriginal != null) {
-                String antiguaContrasena = usuarioOriginal.getContrasena();
-                String nuevaContrasenaHash = Usuario.hashContrasena(nuevaContrasena);
+            usuarioModificado.setContrasena(nuevaContrasena);
 
-                if (!antiguaContrasena.equals(nuevaContrasenaHash)) {
-                    Usuario usuarioModificado = new Usuario(usuarioOriginal);
-                    usuarioModificado.setContrasena(nuevaContrasena);
+            usuarioControlador.actualizar(usuarioOriginal, usuarioModificado);
 
-                    usuarioControlador.actualizar(usuarioOriginal, usuarioModificado);
+            Utils.mostrarInformacion(parent, TITULO_CONTRASENA_CAMBIADA, MENSAJE_CONTRASENA_CAMBIADA);
 
-                    Utils.mostrarInformacion(this, TITULO_CONTRASENA_CAMBIADA, MENSAJE_CONTRASENA_CAMBIADA);
-
-                    // Abrir ventana de inicio de Sesion
-                    vistaInicioSesión.setVisible(true);
-                    this.setVisible(false);
-
-                } else {
-                    Utils.mostrarAdvertencia(this, TITULO_CONTRASENA_IGUAL, MENSAJE_CONTRASENA_IGUAL);
-                }
-
-            } else {
-                Utils.mostrarError(this, TITULO_USUARIO_NO_EXISTE, MENSAJE_USUARIO_NO_EXISTE);
-            }
-
-        } catch (IOException e) {
-            Utils.mostrarError(this, TITULO_ERROR_FIREBASE, MENSAJE_ERROR_FIREBASE);
+            dispose();
+            parent.setEnabled(true);
+        } else {
+            Utils.mostrarAdvertencia(parent, TITULO_CONTRASENA_IGUAL, MENSAJE_CONTRASENA_IGUAL);
         }
 
     }//GEN-LAST:event_jButtonCambiarContrasenaActionPerformed
-
-    private void jLabelInicioSesionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelInicioSesionMouseClicked
-        // TODO add your handling code here:
-        vistaInicioSesión.setVisible(true);
-        this.setVisible(false);
-    }//GEN-LAST:event_jLabelInicioSesionMouseClicked
 
     private void jPasswordFieldNuevaKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jPasswordFieldNuevaKeyReleased
         // TODO add your handling code here:
@@ -422,65 +305,32 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
         habilitarBotonCambiarContrasena();
     }//GEN-LAST:event_jPasswordFieldRepetirKeyReleased
 
-    private void jTextFieldEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusGained
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         // TODO add your handling code here:
-        quitarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
-    }//GEN-LAST:event_jTextFieldEmailFocusGained
+        parent.setEnabled(true);
+    }//GEN-LAST:event_formWindowClosing
 
-    private void jTextFieldEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldEmailFocusLost
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         // TODO add your handling code here:
-        agregarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE);
-    }//GEN-LAST:event_jTextFieldEmailFocusLost
-
-    private void jTextFieldEmailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldEmailKeyReleased
-        // TODO add your handling code here:
-        campoEmailCorrecto = validarCampoFormulario(jTextFieldEmail,
-                jLabelAdvertenciaEmail,
-                ERROR_EMAIL_CLIENTE,
-                originalBorder,
-                texto -> !texto.isEmpty() && texto.matches(VALIDACION_EMAIL_CLIENTE)
-        );
-        habilitarBotonCambiarContrasena();
-    }//GEN-LAST:event_jTextFieldEmailKeyReleased
+        parent.setEnabled(false);
+    }//GEN-LAST:event_formWindowOpened
 
     private void habilitarBotonCambiarContrasena() {
-        if (campoEmailCorrecto) {
-            if (campoRepetirCorrecto) {
-                if (campoContrasenaCorrecto) {
-                    jButtonCambiarContrasena.setEnabled(true);
-                    return;
-                }
+        if (campoRepetirCorrecto) {
+            if (campoContrasenaCorrecto) {
+                jButtonCambiarContrasena.setEnabled(true);
+                return;
             }
         }
         jButtonCambiarContrasena.setEnabled(false);
     }
 
-    public VistaRegistrarse getVistaRegistrarse() {
-        return vistaRegistrarse;
-    }
-
-    public void setVistaRegistrarse(VistaRegistrarse vistaRegistrarse) {
-        this.vistaRegistrarse = vistaRegistrarse;
-    }
-
-    public VistaInicioSesión getVistaInicioSesión() {
-        return vistaInicioSesión;
-    }
-
-    public void setVistaInicioSesión(VistaInicioSesión vistaInicioSesión) {
-        this.vistaInicioSesión = vistaInicioSesión;
-    }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonCambiarContrasena;
     private javax.swing.JButton jButtonMostrarContrasena;
-    private javax.swing.JLabel jLabelAdvertenciaEmail;
     private javax.swing.JLabel jLabelAdvertenciaNueva;
     private javax.swing.JLabel jLabelAdvertenciaRepetir;
-    private javax.swing.JLabel jLabelEmail;
-    private javax.swing.JLabel jLabelInicioSesion;
     private javax.swing.JLabel jLabelNuevaContrasena;
-    private javax.swing.JLabel jLabelRegistrarse;
     private javax.swing.JLabel jLabelRepetirContrasena;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelCabecera;
@@ -489,6 +339,5 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
     private javax.swing.JPanel jPanelPrincipal;
     private javax.swing.JPasswordField jPasswordFieldNueva;
     private javax.swing.JPasswordField jPasswordFieldRepetir;
-    private javax.swing.JTextField jTextFieldEmail;
     // End of variables declaration//GEN-END:variables
 }

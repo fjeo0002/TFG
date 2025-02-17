@@ -12,6 +12,7 @@ import es.ujaen.tfg.controlador.PreferenciasControlador;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.modelo.Cliente;
 import es.ujaen.tfg.modelo.Factura;
+import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.UndoManager;
 import static es.ujaen.tfg.utils.Utils.ANTICIPA;
@@ -37,6 +38,7 @@ import java.util.UUID;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -52,6 +54,8 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
     private final AnticipoControlador anticipoControlador;
     private final FacturaControlador facturaControlador;
     private final PreferenciasControlador preferenciasControlador;
+    
+    private final Usuario usuario;
 
     //private final UndoManager undoManager;
     private TextAutoCompleter autoCompleterBuscadorClientes;
@@ -68,14 +72,17 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
      * @param anticipoControlador
      * @param facturaControlador
      * @param preferenciasControlador
+     * @param usuario
      */
-    public VistaCrearAnticipo(java.awt.Frame parent, boolean modal, ClienteControlador clienteControlador, AnticipoControlador anticipoControlador, FacturaControlador facturaControlador, PreferenciasControlador preferenciasControlador) {
+    public VistaCrearAnticipo(java.awt.Frame parent, boolean modal, ClienteControlador clienteControlador, AnticipoControlador anticipoControlador, FacturaControlador facturaControlador, PreferenciasControlador preferenciasControlador, Usuario usuario) {
         super(parent, modal);
         initComponents();
         this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
+        
+        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
@@ -85,6 +92,8 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         this.facturaControlador = facturaControlador;
 
         this.preferenciasControlador = preferenciasControlador;
+
+        this.usuario = usuario;
 
         this.campoBuscadorClientesCorrecto = false;
         this.campoFechaCorrecto = false;
@@ -262,7 +271,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 347, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
         );
 
         pack();
@@ -347,7 +356,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         clienteModificado.setSaldo(saldo);
         clienteModificado.setEstado(ANTICIPA);
         // Creamos el Anticipo + FacturasAnticipadas + actualizamos saldo de Cliente
-        anticipoControlador.crear(anticipo, clienteOriginal, clienteModificado, facturasAnticipadas);
+        anticipoControlador.crear(anticipo, clienteOriginal, clienteModificado, facturasAnticipadas, usuario);
 
         // Creamos las Facturas asociadas
         // Ahora las facturas anticipadas deben crearse en correlacion al Anticipo creado en el Command

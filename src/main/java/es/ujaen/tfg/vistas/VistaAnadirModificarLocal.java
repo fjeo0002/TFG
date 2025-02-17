@@ -28,6 +28,7 @@ import java.util.UUID;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 
 /**
  *
@@ -63,6 +64,8 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
 
+        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
         this.originalBorder = jTextFieldNombre.getBorder();
 
         this.localControlador = localControlador;

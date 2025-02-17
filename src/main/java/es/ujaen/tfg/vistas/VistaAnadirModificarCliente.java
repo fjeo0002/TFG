@@ -37,6 +37,7 @@ import javax.swing.JFrame;
 import javax.swing.border.Border;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE_OPCIONAL;
 import javax.swing.ImageIcon;
+import javax.swing.border.EmptyBorder;
 
 /**
  *
@@ -76,6 +77,8 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         setLocationRelativeTo(null);
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
+        
+        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         this.originalBorder = jTextFieldDNI.getBorder();
 
@@ -576,7 +579,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 737, Short.MAX_VALUE)
+            .addComponent(jPanelPrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 757, Short.MAX_VALUE)
         );
 
         pack();

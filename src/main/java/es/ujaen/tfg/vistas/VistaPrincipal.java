@@ -10,11 +10,14 @@ import es.ujaen.tfg.DAO.AnticipoDAO;
 import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.DAO.FacturaDAO;
 import es.ujaen.tfg.DAO.LocalDAO;
+import es.ujaen.tfg.DAO.UsuarioDAO;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
 import es.ujaen.tfg.controlador.LocalControlador;
 import es.ujaen.tfg.controlador.PreferenciasControlador;
+import es.ujaen.tfg.controlador.UsuarioControlador;
+import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.observer.Observador;
 import es.ujaen.tfg.orden.UndoManager;
 import java.awt.BorderLayout;
@@ -36,12 +39,17 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     private VistaCrearFactura vistaCrearFactura;
     private VistaCrearAnticipo vistaCrearAnticipo;
 
+    private VistaUsuario vistaUsuario;
+    private VistaCambiarContrasena vistaCambiarContrasena;
+    private final Usuario usuario;
+
     private VistaRegistroAnticipos vistaRegistroAnticipos;
     private VistaContabilidad vistaContabilidad;
 
     private VistaClientes vistaClientes;
     private VistaLocales vistaLocales;
 
+    private final UsuarioControlador usuarioControlador;
     private final ClienteControlador clienteControlador;
     private final LocalControlador localControlador;
     private final AnticipoControlador anticipoControlador;
@@ -50,6 +58,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
 
     private final UndoManager undoManager;
 
+    private final UsuarioDAO usuarioDAO;
     private final ClienteDAO clienteDAO;
     private final FacturaDAO facturaDAO;
     private final AnticipoDAO anticipoDAO;
@@ -58,23 +67,28 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     /**
      * Creates new form VistaPrincipal
      *
-     * @param userId
+     * @param email
      * @throws java.io.IOException
      */
-    public VistaPrincipal(String userId) throws IOException {
+    public VistaPrincipal(String email) throws IOException {
         initComponents();
         setLocationRelativeTo(null);
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
 
+        jTabbedPaneCategorias.setIconAt(0, new FlatSVGIcon("svg/contabilidad.svg"));
+        jTabbedPaneCategorias.setIconAt(1, new FlatSVGIcon("svg/registro_anticipos.svg"));
+
         this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
         //setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
 
-        this.clienteDAO = new ClienteDAO(userId);
-        this.facturaDAO = new FacturaDAO(userId);
-        this.anticipoDAO = new AnticipoDAO(userId);
-        this.localDAO = new LocalDAO(userId);
+        this.usuarioDAO = new UsuarioDAO(email);
+        this.clienteDAO = new ClienteDAO(email);
+        this.facturaDAO = new FacturaDAO(email);
+        this.anticipoDAO = new AnticipoDAO(email);
+        this.localDAO = new LocalDAO(email);
 
+        this.usuarioControlador = new UsuarioControlador(usuarioDAO);
         this.clienteControlador = new ClienteControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.localControlador = new LocalControlador(localDAO);
         this.anticipoControlador = new AnticipoControlador(clienteDAO, anticipoDAO, facturaDAO);
@@ -87,13 +101,15 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         this.facturaControlador.agregarObservador(this);
 
         this.undoManager = UndoManager.getInstance();
+        
+        this.usuario = usuarioControlador.leer(email);
 
         cargarVistaContabilidad();
         cargarVistaRegistroAnticipos();
 
         cargarVistaClientes();
         cargarVistaLocales();
-        
+
         actualizarEstadoBotones();
         configurarAtajosTeclado();
     }
@@ -111,12 +127,17 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelCabecera = new javax.swing.JPanel();
         jPanelTitulo = new javax.swing.JPanel();
         jLabelTitulo = new javax.swing.JLabel();
+        jPanelMenu = new javax.swing.JPanel();
         jPanelBotonesPrincipales = new javax.swing.JPanel();
         jButtonPreferencias = new javax.swing.JButton();
-        jButtonCrearFactura = new javax.swing.JButton();
-        jButtonCrearAnticipo = new javax.swing.JButton();
         jButtonDeshacer = new javax.swing.JButton();
         jButtonRehacer = new javax.swing.JButton();
+        jButtonCrearFactura = new javax.swing.JButton();
+        jButtonCrearAnticipo = new javax.swing.JButton();
+        jPanelUsuario = new javax.swing.JPanel();
+        jButtonUsuario = new javax.swing.JButton();
+        jButtonCambiarContrasena = new javax.swing.JButton();
+        jButtonCerrarSesion = new javax.swing.JButton();
         jTabbedPaneCategorias = new javax.swing.JTabbedPane();
         jPanelContabilidad = new javax.swing.JPanel();
         jPanelAnticipos = new javax.swing.JPanel();
@@ -124,13 +145,13 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelClientes = new javax.swing.JPanel();
         jPanelLocales = new javax.swing.JPanel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Sistema de Facturación y Contabilidad");
         setBounds(new java.awt.Rectangle(0, 0, 0, 0));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         setLocation(new java.awt.Point(0, 0));
-        setMinimumSize(new java.awt.Dimension(900, 700));
+        setMinimumSize(new java.awt.Dimension(1000, 600));
         setName("VistaPrincipal"); // NOI18N
         setSize(new java.awt.Dimension(0, 0));
 
@@ -150,13 +171,14 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
 
         jPanelCabecera.add(jPanelTitulo);
 
+        jPanelMenu.setLayout(new java.awt.GridLayout(1, 2));
+
         java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT);
         flowLayout1.setAlignOnBaseline(true);
         jPanelBotonesPrincipales.setLayout(flowLayout1);
 
         jButtonPreferencias.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonPreferencias.setIcon(new FlatSVGIcon("svg/preferencias.svg"));
-        jButtonPreferencias.setText("Preferencias");
         jButtonPreferencias.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         jButtonPreferencias.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -164,6 +186,24 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
             }
         });
         jPanelBotonesPrincipales.add(jButtonPreferencias);
+
+        jButtonDeshacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonDeshacer.setIcon(new FlatSVGIcon("svg/deshacer.svg"));
+        jButtonDeshacer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonDeshacerActionPerformed(evt);
+            }
+        });
+        jPanelBotonesPrincipales.add(jButtonDeshacer);
+
+        jButtonRehacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonRehacer.setIcon(new FlatSVGIcon("svg/rehacer.svg"));
+        jButtonRehacer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRehacerActionPerformed(evt);
+            }
+        });
+        jPanelBotonesPrincipales.add(jButtonRehacer);
 
         jButtonCrearFactura.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButtonCrearFactura.setIcon(new FlatSVGIcon("svg/factura.svg"));
@@ -185,27 +225,43 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         });
         jPanelBotonesPrincipales.add(jButtonCrearAnticipo);
 
-        jButtonDeshacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonDeshacer.setIcon(new FlatSVGIcon("svg/deshacer.svg"));
-        jButtonDeshacer.setText("Deshacer");
-        jButtonDeshacer.addActionListener(new java.awt.event.ActionListener() {
+        jPanelMenu.add(jPanelBotonesPrincipales);
+
+        jPanelUsuario.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+
+        jButtonUsuario.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonUsuario.setIcon(new FlatSVGIcon("svg/usuario.svg"));
+        jButtonUsuario.setText("Mi Cuenta");
+        jButtonUsuario.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonDeshacerActionPerformed(evt);
+                jButtonUsuarioActionPerformed(evt);
             }
         });
-        jPanelBotonesPrincipales.add(jButtonDeshacer);
+        jPanelUsuario.add(jButtonUsuario);
 
-        jButtonRehacer.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jButtonRehacer.setIcon(new FlatSVGIcon("svg/rehacer.svg"));
-        jButtonRehacer.setText("Rehacer");
-        jButtonRehacer.addActionListener(new java.awt.event.ActionListener() {
+        jButtonCambiarContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonCambiarContrasena.setIcon(new FlatSVGIcon("svg/contrasena.svg"));
+        jButtonCambiarContrasena.setText("Cambiar Contraseña");
+        jButtonCambiarContrasena.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonRehacerActionPerformed(evt);
+                jButtonCambiarContrasenaActionPerformed(evt);
             }
         });
-        jPanelBotonesPrincipales.add(jButtonRehacer);
+        jPanelUsuario.add(jButtonCambiarContrasena);
 
-        jPanelCabecera.add(jPanelBotonesPrincipales);
+        jButtonCerrarSesion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonCerrarSesion.setIcon(new FlatSVGIcon("svg/cerrar_sesion.svg"));
+        jButtonCerrarSesion.setText("Cerrar Sesión");
+        jButtonCerrarSesion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonCerrarSesionActionPerformed(evt);
+            }
+        });
+        jPanelUsuario.add(jButtonCerrarSesion);
+
+        jPanelMenu.add(jPanelUsuario);
+
+        jPanelCabecera.add(jPanelMenu);
 
         jTabbedPaneCategorias.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
@@ -238,9 +294,6 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         );
 
         jTabbedPaneCategorias.addTab("Anticipos", jPanelAnticipos);
-
-        jTabbedPaneCategorias.setIconAt(0, new FlatSVGIcon("svg/contabilidad.svg"));
-        jTabbedPaneCategorias.setIconAt(1, new FlatSVGIcon("svg/registro_anticipos.svg"));
 
         jPanelPiePagina.setLayout(new java.awt.GridLayout(1, 2));
 
@@ -314,7 +367,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
 
     private void jButtonCrearFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearFacturaActionPerformed
         // TODO add your handling code here:
-        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador, facturaControlador, anticipoControlador, preferenciasControlador);
+        vistaCrearFactura = new VistaCrearFactura(this, clienteControlador, localControlador, facturaControlador, anticipoControlador, preferenciasControlador, usuario);
         vistaCrearFactura.setVisible(true);
     }//GEN-LAST:event_jButtonCrearFacturaActionPerformed
 
@@ -328,7 +381,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
 
     private void jButtonCrearAnticipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCrearAnticipoActionPerformed
         // TODO add your handling code here:
-        vistaCrearAnticipo = new VistaCrearAnticipo(this, true, clienteControlador, anticipoControlador, facturaControlador, preferenciasControlador);
+        vistaCrearAnticipo = new VistaCrearAnticipo(this, true, clienteControlador, anticipoControlador, facturaControlador, preferenciasControlador, usuario);
         vistaCrearAnticipo.setVisible(true);
     }//GEN-LAST:event_jButtonCrearAnticipoActionPerformed
 
@@ -339,6 +392,41 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         }
         actualizarEstadoBotones();
     }//GEN-LAST:event_jButtonRehacerActionPerformed
+
+    private void jButtonUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUsuarioActionPerformed
+        // TODO add your handling code here:
+        vistaUsuario = new VistaUsuario(this, usuario, usuarioControlador);
+        vistaUsuario.setVisible(true);
+    }//GEN-LAST:event_jButtonUsuarioActionPerformed
+
+    private void jButtonCambiarContrasenaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCambiarContrasenaActionPerformed
+        // TODO add your handling code here:
+        vistaCambiarContrasena = new VistaCambiarContrasena(this, usuario, usuarioControlador);
+        vistaCambiarContrasena.setVisible(true);
+    }//GEN-LAST:event_jButtonCambiarContrasenaActionPerformed
+
+    private void jButtonCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCerrarSesionActionPerformed
+        try {
+            // TODO add your handling code here:
+            //usuarioDAO.sincronizarConFirebase();
+            clienteDAO.sincronizarConFirebase();
+            localDAO.sincronizarConFirebase();
+            anticipoDAO.sincronizarConFirebase();
+            facturaDAO.sincronizarConFirebase();
+
+            clienteDAO.limpiarCache();
+            localDAO.limpiarCache();
+            anticipoDAO.limpiarCache();
+            facturaDAO.limpiarCache();
+
+            VistaInicioSesión vistaInicioSesión = null;
+            vistaInicioSesión = new VistaInicioSesión();
+            vistaInicioSesión.setVisible(true);
+            this.dispose();
+        } catch (IOException ex) {
+            Logger.getLogger(VistaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButtonCerrarSesionActionPerformed
 
     private void actualizarEstadoBotones() {
         // Habilitar o deshabilitar los botones según el estado de las pilas en el UndoManager
@@ -425,64 +513,15 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         });
     }
 
-    /**
-     * @param args the command line arguments
-     */
-    /*
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-    /*
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    /*
-                    //Modo Noche Nimbus
-                    javax.swing.UIManager.put("control", new java.awt.Color(50, 50, 50)); // Fondo de componentes
-                    javax.swing.UIManager.put("info", new java.awt.Color(50, 50, 50)); // Fondo de tooltips
-                    javax.swing.UIManager.put("nimbusBase", new java.awt.Color(35, 35, 35)); // Base del tema
-                    javax.swing.UIManager.put("nimbusFocus", new java.awt.Color(60, 60, 60)); // Color de enfoque
-                    javax.swing.UIManager.put("nimbusLightBackground", new java.awt.Color(60, 60, 60)); // Fondo de entrada de texto
-                    javax.swing.UIManager.put("nimbusSelectedText", new java.awt.Color(240, 240, 240)); // Texto seleccionado
-                    javax.swing.UIManager.put("nimbusSelectionBackground", new java.awt.Color(80, 80, 80)); // Fondo de selección
-                    javax.swing.UIManager.put("text", new java.awt.Color(230, 230, 230)); // Texto estándar
-                     */
-/*
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(VistaPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-
-        //</editor-fold>
-/*
-        //Aplicar LookAndFell FlatLaf
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (UnsupportedLookAndFeelException e) {
-        }
-        /* Create and display the form */
-/*
-        java.awt.EventQueue.invokeLater(() -> {
-            try {
-                new VistaPrincipal().setVisible(true);
-            } catch (IOException ex) {
-                Logger.getLogger(VistaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        });
-    }
-*/
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonCambiarContrasena;
+    private javax.swing.JButton jButtonCerrarSesion;
     private javax.swing.JButton jButtonCrearAnticipo;
     private javax.swing.JButton jButtonCrearFactura;
     private javax.swing.JButton jButtonDeshacer;
     private javax.swing.JButton jButtonPreferencias;
     private javax.swing.JButton jButtonRehacer;
+    private javax.swing.JButton jButtonUsuario;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelAnticipos;
     private javax.swing.JPanel jPanelBotonesPrincipales;
@@ -490,9 +529,11 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     private javax.swing.JPanel jPanelClientes;
     private javax.swing.JPanel jPanelContabilidad;
     private javax.swing.JPanel jPanelLocales;
+    private javax.swing.JPanel jPanelMenu;
     private javax.swing.JPanel jPanelPiePagina;
     private javax.swing.JPanel jPanelPrincipal;
     private javax.swing.JPanel jPanelTitulo;
+    private javax.swing.JPanel jPanelUsuario;
     private javax.swing.JTabbedPane jTabbedPaneCategorias;
     // End of variables declaration//GEN-END:variables
 

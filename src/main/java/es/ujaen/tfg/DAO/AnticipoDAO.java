@@ -10,17 +10,9 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.utils.LocalDateAdapterGson;
-import es.ujaen.tfg.utils.Utils;
-import static es.ujaen.tfg.utils.Utils.ANTICIPOS_COLECCION;
-import static es.ujaen.tfg.utils.Utils.ANTICIPOS_JSON;
-import static es.ujaen.tfg.utils.Utils.calcularHashArchivo;
-import static es.ujaen.tfg.utils.Utils.cargarDatosDesdeArchivo;
-import static es.ujaen.tfg.utils.Utils.iniciarSincronizacionPeriodica;
-import static es.ujaen.tfg.utils.Utils.sincronizarConFirebase;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,7 +33,7 @@ import java.util.concurrent.Executors;
 public final class AnticipoDAO implements InterfazDAO<Anticipo> {
 
     private final Firestore db;
-    private final String userId;
+    private final String email;
     private List<Anticipo> anticiposCache;
     private static final String CACHE_FILE = "anticipos_.json";
     private boolean cambiosPendientes = false;
@@ -52,25 +44,14 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
             .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson())
             .create();
 
-    public AnticipoDAO(String userId) throws IOException {
+    public AnticipoDAO(String email) throws IOException {
         this.db = FirebaseInitializer.getInstance().getDb();
-        this.userId = userId;
-        this.anticiposCache = cargarDesdeCache();
-        sincronizarDesdeFirebase();
+        this.email = email;
+        if (this.anticiposCache == null) {
+            sincronizarDesdeFirebase();
+        }
         iniciarSincronizacionPeriodica();
         agregarShutdownHook();
-    }
-
-    // ✅ Cargar la caché localmente con manejo de fechas
-    private List<Anticipo> cargarDesdeCache() {
-        try {
-            String json = new String(Files.readAllBytes(Paths.get(CACHE_FILE)));
-            return gson.fromJson(json, new TypeToken<List<Anticipo>>() {
-            }.getType());
-        } catch (IOException e) {
-            System.err.println("No se pudo cargar la caché de anticipos. Se creará una nueva lista.");
-            return new ArrayList<>();
-        }
     }
 
     // ✅ Guardar la caché localmente
@@ -87,7 +68,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
         try {
             List<Anticipo> anticipos = new ArrayList<>();
             ApiFuture<QuerySnapshot> future = db.collection("usuarios")
-                    .document(userId)
+                    .document(email)
                     .collection("anticipos")
                     .get();
 
@@ -127,17 +108,25 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     }
 
     // ✅ Sincroniza los datos locales con Firebase en segundo plano
-    private void sincronizarConFirebase() {
-        executorService.submit(() -> {
-            for (Anticipo anticipo : anticiposCache) {
-                db.collection("usuarios").document(userId)
-                        .collection("anticipos")
-                        .document(anticipo.getId())
-                        .set(anticipo);
-            }
-            cambiosPendientes = false;
-            System.out.println("Caché de anticipos sincronizada con Firebase.");
-        });
+    public void sincronizarConFirebase() {
+        if (cambiosPendientes) {
+            executorService.submit(() -> {
+                for (Anticipo anticipo : anticiposCache) {
+                    db.collection("usuarios").document(email)
+                            .collection("anticipos")
+                            .document(anticipo.getId())
+                            .set(anticipo);
+                }
+                cambiosPendientes = false;
+                System.out.println("Caché de anticipos sincronizada con Firebase.");
+            });
+        }
+    }
+
+    public void limpiarCache() throws IOException {
+        if (Files.exists(Paths.get(CACHE_FILE))) {
+            Files.delete(Paths.get(CACHE_FILE));
+        }
     }
 
     // ✅ CREAR anticipo (modifica la caché y luego sube a Firebase en segundo plano)
@@ -147,7 +136,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
         cambiosPendientes = true;
 
         executorService.submit(() -> {
-            db.collection("usuarios").document(userId)
+            db.collection("usuarios").document(email)
                     .collection("anticipos")
                     .document(anticipo.getId())
                     .set(anticipo);
@@ -173,7 +162,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
                 cambiosPendientes = true;
 
                 executorService.submit(() -> {
-                    db.collection("usuarios").document(userId)
+                    db.collection("usuarios").document(email)
                             .collection("anticipos")
                             .document(anticipo.getId())
                             .set(anticipo);
@@ -193,7 +182,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
             cambiosPendientes = true;
 
             executorService.submit(() -> {
-                db.collection("usuarios").document(userId)
+                db.collection("usuarios").document(email)
                         .collection("anticipos")
                         .document(anticipo.getId())
                         .delete();
@@ -207,94 +196,4 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
         return new ArrayList<>(anticiposCache);
     }
 
-    /*
-    private List<Anticipo> anticipos;
-    private final String ultimoHashArchivo;
-
-    public AnticipoDAO() throws IOException {
-        this.anticipos = cargarDatosDesdeArchivo(
-                ANTICIPOS_JSON,
-                new TypeToken<List<Anticipo>>() {
-                }.getType()
-        );
-        /*
-        this.anticipos = cargarDatosDesdeFirebase(
-                ANTICIPOS_JSON, 
-                ANTICIPOS_COLECCION, 
-                Anticipo.class
-        );
-     */
- /*
-        this.ultimoHashArchivo = calcularHashArchivo(ANTICIPOS_JSON);
-        iniciarSincronizacionPeriodica(
-                ANTICIPOS_JSON,
-                ANTICIPOS_COLECCION,
-                ultimoHashArchivo,
-                anticipos,
-                Anticipo::getId
-        );
-        agregarShutdownHook();
-    }
-
-    private void agregarShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                sincronizarConFirebase(
-                        ANTICIPOS_JSON,
-                        ANTICIPOS_COLECCION,
-                        ultimoHashArchivo,
-                        anticipos,
-                        Anticipo::getId
-                );
-            } catch (IOException e) {
-            }
-        }));
-    }
-
-    @Override
-    public boolean crear(Anticipo t) {
-        if (anticipos == null) {  // Verificar si la lista es nula
-            anticipos = new ArrayList<>();
-        }
-        anticipos.add(t);  // Agregar anticipo a la lista
-        Utils.guardarDatosEnArchivo(ANTICIPOS_JSON, anticipos);  // Guardar los cambios en el archivo
-        return true;
-    }
-
-    @Override
-    public Anticipo leer(String id) {
-        for (Anticipo anticipo : anticipos) {
-            if (anticipo.getId().equals(id)) {
-                return anticipo;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public boolean actualizar(Anticipo anticipo) {
-        for (int i = 0; i < anticipos.size(); i++) {
-            if (anticipos.get(i).getId().equals(anticipo.getId())) {
-                anticipos.set(i, anticipo);
-                Utils.guardarDatosEnArchivo(ANTICIPOS_JSON, anticipos);  // Guardar los cambios en el archivo
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean borrar(Anticipo t) {
-        boolean removed = anticipos.remove(t);  // Eliminar anticipo de la lista
-        if (removed) {
-            Utils.guardarDatosEnArchivo(ANTICIPOS_JSON, anticipos);  // Guardar los cambios en el archivo
-        }
-        return removed;
-    }
-
-    @Override
-    public List<Anticipo> leerTodos() {
-        return anticipos;
-    }
-     */
 }
