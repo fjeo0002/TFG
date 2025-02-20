@@ -71,13 +71,6 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         initComponents();
         setLocationRelativeTo(null);
 
-        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
-        this.setIconImage(icon.getImage()); // Establecer el icono
-
-        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
-        
-        FirebaseInitializer.getInstance();
-
         this.originalBorder = jTextFieldDNI.getBorder();
 
         this.campoDNICorrecto = false;
@@ -135,8 +128,10 @@ public class VistaRegistrarse extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Registro");
+        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setResizable(false);
 
+        jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
         java.awt.GridBagLayout jPanelCuerpoLayout = new java.awt.GridBagLayout();

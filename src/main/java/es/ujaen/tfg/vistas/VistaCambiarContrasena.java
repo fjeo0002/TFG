@@ -55,11 +55,6 @@ public class VistaCambiarContrasena extends javax.swing.JFrame {
 
         this.parent = parent;
         
-        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
-        this.setIconImage(icon.getImage()); // Establecer el icono
-
-        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
-        
         this.originalBorder = jPasswordFieldNueva.getBorder();
 
         this.campoContrasenaCorrecto = false;
@@ -101,6 +96,7 @@ public class VistaCambiarContrasena extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Recuperar contraseña");
+        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -111,6 +107,7 @@ public class VistaCambiarContrasena extends javax.swing.JFrame {
             }
         });
 
+        jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
         jPanelCabecera.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));

@@ -8,11 +8,10 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import static es.ujaen.tfg.utils.Utils.FIREBASE_JSON;
+import io.grpc.LoadBalancerRegistry;
+import io.grpc.internal.PickFirstLoadBalancerProvider;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -24,6 +23,11 @@ public class FirebaseInitializer {
 
     // Constructor privado para evitar instanciación externa
     private FirebaseInitializer() throws IOException {
+        // Esto es porque hay un fallo: 
+        // Al generar el JAR, no se hace bien la conexión.
+        // Lo encuentro en un foro de StackOverFlow: 
+        // https://stackoverflow.com/questions/59076255/compiled-jar-keeps-throwing-uncaught-exception-in-the-synchronizationcontext
+        LoadBalancerRegistry.getDefaultRegistry().register(new PickFirstLoadBalancerProvider());
         // Cargar el archivo de credenciales JSON de la cuenta de servicio
         FileInputStream serviceAccount = new FileInputStream(FIREBASE_JSON);
 

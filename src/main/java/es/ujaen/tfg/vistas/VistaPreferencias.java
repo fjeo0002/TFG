@@ -28,9 +28,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
         initComponents();
         this.preferenciasControlador = preferenciasControlador;
         setLocationRelativeTo(null);
-        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
-        this.setIconImage(icon.getImage()); // Establecer el icono
-        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
         cargarPreferencias();
     }
 
@@ -59,10 +57,12 @@ public class VistaPreferencias extends javax.swing.JDialog {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Preferencias");
+        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setName("VistaPreferencias"); // NOI18N
         setResizable(false);
         setSize(new java.awt.Dimension(348, 245));
 
+        jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
         jPanelCabecera.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));

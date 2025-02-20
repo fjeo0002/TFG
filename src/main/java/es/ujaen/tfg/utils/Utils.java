@@ -8,6 +8,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.awt.Color;
 import java.awt.Font;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
@@ -33,12 +36,13 @@ public class Utils {
 
 // ========================================VARIABLES========================================
 // ----------------------------------------FIREBASE----------------------------------------
-    public static final String CLIENTES_JSON = "clientes.json";
-    public static final String LOCALES_JSON = "locales.json";
-    public static final String ANTICIPOS_JSON = "anticipos.json";
-    public static final String FACTURAS_JSON = "facturas.json";
-    public static final String PREFERENCIAS_JSON = "preferencias.json";
-    public static final String FIREBASE_JSON = "tfg-uja2425-fjeo0002-firebase-adminsdk-fbsvc-93c6ce5c57.json";
+    public static final String CLIENTES_JSON = "src/main/resources/archivo/clientes.json";
+    public static final String LOCALES_JSON = "src/main/resources/archivo/locales.json";
+    public static final String ANTICIPOS_JSON = "src/main/resources/archivo/anticipos.json";
+    public static final String FACTURAS_JSON = "src/main/resources/archivo/facturas.json";
+    public static final String PREFERENCIAS_JSON = "src/main/resources/archivo/preferencias.json";
+    
+    public static final String FIREBASE_JSON = "src/main/resources/archivo/tfg-uja2425-fjeo0002-firebase-adminsdk-fbsvc-93c6ce5c57.json";
 
     public static final String CLIENTES_COLECCION = "clientes";
     public static final String LOCALES_COLECCION = "locales";
@@ -142,7 +146,7 @@ public class Utils {
     public static final String MENSAJE_FACTURA_CONTIGUA = "La factura a generar debe ser contigua a la última creada del cliente";
     public static final String MENSAJE_FACTURA_ANTICIPO_DISTINTOS = "La factura a generar es distinta al anticipo que estaba creado";
     public static final String MENSAJE_SOBREESCRIBIR_FACTURA = "¿Desea sobreescribir la factura existente?";
-    
+
     public static final String MENSAJE_CONTRASENA_CAMBIADA = "Contraseña cambiada con éxito";
     public static final String MENSAJE_CONTRASENA_IGUAL = "La nueva contraseña no puede ser igual a la anterior";
 
@@ -157,7 +161,7 @@ public class Utils {
 
     public static final String MENSAJE_CONFIRMACION_ELIMINACION_USUARIO = "¿Estás seguro de que deseas eliminar tu cuenta? Más adelante podrás recuperar tus datos en caso de volver a registrarse.";
     public static final String MENSAJE_ELIMINACION_USUARIO = "Tu cuenta ha sido eliminada correctamente.";
-    
+
 // ----------------------------------------ERRORES----------------------------------------
     public static final String ERROR_DNI_CLIENTE = "* DNI válido: 8 números y 1 mayúscula";
     public static final String ERROR_NOMBRE_CLIENTE = "* Nombre válido: sin números ni caracteres especiales";

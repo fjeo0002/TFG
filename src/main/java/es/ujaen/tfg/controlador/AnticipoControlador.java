@@ -118,7 +118,7 @@ public class AnticipoControlador implements Observable {
         StringWriter writer = new StringWriter();
         try {
             // Cargar la plantilla HTML
-            String plantilla = Files.readString(Paths.get("anticipo_template.html"), java.nio.charset.StandardCharsets.UTF_8);
+            String plantilla = Files.readString(Paths.get("resources/archivo/anticipo_template.html"), java.nio.charset.StandardCharsets.UTF_8);
 
             // Datos del anticipo
             Map<String, Object> datos = new HashMap<>();

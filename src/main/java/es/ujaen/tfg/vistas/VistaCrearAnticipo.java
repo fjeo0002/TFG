@@ -54,7 +54,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
     private final AnticipoControlador anticipoControlador;
     private final FacturaControlador facturaControlador;
     private final PreferenciasControlador preferenciasControlador;
-    
+
     private final Usuario usuario;
 
     //private final UndoManager undoManager;
@@ -79,10 +79,6 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         initComponents();
         this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
-        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
-        this.setIconImage(icon.getImage()); // Establecer el icono
-        
-        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         this.clienteControlador = clienteControlador;
         this.clienteControlador.agregarObservador(this);
@@ -131,8 +127,10 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Crear Anticipo");
+        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setResizable(false);
 
+        jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
         jPanelCabecera.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));

@@ -100,11 +100,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador, AnticipoControlador anticipoControlador, PreferenciasControlador preferenciasControlador, Usuario usuario) {
         initComponents();
         setLocationRelativeTo(null);
-        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
-        this.setIconImage(icon.getImage()); // Establecer el icono
-
-        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
-
+        
         this.parent = parent;
 
         this.clienteControlador = clienteControlador;
@@ -199,6 +195,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Crear Factura");
+        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -209,6 +206,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
             }
         });
 
+        jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
         jPanelDetallesFactura.setLayout(new java.awt.GridBagLayout());

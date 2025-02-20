@@ -73,13 +73,10 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     public VistaPrincipal(String email) throws IOException {
         initComponents();
         setLocationRelativeTo(null);
-        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
-        this.setIconImage(icon.getImage()); // Establecer el icono
 
         jTabbedPaneCategorias.setIconAt(0, new FlatSVGIcon("svg/contabilidad.svg"));
         jTabbedPaneCategorias.setIconAt(1, new FlatSVGIcon("svg/registro_anticipos.svg"));
 
-        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
         //setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
 
         this.usuarioDAO = new UsuarioDAO(email);
@@ -150,12 +147,14 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         setBounds(new java.awt.Rectangle(0, 0, 0, 0));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setLocation(new java.awt.Point(0, 0));
         setMinimumSize(new java.awt.Dimension(1450, 750));
         setName("VistaPrincipal"); // NOI18N
         setPreferredSize(new java.awt.Dimension(1350, 638));
         setSize(new java.awt.Dimension(0, 0));
 
+        jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setName(""); // NOI18N
 
         jPanelCabecera.setToolTipText("");
@@ -272,11 +271,11 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelContabilidad.setLayout(jPanelContabilidadLayout);
         jPanelContabilidadLayout.setHorizontalGroup(
             jPanelContabilidadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1119, Short.MAX_VALUE)
+            .addGap(0, 1099, Short.MAX_VALUE)
         );
         jPanelContabilidadLayout.setVerticalGroup(
             jPanelContabilidadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 321, Short.MAX_VALUE)
+            .addGap(0, 311, Short.MAX_VALUE)
         );
 
         jTabbedPaneCategorias.addTab("Contabilidad", jPanelContabilidad);
@@ -287,11 +286,11 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelAnticipos.setLayout(jPanelAnticiposLayout);
         jPanelAnticiposLayout.setHorizontalGroup(
             jPanelAnticiposLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1119, Short.MAX_VALUE)
+            .addGap(0, 1099, Short.MAX_VALUE)
         );
         jPanelAnticiposLayout.setVerticalGroup(
             jPanelAnticiposLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 321, Short.MAX_VALUE)
+            .addGap(0, 311, Short.MAX_VALUE)
         );
 
         jTabbedPaneCategorias.addTab("Anticipos", jPanelAnticipos);
@@ -304,11 +303,11 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelClientes.setLayout(jPanelClientesLayout);
         jPanelClientesLayout.setHorizontalGroup(
             jPanelClientesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 559, Short.MAX_VALUE)
+            .addGap(0, 549, Short.MAX_VALUE)
         );
         jPanelClientesLayout.setVerticalGroup(
             jPanelClientesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 193, Short.MAX_VALUE)
+            .addGap(0, 183, Short.MAX_VALUE)
         );
 
         jPanelPiePagina.add(jPanelClientes);
@@ -319,11 +318,11 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jPanelLocales.setLayout(jPanelLocalesLayout);
         jPanelLocalesLayout.setHorizontalGroup(
             jPanelLocalesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 559, Short.MAX_VALUE)
+            .addGap(0, 549, Short.MAX_VALUE)
         );
         jPanelLocalesLayout.setVerticalGroup(
             jPanelLocalesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 193, Short.MAX_VALUE)
+            .addGap(0, 183, Short.MAX_VALUE)
         );
 
         jPanelPiePagina.add(jPanelLocales);

@@ -157,7 +157,7 @@ public class FacturaControlador implements Observable {
         StringWriter writer = new StringWriter();
         try {
             // Cargar la plantilla HTML
-            String plantilla = Files.readString(Paths.get("factura_template.html"), java.nio.charset.StandardCharsets.UTF_8);
+            String plantilla = Files.readString(Paths.get("resources/archivo/factura_template.html"), java.nio.charset.StandardCharsets.UTF_8);
 
             // Datos de la factura
             Map<String, Object> datos = new HashMap<>();

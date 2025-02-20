@@ -39,7 +39,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
 
 /**
  *
@@ -74,11 +73,6 @@ public class VistaUsuario extends javax.swing.JFrame {
     public VistaUsuario(JFrame parent, Usuario usuario, UsuarioControlador usuarioControlador) {
         initComponents();
         setLocationRelativeTo(null);
-
-        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
-        this.setIconImage(icon.getImage()); // Establecer el icono
-
-        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         this.parent = parent;
 
@@ -126,6 +120,7 @@ public class VistaUsuario extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Registro");
+        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -136,6 +131,7 @@ public class VistaUsuario extends javax.swing.JFrame {
             }
         });
 
+        jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
         java.awt.GridBagLayout jPanelCuerpoLayout = new java.awt.GridBagLayout();

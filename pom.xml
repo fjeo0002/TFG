@@ -46,11 +46,6 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>es.ujaen.tfg.AutoCompleter</groupId>
-            <artifactId>AutoCompleter</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.toedter</groupId>
             <artifactId>jcalendar</artifactId>
             <version>1.4</version>
@@ -67,5 +62,41 @@
             <version>0.9.10</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>es.ujaen.tfg.AutoCompleter</groupId>
+            <artifactId>AutoCompleter</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>
+                                        es.ujaen.tfg.TFG
+                                    </mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>
+                                    jar-with-dependencies
+                                </descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

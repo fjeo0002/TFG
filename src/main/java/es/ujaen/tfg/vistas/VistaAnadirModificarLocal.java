@@ -61,10 +61,6 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         initComponents();
         this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
-        ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
-        this.setIconImage(icon.getImage()); // Establecer el icono
-
-        this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
         
         this.originalBorder = jTextFieldNombre.getBorder();
 
@@ -140,8 +136,10 @@ public class VistaAnadirModificarLocal extends javax.swing.JDialog {
         jButtonAceptar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setResizable(false);
 
+        jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setLayout(new java.awt.BorderLayout());
 
         jPanelCabecera.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
