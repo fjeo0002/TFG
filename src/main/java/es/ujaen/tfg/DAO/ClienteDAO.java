@@ -11,6 +11,10 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Cliente;
+import static es.ujaen.tfg.utils.Utils.CLIENTES_COLECCION;
+import static es.ujaen.tfg.utils.Utils.CLIENTES_JSON;
+import static es.ujaen.tfg.utils.Utils.TIEMPO_ACTUALIZACION_BBDD;
+import static es.ujaen.tfg.utils.Utils.USUARIOS_COLECCION;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,7 +36,6 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
     private final Firestore db;
     private final String email;
     private List<Cliente> clientesCache;
-    private static final String CACHE_FILE = "clientes_.json";
     private boolean cambiosPendientes = false;
     private Timer timer;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -43,13 +46,13 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
         if (this.clientesCache == null) {
             sincronizarDesdeFirebase();
         }
-        iniciarSincronizacionPeriodica();
-        agregarShutdownHook();
+        //iniciarSincronizacionPeriodica();
+        //agregarShutdownHook();
     }
 
     // ✅ Guardar la caché localmente con manejo de errores
     private void guardarEnCache() {
-        try (FileWriter writer = new FileWriter(CACHE_FILE)) {
+        try (FileWriter writer = new FileWriter(CLIENTES_JSON)) {
             new Gson().toJson(clientesCache, writer);
         } catch (IOException e) {
             System.err.println("Error guardando caché: " + e.getMessage());
@@ -60,9 +63,9 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
     public void sincronizarDesdeFirebase() {
         try {
             List<Cliente> clientes = new ArrayList<>();
-            ApiFuture<QuerySnapshot> future = db.collection("usuarios")
+            ApiFuture<QuerySnapshot> future = db.collection(USUARIOS_COLECCION)
                     .document(email)
-                    .collection("clientes")
+                    .collection(CLIENTES_COLECCION)
                     .get();
 
             for (QueryDocumentSnapshot document : future.get().getDocuments()) {
@@ -87,7 +90,7 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
                     sincronizarConFirebase();
                 }
             }
-        }, 0, 300000); // 5 minutos
+        }, 0, TIEMPO_ACTUALIZACION_BBDD); // 5 minutos
     }
 
     // ✅ Sincronización final al cerrar la aplicación
@@ -105,40 +108,57 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
         if (cambiosPendientes) {
             executorService.submit(() -> {
                 for (Cliente cliente : clientesCache) {
-                    db.collection("usuarios").document(email)
-                            .collection("clientes")
+                    db.collection(USUARIOS_COLECCION).document(email)
+                            .collection(CLIENTES_COLECCION)
                             .document(cliente.getDNI())
                             .set(cliente);
                 }
                 cambiosPendientes = false;
-                System.out.println("Caché sincronizada con Firebase.");
             });
         }
     }
 
     public void limpiarCache() throws IOException {
-        if (Files.exists(Paths.get(CACHE_FILE))) {
-            Files.delete(Paths.get(CACHE_FILE));
+        if (Files.exists(Paths.get(CLIENTES_JSON))) {
+            Files.delete(Paths.get(CLIENTES_JSON));
         }
     }
 
     // ✅ CREAR cliente (trabaja en caché y luego sube a Firebase en segundo plano)
+    @Override
     public boolean crear(Cliente cliente) {
         clientesCache.add(cliente);
         guardarEnCache();
         cambiosPendientes = true;
 
         executorService.submit(() -> {
-            db.collection("usuarios").document(email)
-                    .collection("clientes")
+            db.collection(USUARIOS_COLECCION).document(email)
+                    .collection(CLIENTES_COLECCION)
                     .document(cliente.getDNI())
                     .set(cliente);
         });
 
         return true;
     }
+    
+    // ✅ CREAR local con index (modifica la caché y luego sube a Firebase en segundo plano)
+    public boolean crear(Cliente local, int index) {
+        clientesCache.add(index, local);
+        guardarEnCache();
+        cambiosPendientes = true;
+
+        executorService.submit(() -> {
+            db.collection(USUARIOS_COLECCION).document(email)
+                    .collection(CLIENTES_COLECCION)
+                    .document(local.getDNI())
+                    .set(local);
+        });
+
+        return true;
+    }
 
     // ✅ LEER cliente desde caché
+    @Override
     public Cliente leer(String DNI) {
         return clientesCache.stream()
                 .filter(cliente -> cliente.getDNI().equals(DNI))
@@ -147,6 +167,7 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
     }
 
     // ✅ ACTUALIZAR cliente (modifica en caché y lo sube a Firebase en segundo plano)
+    @Override
     public boolean actualizar(Cliente cliente) {
         for (int i = 0; i < clientesCache.size(); i++) {
             if (clientesCache.get(i).getDNI().equals(cliente.getDNI())) {
@@ -155,8 +176,8 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
                 cambiosPendientes = true;
 
                 executorService.submit(() -> {
-                    db.collection("usuarios").document(email)
-                            .collection("clientes")
+                    db.collection(USUARIOS_COLECCION).document(email)
+                            .collection(CLIENTES_COLECCION)
                             .document(cliente.getDNI())
                             .set(cliente);
                 });
@@ -168,6 +189,7 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
     }
 
     // ✅ BORRAR cliente (elimina en caché y en Firebase en segundo plano)
+    @Override
     public boolean borrar(Cliente cliente) {
         boolean eliminado = clientesCache.remove(cliente);
         if (eliminado) {
@@ -175,8 +197,8 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
             cambiosPendientes = true;
 
             executorService.submit(() -> {
-                db.collection("usuarios").document(email)
-                        .collection("clientes")
+                db.collection(USUARIOS_COLECCION).document(email)
+                        .collection(CLIENTES_COLECCION)
                         .document(cliente.getDNI())
                         .delete();
             });
@@ -185,6 +207,7 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
     }
 
     // ✅ LEER TODOS los clientes desde caché
+    @Override
     public List<Cliente> leerTodos() {
         return new ArrayList<>(clientesCache);
     }

@@ -38,7 +38,6 @@ public class UndoManager implements Observable {
         command.execute();
         pilaDeshacer.push(command);
         pilaRehacer.clear(); // Limpiar el redo stack al ejecutar un nuevo comando
-        //notificarObservables();
     }
 
     public void undo() {
@@ -82,6 +81,11 @@ public class UndoManager implements Observable {
         for (Observador o : observadores) {
             o.actualizar();
         }
+    }
+    
+    public void limpiarUndoManager(){
+        pilaDeshacer.clear();
+        pilaRehacer.clear();
     }
 
 }

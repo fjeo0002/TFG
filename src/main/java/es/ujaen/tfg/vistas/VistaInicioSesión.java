@@ -104,6 +104,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         jLabelOlvidoContrasena = new javax.swing.JLabel();
         jLabelRegistrarse = new javax.swing.JLabel();
         jButtonMostrarContrasena = new javax.swing.JButton();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanelPiePagina = new javax.swing.JPanel();
         jButtonIniciarSesion = new javax.swing.JButton();
 
@@ -124,6 +125,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         jPanelCuerpo.setLayout(new java.awt.GridBagLayout());
 
         jLabelEmail.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelEmail.setIcon(new FlatSVGIcon("svg/email.svg"));
         jLabelEmail.setText("E-mail");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -171,6 +173,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         jPanelCuerpo.add(jLabelAdvertenciaEmail, gridBagConstraints);
 
         jLabelContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabelContrasena.setIcon(new FlatSVGIcon("svg/contrasena.svg"));
         jLabelContrasena.setText("Contraseña");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -239,6 +242,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jButtonMostrarContrasena, gridBagConstraints);
+        jPanelCuerpo.add(jTabbedPane1, new java.awt.GridBagConstraints());
 
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
 
@@ -519,6 +523,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
     private javax.swing.JPanel jPanelPiePagina;
     private javax.swing.JPanel jPanelPrincipal;
     private javax.swing.JPasswordField jPasswordField;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextFieldEmail;
     // End of variables declaration//GEN-END:variables
 }

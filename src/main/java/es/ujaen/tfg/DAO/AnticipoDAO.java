@@ -13,6 +13,10 @@ import com.google.gson.GsonBuilder;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.utils.LocalDateAdapterGson;
+import static es.ujaen.tfg.utils.Utils.ANTICIPOS_COLECCION;
+import static es.ujaen.tfg.utils.Utils.ANTICIPOS_JSON;
+import static es.ujaen.tfg.utils.Utils.TIEMPO_ACTUALIZACION_BBDD;
+import static es.ujaen.tfg.utils.Utils.USUARIOS_COLECCION;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,7 +39,6 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     private final Firestore db;
     private final String email;
     private List<Anticipo> anticiposCache;
-    private static final String CACHE_FILE = "anticipos_.json";
     private boolean cambiosPendientes = false;
     private Timer timer;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -50,13 +53,13 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
         if (this.anticiposCache == null) {
             sincronizarDesdeFirebase();
         }
-        iniciarSincronizacionPeriodica();
-        agregarShutdownHook();
+        //iniciarSincronizacionPeriodica();
+        //agregarShutdownHook();
     }
 
     // ✅ Guardar la caché localmente
     private void guardarEnCache() {
-        try (FileWriter writer = new FileWriter(CACHE_FILE)) {
+        try (FileWriter writer = new FileWriter(ANTICIPOS_JSON)) {
             gson.toJson(anticiposCache, writer);
         } catch (IOException e) {
             System.err.println("Error guardando caché de anticipos: " + e.getMessage());
@@ -67,9 +70,9 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     public void sincronizarDesdeFirebase() {
         try {
             List<Anticipo> anticipos = new ArrayList<>();
-            ApiFuture<QuerySnapshot> future = db.collection("usuarios")
+            ApiFuture<QuerySnapshot> future = db.collection(USUARIOS_COLECCION)
                     .document(email)
-                    .collection("anticipos")
+                    .collection(ANTICIPOS_COLECCION)
                     .get();
 
             for (QueryDocumentSnapshot document : future.get().getDocuments()) {
@@ -94,7 +97,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
                     sincronizarConFirebase();
                 }
             }
-        }, 0, 300000); // 5 minutos
+        }, 0, TIEMPO_ACTUALIZACION_BBDD); // 5 minutos
     }
 
     // ✅ Sincronización final al cerrar la aplicación
@@ -112,32 +115,32 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
         if (cambiosPendientes) {
             executorService.submit(() -> {
                 for (Anticipo anticipo : anticiposCache) {
-                    db.collection("usuarios").document(email)
-                            .collection("anticipos")
+                    db.collection(USUARIOS_COLECCION).document(email)
+                            .collection(ANTICIPOS_COLECCION)
                             .document(anticipo.getId())
                             .set(anticipo);
                 }
                 cambiosPendientes = false;
-                System.out.println("Caché de anticipos sincronizada con Firebase.");
             });
         }
     }
 
     public void limpiarCache() throws IOException {
-        if (Files.exists(Paths.get(CACHE_FILE))) {
-            Files.delete(Paths.get(CACHE_FILE));
+        if (Files.exists(Paths.get(ANTICIPOS_JSON))) {
+            Files.delete(Paths.get(ANTICIPOS_JSON));
         }
     }
 
     // ✅ CREAR anticipo (modifica la caché y luego sube a Firebase en segundo plano)
+    @Override
     public boolean crear(Anticipo anticipo) {
         anticiposCache.add(anticipo);
         guardarEnCache();
         cambiosPendientes = true;
 
         executorService.submit(() -> {
-            db.collection("usuarios").document(email)
-                    .collection("anticipos")
+            db.collection(USUARIOS_COLECCION).document(email)
+                    .collection(ANTICIPOS_COLECCION)
                     .document(anticipo.getId())
                     .set(anticipo);
         });
@@ -146,6 +149,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     }
 
     // ✅ LEER anticipo desde caché
+    @Override
     public Anticipo leer(String id) {
         return anticiposCache.stream()
                 .filter(anticipo -> anticipo.getId().equals(id))
@@ -154,6 +158,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     }
 
     // ✅ ACTUALIZAR anticipo (modifica en caché y lo sube a Firebase en segundo plano)
+    @Override
     public boolean actualizar(Anticipo anticipo) {
         for (int i = 0; i < anticiposCache.size(); i++) {
             if (anticiposCache.get(i).getId().equals(anticipo.getId())) {
@@ -162,8 +167,8 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
                 cambiosPendientes = true;
 
                 executorService.submit(() -> {
-                    db.collection("usuarios").document(email)
-                            .collection("anticipos")
+                    db.collection(USUARIOS_COLECCION).document(email)
+                            .collection(ANTICIPOS_COLECCION)
                             .document(anticipo.getId())
                             .set(anticipo);
                 });
@@ -175,6 +180,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     }
 
     // ✅ BORRAR anticipo (elimina en caché y en Firebase en segundo plano)
+    @Override
     public boolean borrar(Anticipo anticipo) {
         boolean eliminado = anticiposCache.remove(anticipo);
         if (eliminado) {
@@ -182,8 +188,8 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
             cambiosPendientes = true;
 
             executorService.submit(() -> {
-                db.collection("usuarios").document(email)
-                        .collection("anticipos")
+                db.collection(USUARIOS_COLECCION).document(email)
+                        .collection(ANTICIPOS_COLECCION)
                         .document(anticipo.getId())
                         .delete();
             });
@@ -192,6 +198,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     }
 
     // ✅ LEER TODOS los anticipos desde caché
+    @Override
     public List<Anticipo> leerTodos() {
         return new ArrayList<>(anticiposCache);
     }

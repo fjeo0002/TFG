@@ -121,7 +121,8 @@ public class VistaClientes extends javax.swing.JPanel implements Observador {
         jPanelFiltro.setLayout(new java.awt.GridBagLayout());
 
         jLabelBuscarCliente.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelBuscarCliente.setText("Busca un Cliente por Nombre o Alias:");
+        jLabelBuscarCliente.setIcon(new FlatSVGIcon("svg/busqueda.svg"));
+        jLabelBuscarCliente.setText("Buscar Cliente por Nombre o Alias:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;

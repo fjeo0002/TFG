@@ -4,6 +4,7 @@
  */
 package es.ujaen.tfg.vistas;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import es.ujaen.tfg.controlador.UsuarioControlador;
 import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.utils.Utils;
@@ -420,6 +421,7 @@ public class VistaUsuario extends javax.swing.JFrame {
         jPanelPiePagina.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
         jButtonEliminarUsuario.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonEliminarUsuario.setIcon(new FlatSVGIcon("svg/eliminar_usuario.svg"));
         jButtonEliminarUsuario.setText("Eliminar Usuario");
         jButtonEliminarUsuario.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -429,6 +431,7 @@ public class VistaUsuario extends javax.swing.JFrame {
         jPanelPiePagina.add(jButtonEliminarUsuario);
 
         jButtonModificarUsuario.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonModificarUsuario.setIcon(new FlatSVGIcon("svg/modificar_cliente.svg"));
         jButtonModificarUsuario.setText("Modificar Usuario");
         jButtonModificarUsuario.setEnabled(false);
         jButtonModificarUsuario.addActionListener(new java.awt.event.ActionListener() {
@@ -500,7 +503,7 @@ public class VistaUsuario extends javax.swing.JFrame {
         usuarioModificado = new Usuario(email, password, nombre, dni, direccion, localidad, codigoPostal, telefono);
         // La contraseña que tenemos ahora mismo es la hasheada, pero con el constructor la está hasheando 2 veces
         //Ponemos la contraseña sin hashearla 2 veces
-        usuarioModificado.setContrasenaSinHashear(password);
+        usuarioModificado.setContrasena(password);
 
         // Guardar usuario en Firestore y en caché con UsuarioControlador
         usuarioControlador.actualizar(usuarioOriginal, usuarioModificado);

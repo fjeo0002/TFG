@@ -255,20 +255,21 @@ public class VistaCambiarContrasena extends javax.swing.JFrame {
         // TODO add your handling code here:
         String nuevaContrasena = new String(jPasswordFieldNueva.getPassword()).trim();
 
-        String antiguaContrasena = usuarioOriginal.getContrasena();
+        String antiguaContrasenaHash = usuarioOriginal.getContrasena();
         String nuevaContrasenaHash = Usuario.hashContrasena(nuevaContrasena);
-        if (!antiguaContrasena.equals(nuevaContrasenaHash)) {
+        
+        if (!antiguaContrasenaHash.equals(nuevaContrasenaHash)) {
 
-            usuarioModificado.setContrasena(nuevaContrasena);
+            usuarioModificado.setContrasenaHash(nuevaContrasena);
 
             usuarioControlador.actualizar(usuarioOriginal, usuarioModificado);
 
-            Utils.mostrarInformacion(parent, TITULO_CONTRASENA_CAMBIADA, MENSAJE_CONTRASENA_CAMBIADA);
+            Utils.mostrarInformacion(this, TITULO_CONTRASENA_CAMBIADA, MENSAJE_CONTRASENA_CAMBIADA);
 
             dispose();
             parent.setEnabled(true);
         } else {
-            Utils.mostrarAdvertencia(parent, TITULO_CONTRASENA_IGUAL, MENSAJE_CONTRASENA_IGUAL);
+            Utils.mostrarAdvertencia(this, TITULO_CONTRASENA_IGUAL, MENSAJE_CONTRASENA_IGUAL);
         }
 
     }//GEN-LAST:event_jButtonCambiarContrasenaActionPerformed

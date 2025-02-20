@@ -13,6 +13,10 @@ import com.google.gson.GsonBuilder;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.utils.LocalDateAdapterGson;
+import static es.ujaen.tfg.utils.Utils.FACTURAS_COLECCION;
+import static es.ujaen.tfg.utils.Utils.FACTURAS_JSON;
+import static es.ujaen.tfg.utils.Utils.TIEMPO_ACTUALIZACION_BBDD;
+import static es.ujaen.tfg.utils.Utils.USUARIOS_COLECCION;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,7 +39,6 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     private final Firestore db;
     private final String email;
     private List<Factura> facturasCache;
-    private static final String CACHE_FILE = "facturas_.json";
     private boolean cambiosPendientes = false;
     private Timer timer;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -50,13 +53,13 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
         if (this.facturasCache == null) {
             sincronizarDesdeFirebase();
         }
-        iniciarSincronizacionPeriodica();
-        agregarShutdownHook();
+        //iniciarSincronizacionPeriodica();
+        //agregarShutdownHook();
     }
 
     // ✅ Guardar la caché localmente
     private void guardarEnCache() {
-        try (FileWriter writer = new FileWriter(CACHE_FILE)) {
+        try (FileWriter writer = new FileWriter(FACTURAS_JSON)) {
             gson.toJson(facturasCache, writer);
         } catch (IOException e) {
             System.err.println("Error guardando caché de facturas: " + e.getMessage());
@@ -67,9 +70,9 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     public void sincronizarDesdeFirebase() {
         try {
             List<Factura> facturas = new ArrayList<>();
-            ApiFuture<QuerySnapshot> future = db.collection("usuarios")
+            ApiFuture<QuerySnapshot> future = db.collection(USUARIOS_COLECCION)
                     .document(email)
-                    .collection("facturas")
+                    .collection(FACTURAS_COLECCION)
                     .get();
 
             for (QueryDocumentSnapshot document : future.get().getDocuments()) {
@@ -94,7 +97,7 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
                     sincronizarConFirebase();
                 }
             }
-        }, 0, 300000); // 5 minutos
+        }, 0, TIEMPO_ACTUALIZACION_BBDD); // 5 minutos
     }
 
     // ✅ Sincronización final al cerrar la aplicación
@@ -112,32 +115,32 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
         if (cambiosPendientes) {
             executorService.submit(() -> {
                 for (Factura factura : facturasCache) {
-                    db.collection("usuarios").document(email)
-                            .collection("facturas")
+                    db.collection(USUARIOS_COLECCION).document(email)
+                            .collection(FACTURAS_COLECCION)
                             .document(factura.getId()) // 🔹 Asegura un ID único en Firestore
                             .set(factura);
                 }
                 cambiosPendientes = false;
-                System.out.println("Caché de facturas sincronizada con Firebase.");
             });
         }
     }
 
     public void limpiarCache() throws IOException {
-        if (Files.exists(Paths.get(CACHE_FILE))) {
-            Files.delete(Paths.get(CACHE_FILE));
+        if (Files.exists(Paths.get(FACTURAS_JSON))) {
+            Files.delete(Paths.get(FACTURAS_JSON));
         }
     }
 
     // ✅ CREAR factura (modifica la caché y luego sube a Firebase en segundo plano)
+    @Override
     public boolean crear(Factura factura) {
         facturasCache.add(factura);
         guardarEnCache();
         cambiosPendientes = true;
 
         executorService.submit(() -> {
-            db.collection("usuarios").document(email)
-                    .collection("facturas")
+            db.collection(USUARIOS_COLECCION).document(email)
+                    .collection(FACTURAS_COLECCION)
                     .document(factura.getId())
                     .set(factura);
         });
@@ -146,6 +149,7 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     }
 
     // ✅ LEER factura desde caché
+    @Override
     public Factura leer(String id) {
         return facturasCache.stream()
                 .filter(factura -> factura.getId().equals(id))
@@ -154,6 +158,7 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     }
 
     // ✅ ACTUALIZAR factura (modifica en caché y lo sube a Firebase en segundo plano)
+    @Override
     public boolean actualizar(Factura factura) {
         for (int i = 0; i < facturasCache.size(); i++) {
             if (facturasCache.get(i).getId().equals(factura.getId())) {
@@ -162,8 +167,8 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
                 cambiosPendientes = true;
 
                 executorService.submit(() -> {
-                    db.collection("usuarios").document(email)
-                            .collection("facturas")
+                    db.collection(USUARIOS_COLECCION).document(email)
+                            .collection(FACTURAS_COLECCION)
                             .document(factura.getId())
                             .set(factura);
                 });
@@ -175,6 +180,7 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     }
 
     // ✅ BORRAR factura (elimina en caché y en Firebase en segundo plano)
+    @Override
     public boolean borrar(Factura factura) {
         boolean eliminado = facturasCache.remove(factura);
         if (eliminado) {
@@ -182,8 +188,8 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
             cambiosPendientes = true;
 
             executorService.submit(() -> {
-                db.collection("usuarios").document(email)
-                        .collection("facturas")
+                db.collection(USUARIOS_COLECCION).document(email)
+                        .collection(FACTURAS_COLECCION)
                         .document(factura.getId())
                         .delete();
             });
@@ -192,6 +198,7 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     }
 
     // ✅ LEER TODAS las facturas desde caché
+    @Override
     public List<Factura> leerTodos() {
         return new ArrayList<>(facturasCache);
     }

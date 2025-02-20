@@ -7,7 +7,6 @@ package es.ujaen.tfg.controlador;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import es.ujaen.tfg.DAO.AnticipoDAO;
 import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.DAO.FacturaDAO;
@@ -22,17 +21,15 @@ import es.ujaen.tfg.orden.Command;
 import es.ujaen.tfg.orden.CrearFacturaCommand;
 import es.ujaen.tfg.orden.ModificarFacturaCommand;
 import es.ujaen.tfg.orden.NumerarFacturaCommand;
+import es.ujaen.tfg.orden.SobreescribirFacturaCommand;
 import es.ujaen.tfg.orden.UndoManager;
 import es.ujaen.tfg.utils.Utils;
 import es.ujaen.tfg.utils.Utils.Mes;
 import static es.ujaen.tfg.utils.Utils.TIPOA;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -94,16 +91,16 @@ public class FacturaControlador implements Observable {
         return facturaDAO.leer(id);
     }
 
-    public boolean numerar(Factura facturaOriginal, Factura facturaModificada, 
-            Cliente clienteOriginal, Cliente clienteModificado, 
+    public boolean numerar(Factura facturaOriginal, Factura facturaModificada,
+            Cliente clienteOriginal, Cliente clienteModificado,
             Anticipo anticipoOriginal, Anticipo anticipoModificado,
             boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion,
             Usuario usuario
     ) {
         StringWriter writer = generarFacturaPDF(facturaModificada, facturaAbono, locales, cantidades, IVA, retencion, usuario);
         //facturaDAO.numerar(factura);
-        Command numerarFactura = new NumerarFacturaCommand(facturaDAO, facturaOriginal, facturaModificada, 
-                clienteDAO, clienteOriginal, clienteModificado, 
+        Command numerarFactura = new NumerarFacturaCommand(facturaDAO, facturaOriginal, facturaModificada,
+                clienteDAO, clienteOriginal, clienteModificado,
                 anticipoDAO, anticipoOriginal, anticipoModificado,
                 writer
         );
@@ -115,7 +112,10 @@ public class FacturaControlador implements Observable {
 
     public boolean actualizar(Factura facturaOriginal, Factura facturaModificada, Cliente clienteOriginal, Cliente clienteModificado) {
         //facturaDAO.numerar(factura);
-        Command actualizarFactura = new ModificarFacturaCommand(facturaDAO, facturaOriginal, facturaModificada, clienteDAO, clienteOriginal, clienteModificado);
+        Command actualizarFactura = new ModificarFacturaCommand(
+                facturaDAO, facturaOriginal, facturaModificada,
+                clienteDAO, clienteOriginal, clienteModificado
+        );
         undoManager.execute(actualizarFactura);
         notificarObservadores();
         return true;
@@ -127,6 +127,20 @@ public class FacturaControlador implements Observable {
         notificarObservadores();
         return true;
 
+    }
+
+    public boolean sobreescribir(Factura facturaOriginal, Factura facturaModificada,
+            boolean facturaAbono, List<Local> locales, List<Integer> cantidades, int IVA, int retencion,
+            Usuario usuario
+    ) {
+        StringWriter writer = generarFacturaPDF(facturaModificada, facturaAbono, locales, cantidades, IVA, retencion, usuario);
+        Command sobreescribirFactura = new SobreescribirFacturaCommand(
+                facturaDAO, facturaOriginal, facturaModificada,
+                writer
+        );
+        undoManager.execute(sobreescribirFactura);
+        notificarObservadores();
+        return true;
     }
 
     public boolean borrar(Factura factura) {
@@ -209,8 +223,16 @@ public class FacturaControlador implements Observable {
 
                 total += subtotal;
                 baseImponible += precio;
-                importeIVA = sumarIVA;
-                importeRetencion = restarRetencion;
+                
+                if (TIPOA.equals(c.getTipo())) {
+                    importeIVA = sumarIVA;
+                    importeRetencion = restarRetencion;
+                } else {
+                    IVA = 0;
+                    retencion = 0;
+                    importeIVA = 0;
+                    importeRetencion = 0;
+                }
 
                 articulos.add(Map.of("cantidad", cantidad,
                         "descripcion", l.getNombre(),
@@ -244,7 +266,7 @@ public class FacturaControlador implements Observable {
 
         } catch (IOException e) {
         }
-        
+
         return writer;
     }
 

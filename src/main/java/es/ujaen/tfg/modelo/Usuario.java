@@ -29,8 +29,7 @@ public class Usuario {
 
     public Usuario(String email, String contrasena, String nombre, String dni, String direccion, String localidad, String codigoPostal, String telefono) {
         this.email = email;
-        //this.contrasena = contrasena;
-        setContrasena(contrasena);
+        this.contrasena = hashContrasena(contrasena);
         this.nombre = nombre;
         this.DNI = dni;
         this.direccion = direccion;
@@ -53,15 +52,15 @@ public class Usuario {
     public String getContrasena() {
         return contrasena;
     }
-
-    public void setContrasena(String contrasena) {
-        this.contrasena = hashContrasena(contrasena);
-    }
     
-    public void setContrasenaSinHashear(String contrasena) {
+    public void setContrasena(String contrasena) {
         this.contrasena = contrasena;
     }
 
+    public void setContrasenaHash(String contrasena) {
+        this.contrasena = hashContrasena(contrasena);
+    }
+    
     public static String hashContrasena(String contraseña) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

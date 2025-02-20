@@ -535,6 +535,7 @@ public class VistaRegistrarse extends javax.swing.JFrame {
         jPanelPiePagina.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
         jButtonRegistrarse.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jButtonRegistrarse.setIcon(new FlatSVGIcon("svg/registro.svg"));
         jButtonRegistrarse.setText("Registrarse");
         jButtonRegistrarse.setEnabled(false);
         jButtonRegistrarse.addActionListener(new java.awt.event.ActionListener() {

@@ -360,7 +360,7 @@ public class VistaRecuperarContrasena extends javax.swing.JFrame {
 
                 if (!antiguaContrasena.equals(nuevaContrasenaHash)) {
                     Usuario usuarioModificado = new Usuario(usuarioOriginal);
-                    usuarioModificado.setContrasena(nuevaContrasena);
+                    usuarioModificado.setContrasenaHash(nuevaContrasena);
 
                     usuarioControlador.actualizar(usuarioOriginal, usuarioModificado);
 

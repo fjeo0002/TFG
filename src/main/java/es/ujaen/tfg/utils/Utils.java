@@ -44,12 +44,9 @@ public class Utils {
     public static final String LOCALES_COLECCION = "locales";
     public static final String ANTICIPOS_COLECCION = "anticipos";
     public static final String FACTURAS_COLECCION = "facturas";
+    public static final String USUARIOS_COLECCION = "usuarios";
 
-    public static final long TIEMPO_ACTUALIZACION_BBDD = 1;
-
-    public static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson())
-            .create();
+    public static final long TIEMPO_ACTUALIZACION_BBDD = 300000;
 
 // ----------------------------------------UTILS----------------------------------------
     public static final String EURO = " €";
@@ -113,6 +110,7 @@ public class Utils {
     public static final String TITULO_FACTURA_REPETIDO = "Factura Existente";
     public static final String TITULO_FACTURA_CONTIGUA = "Factura No Contigua";
     public static final String TITULO_FACTURA_ANTICIPO_DISTINTOS = "Factura distinta a Anticipo";
+    public static final String TITULO_SOBREESCRIBIR_FACTURA = "Sobreescribir Factura.";
 
     public static final String TITULO_CONTRASENA_CAMBIADA = "Contraseña Modificada";
     public static final String TITULO_CONTRASENA_IGUAL = "Contraseña No Modificada";
@@ -143,7 +141,8 @@ public class Utils {
     public static final String MENSAJE_FACTURA_REPETIDO = "La factura ya ha sido registrada";
     public static final String MENSAJE_FACTURA_CONTIGUA = "La factura a generar debe ser contigua a la última creada del cliente";
     public static final String MENSAJE_FACTURA_ANTICIPO_DISTINTOS = "La factura a generar es distinta al anticipo que estaba creado";
-
+    public static final String MENSAJE_SOBREESCRIBIR_FACTURA = "¿Desea sobreescribir la factura existente?";
+    
     public static final String MENSAJE_CONTRASENA_CAMBIADA = "Contraseña cambiada con éxito";
     public static final String MENSAJE_CONTRASENA_IGUAL = "La nueva contraseña no puede ser igual a la anterior";
 

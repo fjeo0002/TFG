@@ -2110,6 +2110,9 @@
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="0"/>
                 </Property>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="new FlatSVGIcon(&quot;svg/eliminar_usuario.svg&quot;)" type="code"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Eliminar Usuario"/>
               </Properties>
               <Events>
@@ -2120,6 +2123,9 @@
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="0"/>
+                </Property>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="new FlatSVGIcon(&quot;svg/modificar_cliente.svg&quot;)" type="code"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Modificar Usuario"/>
                 <Property name="enabled" type="boolean" value="false"/>

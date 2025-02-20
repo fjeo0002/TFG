@@ -11,6 +11,10 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Local;
+import static es.ujaen.tfg.utils.Utils.LOCALES_COLECCION;
+import static es.ujaen.tfg.utils.Utils.LOCALES_JSON;
+import static es.ujaen.tfg.utils.Utils.TIEMPO_ACTUALIZACION_BBDD;
+import static es.ujaen.tfg.utils.Utils.USUARIOS_COLECCION;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,7 +36,6 @@ public final class LocalDAO implements InterfazDAO<Local> {
     private final Firestore db;
     private final String email;
     private List<Local> localesCache;
-    private static final String CACHE_FILE = "locales_.json";
     private boolean cambiosPendientes = false;
     private Timer timer;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -43,13 +46,13 @@ public final class LocalDAO implements InterfazDAO<Local> {
         if (this.localesCache == null) {
             sincronizarDesdeFirebase();
         }
-        iniciarSincronizacionPeriodica();
-        agregarShutdownHook();
+        //iniciarSincronizacionPeriodica();
+        //agregarShutdownHook();
     }
 
     // ✅ Guardar la caché localmente
     private void guardarEnCache() {
-        try (FileWriter writer = new FileWriter(CACHE_FILE)) {
+        try (FileWriter writer = new FileWriter(LOCALES_JSON)) {
             new Gson().toJson(localesCache, writer);
         } catch (IOException e) {
             System.err.println("Error guardando caché de locales: " + e.getMessage());
@@ -60,9 +63,9 @@ public final class LocalDAO implements InterfazDAO<Local> {
     public void sincronizarDesdeFirebase() {
         try {
             List<Local> locales = new ArrayList<>();
-            ApiFuture<QuerySnapshot> future = db.collection("usuarios")
+            ApiFuture<QuerySnapshot> future = db.collection(USUARIOS_COLECCION)
                     .document(email)
-                    .collection("locales")
+                    .collection(LOCALES_COLECCION)
                     .get();
 
             for (QueryDocumentSnapshot document : future.get().getDocuments()) {
@@ -87,7 +90,7 @@ public final class LocalDAO implements InterfazDAO<Local> {
                     sincronizarConFirebase();
                 }
             }
-        }, 0, 300000); // 5 minutos
+        }, 0, TIEMPO_ACTUALIZACION_BBDD); // 5 minutos
     }
 
     // ✅ Sincronización final al cerrar la aplicación
@@ -107,32 +110,32 @@ public final class LocalDAO implements InterfazDAO<Local> {
         if (cambiosPendientes) {
             executorService.submit(() -> {
                 for (Local local : localesCache) {
-                    db.collection("usuarios").document(email)
-                            .collection("locales")
+                    db.collection(USUARIOS_COLECCION).document(email)
+                            .collection(LOCALES_COLECCION)
                             .document(local.getCodigo())
                             .set(local);
                 }
                 cambiosPendientes = false;
-                System.out.println("Caché de locales sincronizada con Firebase.");
             });
         }
     }
 
     public void limpiarCache() throws IOException {
-        if (Files.exists(Paths.get(CACHE_FILE))) {
-            Files.delete(Paths.get(CACHE_FILE));
+        if (Files.exists(Paths.get(LOCALES_JSON))) {
+            Files.delete(Paths.get(LOCALES_JSON));
         }
     }
 
     // ✅ CREAR local (modifica la caché y luego sube a Firebase en segundo plano)
+    @Override
     public boolean crear(Local local) {
         localesCache.add(local);
         guardarEnCache();
         cambiosPendientes = true;
 
         executorService.submit(() -> {
-            db.collection("usuarios").document(email)
-                    .collection("locales")
+            db.collection(USUARIOS_COLECCION).document(email)
+                    .collection(LOCALES_COLECCION)
                     .document(local.getCodigo())
                     .set(local);
         });
@@ -147,8 +150,8 @@ public final class LocalDAO implements InterfazDAO<Local> {
         cambiosPendientes = true;
 
         executorService.submit(() -> {
-            db.collection("usuarios").document(email)
-                    .collection("locales")
+            db.collection(USUARIOS_COLECCION).document(email)
+                    .collection(LOCALES_COLECCION)
                     .document(local.getCodigo())
                     .set(local);
         });
@@ -157,6 +160,7 @@ public final class LocalDAO implements InterfazDAO<Local> {
     }
 
     // ✅ LEER local desde caché
+    @Override
     public Local leer(String codigo) {
         return localesCache.stream()
                 .filter(local -> local.getCodigo().equals(codigo))
@@ -165,6 +169,7 @@ public final class LocalDAO implements InterfazDAO<Local> {
     }
 
     // ✅ ACTUALIZAR local (modifica en caché y lo sube a Firebase en segundo plano)
+    @Override
     public boolean actualizar(Local local) {
         for (int i = 0; i < localesCache.size(); i++) {
             if (localesCache.get(i).getCodigo().equals(local.getCodigo())) {
@@ -173,8 +178,8 @@ public final class LocalDAO implements InterfazDAO<Local> {
                 cambiosPendientes = true;
 
                 executorService.submit(() -> {
-                    db.collection("usuarios").document(email)
-                            .collection("locales")
+                    db.collection(USUARIOS_COLECCION).document(email)
+                            .collection(LOCALES_COLECCION)
                             .document(local.getCodigo())
                             .set(local);
                 });
@@ -186,6 +191,7 @@ public final class LocalDAO implements InterfazDAO<Local> {
     }
 
     // ✅ BORRAR local (elimina en caché y en Firebase en segundo plano)
+    @Override
     public boolean borrar(Local local) {
         boolean eliminado = localesCache.remove(local);
         if (eliminado) {
@@ -193,8 +199,8 @@ public final class LocalDAO implements InterfazDAO<Local> {
             cambiosPendientes = true;
 
             executorService.submit(() -> {
-                db.collection("usuarios").document(email)
-                        .collection("locales")
+                db.collection(USUARIOS_COLECCION).document(email)
+                        .collection(LOCALES_COLECCION)
                         .document(local.getCodigo())
                         .delete();
             });
@@ -203,6 +209,7 @@ public final class LocalDAO implements InterfazDAO<Local> {
     }
 
     // ✅ LEER TODOS los locales desde caché
+    @Override
     public List<Local> leerTodos() {
         return new ArrayList<>(localesCache);
     }

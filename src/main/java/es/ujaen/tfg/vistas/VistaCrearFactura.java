@@ -17,17 +17,20 @@ import es.ujaen.tfg.modelo.Local;
 import es.ujaen.tfg.modelo.Preferencias;
 import es.ujaen.tfg.modelo.Usuario;
 import es.ujaen.tfg.observer.Observador;
+import es.ujaen.tfg.utils.Utils;
 import static es.ujaen.tfg.utils.Utils.AL_DIA;
 import static es.ujaen.tfg.utils.Utils.EURO;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_FACTURA_ANTICIPO_DISTINTOS;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_FACTURA_CONTIGUA;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_FACTURA_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.MENSAJE_SOBREESCRIBIR_FACTURA;
 import static es.ujaen.tfg.utils.Utils.PORCENTAJE;
 import static es.ujaen.tfg.utils.Utils.SUBTOTAL;
 import static es.ujaen.tfg.utils.Utils.TIPOA;
 import static es.ujaen.tfg.utils.Utils.TITULO_FACTURA_ANTICIPO_DISTINTOS;
 import static es.ujaen.tfg.utils.Utils.TITULO_FACTURA_CONTIGUA;
 import static es.ujaen.tfg.utils.Utils.TITULO_FACTURA_REPETIDO;
+import static es.ujaen.tfg.utils.Utils.TITULO_SOBREESCRIBIR_FACTURA;
 import static es.ujaen.tfg.utils.Utils.VACIO;
 import static es.ujaen.tfg.utils.Utils.agregarSufijo;
 import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
@@ -41,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
@@ -98,7 +102,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         setLocationRelativeTo(null);
         ImageIcon icon = new ImageIcon("iconoFondoTransparente.png"); // Ruta de la imagen
         this.setIconImage(icon.getImage()); // Establecer el icono
-        
+
         this.jPanelPrincipal.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         this.parent = parent;
@@ -576,10 +580,21 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         // Compruebo si está repetida según Mes/Año y Cliente... El número siempre dirá que es una nueva
         boolean facturaRepetida = facturaControlador.facturaRepetida(factura);
         if (facturaRepetida) {
-            mostrarError(this, TITULO_FACTURA_REPETIDO, MENSAJE_FACTURA_REPETIDO);
+            //mostrarError(this, TITULO_FACTURA_REPETIDO, MENSAJE_FACTURA_REPETIDO);
             // ¿Desea Sobreescribir? --> Método para Actualizar Facturas
+            int opcion = Utils.mostrarConfirmacion(this, TITULO_SOBREESCRIBIR_FACTURA, MENSAJE_SOBREESCRIBIR_FACTURA);
+            if (opcion == JOptionPane.YES_OPTION) {
+                boolean facturaAbono = jRadioButtonFacturaAbono.isSelected();
+                Factura facturaOriginal = facturaControlador.facturaClienteMesAnio(clienteDNI, fecha.getMonthValue(), fecha.getYear());
+                factura.setId(facturaOriginal.getId());
+                factura.setNumero(facturaOriginal.getNumero());
+                facturaControlador.sobreescribir(facturaOriginal, factura, facturaAbono, listaLocales, listaCantidades, IVA, retencion, usuario);
+            }
             // Limpiar Tabla 
             dtm.setRowCount(0);
+            // Limpiar listasLocales y listasCantidades
+            this.listaCantidades.clear();
+            this.listaLocales.clear();
             // Deshabilitar Boton GenerarFactura
             jButtonGenerarFactura.setEnabled(false);
             // Reinciar valor de total
@@ -596,6 +611,9 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
                 mostrarError(this, TITULO_FACTURA_CONTIGUA, MENSAJE_FACTURA_CONTIGUA);
                 // Limpiar Tabla 
                 dtm.setRowCount(0);
+                // Limpiar listasLocales y listasCantidades
+                this.listaCantidades.clear();
+                this.listaLocales.clear();
                 // Deshabilitar Boton GenerarFactura
                 jButtonGenerarFactura.setEnabled(false);
                 // Reinciar valor de total
@@ -624,6 +642,9 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
                 mostrarError(this, TITULO_FACTURA_ANTICIPO_DISTINTOS, MENSAJE_FACTURA_ANTICIPO_DISTINTOS);
                 // Limpiar Tabla 
                 dtm.setRowCount(0);
+                // Limpiar listasLocales y listasCantidades
+                this.listaCantidades.clear();
+                this.listaLocales.clear();
                 // Deshabilitar Boton GenerarFactura
                 jButtonGenerarFactura.setEnabled(false);
                 // Reinciar valor de total
@@ -668,6 +689,9 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         // Limpiar Textos de Cliente y Tabla 
         jTextFieldBuscadorClientes.setText(VACIO);
         dtm.setRowCount(0);
+        // Limpiar listasLocales y listasCantidades
+        this.listaCantidades.clear();
+        this.listaLocales.clear();
         // Deshabilitar Boton GenerarFactura
         jButtonGenerarFactura.setEnabled(false);
         // Reinciar valor de total

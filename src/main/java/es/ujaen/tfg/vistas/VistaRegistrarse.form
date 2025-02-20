@@ -3023,6 +3023,9 @@
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="0"/>
                 </Property>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="new FlatSVGIcon(&quot;svg/registro.svg&quot;)" type="code"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Registrarse"/>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>

@@ -151,8 +151,9 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         setLocation(new java.awt.Point(0, 0));
-        setMinimumSize(new java.awt.Dimension(1000, 600));
+        setMinimumSize(new java.awt.Dimension(1450, 750));
         setName("VistaPrincipal"); // NOI18N
+        setPreferredSize(new java.awt.Dimension(1350, 638));
         setSize(new java.awt.Dimension(0, 0));
 
         jPanelPrincipal.setName(""); // NOI18N
@@ -418,6 +419,8 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
             localDAO.limpiarCache();
             anticipoDAO.limpiarCache();
             facturaDAO.limpiarCache();
+            
+            undoManager.limpiarUndoManager();
 
             VistaInicioSesión vistaInicioSesión = null;
             vistaInicioSesión = new VistaInicioSesión();

@@ -121,7 +121,8 @@ public class VistaLocales extends javax.swing.JPanel implements Observador {
         jPanelFiltro.add(jTextFieldBuscadorLocales, gridBagConstraints);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabel1.setText("Busca un Local por Nombre o Alias:");
+        jLabel1.setIcon(new FlatSVGIcon("svg/busqueda.svg"));
+        jLabel1.setText("Buscar Local por Nombre o Alias:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
