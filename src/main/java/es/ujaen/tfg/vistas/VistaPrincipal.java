@@ -10,7 +10,9 @@ import es.ujaen.tfg.DAO.AnticipoDAO;
 import es.ujaen.tfg.DAO.ClienteDAO;
 import es.ujaen.tfg.DAO.FacturaDAO;
 import es.ujaen.tfg.DAO.LocalDAO;
+import es.ujaen.tfg.DAO.PreferenciasDAO;
 import es.ujaen.tfg.DAO.UsuarioDAO;
+import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.controlador.AnticipoControlador;
 import es.ujaen.tfg.controlador.ClienteControlador;
 import es.ujaen.tfg.controlador.FacturaControlador;
@@ -24,6 +26,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -63,14 +66,16 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
     private final FacturaDAO facturaDAO;
     private final AnticipoDAO anticipoDAO;
     private final LocalDAO localDAO;
+    private final PreferenciasDAO preferenciasDAO;
 
     /**
      * Creates new form VistaPrincipal
      *
      * @param email
      * @throws java.io.IOException
+     * @throws java.util.concurrent.ExecutionException
      */
-    public VistaPrincipal(String email) throws IOException {
+    public VistaPrincipal(String email) throws IOException, ExecutionException {
         initComponents();
         setLocationRelativeTo(null);
 
@@ -78,19 +83,19 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         jTabbedPaneCategorias.setIconAt(1, new FlatSVGIcon("svg/registro_anticipos.svg"));
 
         //setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
-
         this.usuarioDAO = new UsuarioDAO(email);
         this.clienteDAO = new ClienteDAO(email);
         this.facturaDAO = new FacturaDAO(email);
         this.anticipoDAO = new AnticipoDAO(email);
         this.localDAO = new LocalDAO(email);
+        this.preferenciasDAO = new PreferenciasDAO(email);
 
         this.usuarioControlador = new UsuarioControlador(usuarioDAO);
         this.clienteControlador = new ClienteControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.localControlador = new LocalControlador(localDAO);
         this.anticipoControlador = new AnticipoControlador(clienteDAO, anticipoDAO, facturaDAO);
         this.facturaControlador = new FacturaControlador(clienteDAO, anticipoDAO, facturaDAO);
-        this.preferenciasControlador = new PreferenciasControlador();
+        this.preferenciasControlador = new PreferenciasControlador(preferenciasDAO);
 
         this.clienteControlador.agregarObservador(this);
         this.localControlador.agregarObservador(this);
@@ -98,7 +103,7 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         this.facturaControlador.agregarObservador(this);
 
         this.undoManager = UndoManager.getInstance();
-        
+
         this.usuario = usuarioControlador.leer(email);
 
         cargarVistaContabilidad();
@@ -147,12 +152,16 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
         setBounds(new java.awt.Rectangle(0, 0, 0, 0));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
-        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setLocation(new java.awt.Point(0, 0));
         setMinimumSize(new java.awt.Dimension(1450, 750));
         setName("VistaPrincipal"); // NOI18N
         setPreferredSize(new java.awt.Dimension(1350, 638));
         setSize(new java.awt.Dimension(0, 0));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jPanelPrincipal.setName(""); // NOI18N
@@ -419,6 +428,8 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
             anticipoDAO.limpiarCache();
             facturaDAO.limpiarCache();
             
+            FirebaseInitializer.getInstance().limpiarCache();
+
             undoManager.limpiarUndoManager();
 
             VistaInicioSesión vistaInicioSesión = null;
@@ -429,6 +440,20 @@ public class VistaPrincipal extends javax.swing.JFrame implements Observador {
             Logger.getLogger(VistaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonCerrarSesionActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        try {
+            // TODO add your handling code here:
+            clienteDAO.limpiarCache();
+            localDAO.limpiarCache();
+            anticipoDAO.limpiarCache();
+            facturaDAO.limpiarCache();
+            
+            FirebaseInitializer.getInstance().limpiarCache();
+        } catch (IOException ex) {
+            Logger.getLogger(VistaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_formWindowClosing
 
     private void actualizarEstadoBotones() {
         // Habilitar o deshabilitar los botones según el estado de las pilas en el UndoManager

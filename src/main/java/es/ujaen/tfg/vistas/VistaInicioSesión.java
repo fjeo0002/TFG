@@ -29,6 +29,7 @@ import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
 import java.awt.Color;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -105,7 +106,6 @@ public class VistaInicioSesión extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Inicio de Sesión");
-        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
         setResizable(false);
 
         jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -294,7 +294,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
                 Utils.mostrarInformacion(this, TITULO_INICIO_SESION, MENSAJE_INICIO_SESION);
                 try {
                     abrirVistaPrincipal(email);
-                } catch (IOException ex) {
+                } catch (IOException | ExecutionException ex) {
                     Logger.getLogger(VistaInicioSesión.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
@@ -305,7 +305,7 @@ public class VistaInicioSesión extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonIniciarSesionActionPerformed
 
-    private void abrirVistaPrincipal(String email) throws IOException {
+    private void abrirVistaPrincipal(String email) throws IOException, ExecutionException {
         vistaPrincipal = new VistaPrincipal(email);
         vistaPrincipal.setVisible(true);
         this.dispose(); // Cierra la ventana de inicio de sesión

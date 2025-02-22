@@ -4,13 +4,10 @@
  */
 package es.ujaen.tfg.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.awt.Color;
 import java.awt.Font;
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
@@ -35,19 +32,14 @@ import javax.swing.table.DefaultTableModel;
 public class Utils {
 
 // ========================================VARIABLES========================================
-// ----------------------------------------FIREBASE----------------------------------------
-    public static final String CLIENTES_JSON = "src/main/resources/archivo/clientes.json";
-    public static final String LOCALES_JSON = "src/main/resources/archivo/locales.json";
-    public static final String ANTICIPOS_JSON = "src/main/resources/archivo/anticipos.json";
-    public static final String FACTURAS_JSON = "src/main/resources/archivo/facturas.json";
-    public static final String PREFERENCIAS_JSON = "src/main/resources/archivo/preferencias.json";
-    
-    public static final String FIREBASE_JSON = "src/main/resources/archivo/tfg-uja2425-fjeo0002-firebase-adminsdk-fbsvc-93c6ce5c57.json";
+// ----------------------------------------FIREBASE----------------------------------------    
+    public static final String FIREBASE_JSON = "/archivo/tfg-uja2425-fjeo0002-firebase-adminsdk-fbsvc-93c6ce5c57.json";
 
     public static final String CLIENTES_COLECCION = "clientes";
     public static final String LOCALES_COLECCION = "locales";
     public static final String ANTICIPOS_COLECCION = "anticipos";
     public static final String FACTURAS_COLECCION = "facturas";
+    public static final String PREFERENCIAS_COLECCION = "preferencias";
     public static final String USUARIOS_COLECCION = "usuarios";
 
     public static final long TIEMPO_ACTUALIZACION_BBDD = 300000;
@@ -96,6 +88,7 @@ public class Utils {
 
     public static final String FILTROS_APLICADOS = "* Filtros aplicados";
 
+    public static final String ICON_IMAGE = "/archivo/iconoFondoTransparente.png";
 // ----------------------------------------TITULOS----------------------------------------
     public static final String TITULO_VISTA_ANADIR_CLIENTE = "Añadir Nuevo Cliente";
     public static final String TITULO_VISTA_MODIFICAR_CLIENTE = "Modificar Cliente";
@@ -281,7 +274,7 @@ public class Utils {
         // Reemplazar la coma por un punto para la conversión
         sanitizedValue = sanitizedValue.replace(COMA, PUNTO);
         // Convertir el String a Double
-        return Double.parseDouble(sanitizedValue);
+        return redondearDosDecimales(Double.parseDouble(sanitizedValue));
     }
 
     public static String convertirDoubleAString(double value) {
@@ -320,6 +313,10 @@ public class Utils {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Formato de número entero inválido.");
         }
+    }
+
+    public static double redondearDosDecimales(double valor) {
+        return new BigDecimal(valor).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
 // ----------------------------------------CAMPOS FORMULARIOS----------------------------------------

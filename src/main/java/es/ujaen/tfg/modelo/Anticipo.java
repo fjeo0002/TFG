@@ -9,6 +9,7 @@ import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
 import static es.ujaen.tfg.utils.Utils.convertirFechaAString;
 import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import static es.ujaen.tfg.utils.Utils.convertirStringAFecha;
+import static es.ujaen.tfg.utils.Utils.redondearDosDecimales;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -30,10 +31,10 @@ public class Anticipo {
 
     public Anticipo(String id, double monto, int mesesCubiertos, LocalDate fecha, double saldo, String clienteDNI) {
         this.id = id;
-        this.monto = monto;
+        this.monto = redondearDosDecimales(monto);
         this.mesesCubiertos = mesesCubiertos;
         this.fecha = fecha;
-        this.saldo = saldo;
+        this.saldo = redondearDosDecimales(saldo);
         this.clienteDNI = clienteDNI;
     }
 
@@ -73,7 +74,7 @@ public class Anticipo {
     }
 
     public void setMonto(double monto) {
-        this.monto = monto;
+        this.monto = redondearDosDecimales(monto);
     }
 
     @Exclude
@@ -127,7 +128,7 @@ public class Anticipo {
     }
 
     public void setSaldo(double saldo) {
-        this.saldo = saldo;
+        this.saldo = redondearDosDecimales(saldo);
     }
 
     @Exclude

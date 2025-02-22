@@ -12,13 +12,12 @@ import com.google.gson.Gson;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Local;
 import static es.ujaen.tfg.utils.Utils.LOCALES_COLECCION;
-import static es.ujaen.tfg.utils.Utils.LOCALES_JSON;
 import static es.ujaen.tfg.utils.Utils.TIEMPO_ACTUALIZACION_BBDD;
 import static es.ujaen.tfg.utils.Utils.USUARIOS_COLECCION;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -40,9 +39,15 @@ public final class LocalDAO implements InterfazDAO<Local> {
     private Timer timer;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+    private final Path archivoCache;
+    
     public LocalDAO(String email) throws IOException {
         this.db = FirebaseInitializer.getInstance().getDb();
         this.email = email;
+        
+        this.archivoCache = Files.createTempFile("locales_", ".json");
+        this.archivoCache.toFile().deleteOnExit();
+        
         if (this.localesCache == null) {
             sincronizarDesdeFirebase();
         }
@@ -52,7 +57,7 @@ public final class LocalDAO implements InterfazDAO<Local> {
 
     // ✅ Guardar la caché localmente
     private void guardarEnCache() {
-        try (FileWriter writer = new FileWriter(LOCALES_JSON)) {
+        try (FileWriter writer = new FileWriter(archivoCache.toString())) {
             new Gson().toJson(localesCache, writer);
         } catch (IOException e) {
             System.err.println("Error guardando caché de locales: " + e.getMessage());
@@ -121,9 +126,12 @@ public final class LocalDAO implements InterfazDAO<Local> {
     }
 
     public void limpiarCache() throws IOException {
+        Files.deleteIfExists(archivoCache);
+        /*
         if (Files.exists(Paths.get(LOCALES_JSON))) {
             Files.delete(Paths.get(LOCALES_JSON));
         }
+*/
     }
 
     // ✅ CREAR local (modifica la caché y luego sube a Firebase en segundo plano)

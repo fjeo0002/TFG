@@ -17,6 +17,7 @@ import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_ALIAS_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_CODIGO_POSTAL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_DIRECCION_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_DNI_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE_OPCIONAL;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_LOCALIDAD_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.TIPOA;
@@ -33,11 +34,9 @@ import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.mostrarError;
 import static es.ujaen.tfg.utils.Utils.quitarPlaceHolder;
 import static es.ujaen.tfg.utils.Utils.validarCampoFormulario;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.border.Border;
-import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_EMAIL_CLIENTE_OPCIONAL;
-import javax.swing.ImageIcon;
-import javax.swing.border.EmptyBorder;
 
 /**
  *
@@ -192,7 +191,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jButtonAceptar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
+        setIconImage(null);
         setResizable(false);
 
         jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));

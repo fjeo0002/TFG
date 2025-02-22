@@ -14,13 +14,12 @@ import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Factura;
 import es.ujaen.tfg.utils.LocalDateAdapterGson;
 import static es.ujaen.tfg.utils.Utils.FACTURAS_COLECCION;
-import static es.ujaen.tfg.utils.Utils.FACTURAS_JSON;
 import static es.ujaen.tfg.utils.Utils.TIEMPO_ACTUALIZACION_BBDD;
 import static es.ujaen.tfg.utils.Utils.USUARIOS_COLECCION;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,8 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     private Timer timer;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+    private final Path archivoCache;
+    
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson())
             .create();
@@ -50,6 +51,10 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     public FacturaDAO(String email) throws IOException {
         this.db = FirebaseInitializer.getInstance().getDb();
         this.email = email;
+        
+        this.archivoCache = Files.createTempFile("facturas_", ".json");
+        this.archivoCache.toFile().deleteOnExit();
+        
         if (this.facturasCache == null) {
             sincronizarDesdeFirebase();
         }
@@ -59,7 +64,7 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
 
     // ✅ Guardar la caché localmente
     private void guardarEnCache() {
-        try (FileWriter writer = new FileWriter(FACTURAS_JSON)) {
+        try (FileWriter writer = new FileWriter(archivoCache.toString())) {
             gson.toJson(facturasCache, writer);
         } catch (IOException e) {
             System.err.println("Error guardando caché de facturas: " + e.getMessage());
@@ -126,9 +131,12 @@ public final class FacturaDAO implements InterfazDAO<Factura> {
     }
 
     public void limpiarCache() throws IOException {
+        Files.deleteIfExists(archivoCache);
+        /*
         if (Files.exists(Paths.get(FACTURAS_JSON))) {
             Files.delete(Paths.get(FACTURAS_JSON));
         }
+*/
     }
 
     // ✅ CREAR factura (modifica la caché y luego sube a Firebase en segundo plano)

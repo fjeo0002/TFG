@@ -127,7 +127,7 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Crear Anticipo");
-        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
+        setIconImage(null);
         setResizable(false);
 
         jPanelPrincipal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));

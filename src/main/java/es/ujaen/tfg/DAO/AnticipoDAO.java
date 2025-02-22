@@ -14,13 +14,12 @@ import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Anticipo;
 import es.ujaen.tfg.utils.LocalDateAdapterGson;
 import static es.ujaen.tfg.utils.Utils.ANTICIPOS_COLECCION;
-import static es.ujaen.tfg.utils.Utils.ANTICIPOS_JSON;
 import static es.ujaen.tfg.utils.Utils.TIEMPO_ACTUALIZACION_BBDD;
 import static es.ujaen.tfg.utils.Utils.USUARIOS_COLECCION;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,8 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     private Timer timer;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+    private final Path archivoCache;
+    
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDate.class, new LocalDateAdapterGson())
             .create();
@@ -50,6 +51,10 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     public AnticipoDAO(String email) throws IOException {
         this.db = FirebaseInitializer.getInstance().getDb();
         this.email = email;
+        
+        this.archivoCache = Files.createTempFile("anticipos_", ".json");
+        this.archivoCache.toFile().deleteOnExit();
+        
         if (this.anticiposCache == null) {
             sincronizarDesdeFirebase();
         }
@@ -59,7 +64,7 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
 
     // ✅ Guardar la caché localmente
     private void guardarEnCache() {
-        try (FileWriter writer = new FileWriter(ANTICIPOS_JSON)) {
+        try (FileWriter writer = new FileWriter(archivoCache.toString())) {
             gson.toJson(anticiposCache, writer);
         } catch (IOException e) {
             System.err.println("Error guardando caché de anticipos: " + e.getMessage());
@@ -126,9 +131,12 @@ public final class AnticipoDAO implements InterfazDAO<Anticipo> {
     }
 
     public void limpiarCache() throws IOException {
+        Files.deleteIfExists(archivoCache);
+        /*
         if (Files.exists(Paths.get(ANTICIPOS_JSON))) {
             Files.delete(Paths.get(ANTICIPOS_JSON));
         }
+*/
     }
 
     // ✅ CREAR anticipo (modifica la caché y luego sube a Firebase en segundo plano)

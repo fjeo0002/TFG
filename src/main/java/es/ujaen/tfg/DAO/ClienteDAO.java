@@ -12,13 +12,12 @@ import com.google.gson.Gson;
 import es.ujaen.tfg.Firebase.FirebaseInitializer;
 import es.ujaen.tfg.modelo.Cliente;
 import static es.ujaen.tfg.utils.Utils.CLIENTES_COLECCION;
-import static es.ujaen.tfg.utils.Utils.CLIENTES_JSON;
 import static es.ujaen.tfg.utils.Utils.TIEMPO_ACTUALIZACION_BBDD;
 import static es.ujaen.tfg.utils.Utils.USUARIOS_COLECCION;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -40,9 +39,15 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
     private Timer timer;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+    private final Path archivoCache;
+
     public ClienteDAO(String email) throws IOException {
         this.db = FirebaseInitializer.getInstance().getDb();
         this.email = email;
+        
+        this.archivoCache = Files.createTempFile("clientes_", ".json");
+        this.archivoCache.toFile().deleteOnExit();
+        
         if (this.clientesCache == null) {
             sincronizarDesdeFirebase();
         }
@@ -52,7 +57,7 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
 
     // ✅ Guardar la caché localmente con manejo de errores
     private void guardarEnCache() {
-        try (FileWriter writer = new FileWriter(CLIENTES_JSON)) {
+        try (FileWriter writer = new FileWriter(archivoCache.toString())) {
             new Gson().toJson(clientesCache, writer);
         } catch (IOException e) {
             System.err.println("Error guardando caché: " + e.getMessage());
@@ -119,9 +124,12 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
     }
 
     public void limpiarCache() throws IOException {
+        Files.deleteIfExists(archivoCache);
+        /*
         if (Files.exists(Paths.get(CLIENTES_JSON))) {
             Files.delete(Paths.get(CLIENTES_JSON));
         }
+*/
     }
 
     // ✅ CREAR cliente (trabaja en caché y luego sube a Firebase en segundo plano)
@@ -140,7 +148,7 @@ public final class ClienteDAO implements InterfazDAO<Cliente> {
 
         return true;
     }
-    
+
     // ✅ CREAR local con index (modifica la caché y luego sube a Firebase en segundo plano)
     public boolean crear(Cliente local, int index) {
         clientesCache.add(index, local);

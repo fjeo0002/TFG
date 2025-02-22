@@ -7,6 +7,7 @@ package es.ujaen.tfg.modelo;
 import com.google.cloud.firestore.annotation.Exclude;
 import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
 import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
+import static es.ujaen.tfg.utils.Utils.redondearDosDecimales;
 import java.util.Objects;
 
 /**
@@ -27,7 +28,7 @@ public class Local {
         this.codigo = codigo;
         this.nombre = articulo;
         this.alias = alias;
-        this.precio = precio;
+        this.precio = redondearDosDecimales(precio);
     }
 
     public Local(String codigo, String articulo, String alias, String precio) {
@@ -78,7 +79,7 @@ public class Local {
     }
 
     public void setPrecio(double precio) {
-        this.precio = precio;
+        this.precio = redondearDosDecimales(precio);
     }
 
     @Exclude

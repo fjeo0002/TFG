@@ -57,7 +57,7 @@ public class VistaPreferencias extends javax.swing.JDialog {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Preferencias");
-        setIconImage(new ImageIcon("src/main/resources/archivo/iconoFondoTransparente.png").getImage());
+        setIconImage(null);
         setName("VistaPreferencias"); // NOI18N
         setResizable(false);
         setSize(new java.awt.Dimension(348, 245));

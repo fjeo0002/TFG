@@ -23,10 +23,10 @@ import es.ujaen.tfg.orden.UndoManager;
 import es.ujaen.tfg.utils.Utils;
 import es.ujaen.tfg.utils.Utils.Mes;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -74,9 +74,9 @@ public class AnticipoControlador implements Observable {
     public boolean crear(Anticipo anticipo, Cliente clienteOriginal, Cliente clienteModificado, List<Factura> facturasACrear, Usuario usuario) {
         //anticipoDAO.crear(anticipo);
         StringWriter writer = generarAnticipoPDF(anticipo, usuario);
-        
-        Command crearAnticipo = new CrearAnticipoCommand(anticipoDAO, anticipo, 
-                clienteDAO, clienteOriginal, clienteModificado, 
+
+        Command crearAnticipo = new CrearAnticipoCommand(anticipoDAO, anticipo,
+                clienteDAO, clienteOriginal, clienteModificado,
                 facturaDAO, facturasACrear, writer);
         undoManager.execute(crearAnticipo);
         notificarObservadores();
@@ -118,7 +118,21 @@ public class AnticipoControlador implements Observable {
         StringWriter writer = new StringWriter();
         try {
             // Cargar la plantilla HTML
-            String plantilla = Files.readString(Paths.get("resources/archivo/anticipo_template.html"), java.nio.charset.StandardCharsets.UTF_8);
+            String plantilla = "";//Files.readString(Paths.get("/archivo/anticipo_template.html"), java.nio.charset.StandardCharsets.UTF_8);
+
+            try {
+                InputStream inputStream = getClass().getResourceAsStream("/archivo/anticipo_template.html");
+                if (inputStream == null) {
+                    throw new IOException("No se encontró el archivo de plantilla dentro del JAR: " + "/archivo/anticipo_template.html");
+                }
+
+                // Convertir el InputStream a String usando un Buffer
+                plantilla = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+            } catch (IOException e) {
+                System.err.println("Error leyendo la plantilla: " + e.getMessage());
+                return null;
+            }
 
             // Datos del anticipo
             Map<String, Object> datos = new HashMap<>();
@@ -147,11 +161,10 @@ public class AnticipoControlador implements Observable {
             datos.put("cliente", cliente);
 
             // Datos del Anticipo
-            
             int dia = a.getFecha().getDayOfMonth();
             Mes mes = Mes.porNumero(a.getFecha().getMonthValue());
             int anio = a.getFecha().getYear();
-            
+
             Map<String, Object> anticipo = new HashMap<>();
             anticipo.put("fecha", a.getFechaString());
             anticipo.put("dia", Utils.convertirEnteroAString(dia));

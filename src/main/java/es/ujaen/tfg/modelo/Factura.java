@@ -9,6 +9,7 @@ import static es.ujaen.tfg.utils.Utils.convertirDoubleAString;
 import static es.ujaen.tfg.utils.Utils.convertirFechaAString;
 import static es.ujaen.tfg.utils.Utils.convertirStringADouble;
 import static es.ujaen.tfg.utils.Utils.convertirStringAFecha;
+import static es.ujaen.tfg.utils.Utils.redondearDosDecimales;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Objects;
@@ -39,7 +40,7 @@ public class Factura {
         this.pagado = pagado;
         this.facturado = facturado;
         this.clienteDNI = clienteDNI;
-        this.monto = monto;
+        this.monto = redondearDosDecimales(monto);
     }
 
     public Factura(String id, String letra, String numero, String fecha, Boolean pagado, Boolean facturado, String monto, String clienteDNI) {
@@ -150,7 +151,7 @@ public class Factura {
     }
 
     public void setMonto(double monto) {
-        this.monto = monto;
+        this.monto = redondearDosDecimales(monto);
     }
 
     @Exclude
@@ -184,17 +185,18 @@ public class Factura {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.letra);
-        hash = 97 * hash + this.numero;
-        hash = 97 * hash + Objects.hashCode(this.fecha);
-        hash = 97 * hash + Objects.hashCode(this.clienteDNI);
+        int hash = 3;
+        hash = 89 * hash + Objects.hashCode(this.fecha);
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.monto) ^ (Double.doubleToLongBits(this.monto) >>> 32));
+        hash = 89 * hash + Objects.hashCode(this.clienteDNI);
         return hash;
     }
 
+    
+
     @Override
     public String toString() {
-        return "Factura{" + "letra=" + letra + ", numero=" + numero + ", fecha=" + fecha + ", pagado=" + pagado + ", facturado=" + facturado + ", monto=" + monto + ", clienteDNI=" + clienteDNI + '}';
+        return "Factura{" + "id=" + id + ", letra=" + letra + ", numero=" + numero + ", fecha=" + fecha + ", pagado=" + pagado + ", facturado=" + facturado + ", monto=" + monto + ", clienteDNI=" + clienteDNI + '}';
     }
 
 }

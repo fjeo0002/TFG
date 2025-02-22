@@ -27,8 +27,10 @@ import es.ujaen.tfg.utils.Utils;
 import es.ujaen.tfg.utils.Utils.Mes;
 import static es.ujaen.tfg.utils.Utils.TIPOA;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -157,8 +159,22 @@ public class FacturaControlador implements Observable {
         StringWriter writer = new StringWriter();
         try {
             // Cargar la plantilla HTML
-            String plantilla = Files.readString(Paths.get("resources/archivo/factura_template.html"), java.nio.charset.StandardCharsets.UTF_8);
+            // Cargar la plantilla HTML
+            String plantilla = "";//Files.readString(Paths.get("/archivo/anticipo_template.html"), java.nio.charset.StandardCharsets.UTF_8);
 
+            try {
+                InputStream inputStream = getClass().getResourceAsStream("/archivo/factura_template.html");
+                if (inputStream == null) {
+                    throw new IOException("No se encontró el archivo de plantilla dentro del JAR: " + "/archivo/factura_template.html");
+                }
+
+                // Convertir el InputStream a String usando un Buffer
+                plantilla = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+            } catch (IOException e) {
+                System.err.println("Error leyendo la plantilla: " + e.getMessage());
+                return null;
+            }
             // Datos de la factura
             Map<String, Object> datos = new HashMap<>();
 
