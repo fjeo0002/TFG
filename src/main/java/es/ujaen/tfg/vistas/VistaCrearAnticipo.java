@@ -328,7 +328,6 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
         // Creamos tantas facturas con fechas anticipadas como meses cubiertos tengamos
         // Dejo por ahora el numero de factura inconcluso (0)
         int numero = 0;
-        String letra = clienteOriginal.getTipo();
         boolean pagado = true;
         boolean facturado = false;
 
@@ -336,9 +335,9 @@ public class VistaCrearAnticipo extends javax.swing.JDialog implements Observado
 
         List<Factura> facturasAnticipadas = new ArrayList<>();
         for (int i = 0; i < mesesCubiertos; i++) {
-            ID = facturaControlador.generarIdFactura(letra, numero, fecha, clienteDNI);
+            ID = facturaControlador.generarIdFactura(numero, fecha, clienteDNI);
 
-            Factura factura = new Factura(ID, letra, numero, fecha, pagado, facturado, montoMes, clienteDNI);
+            Factura factura = new Factura(ID, numero, fecha, pagado, facturado, montoMes, clienteDNI);
             boolean facturaRepetida = facturaControlador.facturaRepetida(factura);
             if (facturaRepetida) {
                 mostrarError(parent, TITULO_FACTURA_REPETIDO, MENSAJE_FACTURA_REPETIDO);

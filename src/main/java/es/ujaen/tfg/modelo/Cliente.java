@@ -25,7 +25,6 @@ public class Cliente {
     private String codigoPostal;
     private String estado;
     private double saldo;
-    private String tipo;
 
     public Cliente() {
     }
@@ -39,8 +38,7 @@ public class Cliente {
             String localidad,
             String codigoPostal,
             String estado,
-            double saldo,
-            String tipo
+            double saldo
     ) {
         this.DNI = DNI;
         this.nombre = nombre;
@@ -51,7 +49,6 @@ public class Cliente {
         this.codigoPostal = codigoPostal;
         this.estado = estado;
         this.saldo = redondearDosDecimales(saldo);
-        this.tipo = tipo;
     }
 
     public Cliente(
@@ -63,8 +60,7 @@ public class Cliente {
             String localidad,
             String codigoPostal,
             String estado,
-            String saldo,
-            String tipo
+            String saldo
     ) {
         this.DNI = DNI;
         this.nombre = nombre;
@@ -75,7 +71,6 @@ public class Cliente {
         this.codigoPostal = codigoPostal;
         this.estado = estado;
         this.saldo = convertirStringADouble(saldo);
-        this.tipo = tipo;
     }
 
     public Cliente(Cliente c) {
@@ -88,7 +83,6 @@ public class Cliente {
         this.localidad = c.localidad;
         this.estado = c.estado;
         this.saldo = c.saldo;
-        this.tipo = c.tipo;
     }
 
     public String getDNI() {
@@ -147,14 +141,6 @@ public class Cliente {
         this.localidad = localidad;
     }
 
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
     public String getEstado() {
         return estado;
     }
@@ -184,16 +170,15 @@ public class Cliente {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 53 * hash + Objects.hashCode(this.DNI);
-        hash = 53 * hash + Objects.hashCode(this.nombre);
-        hash = 53 * hash + Objects.hashCode(this.alias);
-        hash = 53 * hash + Objects.hashCode(this.email);
-        hash = 53 * hash + Objects.hashCode(this.direccion);
-        hash = 53 * hash + Objects.hashCode(this.localidad);
-        hash = 53 * hash + Objects.hashCode(this.codigoPostal);
-        hash = 53 * hash + Objects.hashCode(this.estado);
-        hash = 53 * hash + (int) (Double.doubleToLongBits(this.saldo) ^ (Double.doubleToLongBits(this.saldo) >>> 32));
-        hash = 53 * hash + Objects.hashCode(this.tipo);
+        hash = 97 * hash + Objects.hashCode(this.DNI);
+        hash = 97 * hash + Objects.hashCode(this.nombre);
+        hash = 97 * hash + Objects.hashCode(this.alias);
+        hash = 97 * hash + Objects.hashCode(this.email);
+        hash = 97 * hash + Objects.hashCode(this.direccion);
+        hash = 97 * hash + Objects.hashCode(this.localidad);
+        hash = 97 * hash + Objects.hashCode(this.codigoPostal);
+        hash = 97 * hash + Objects.hashCode(this.estado);
+        hash = 97 * hash + (int) (Double.doubleToLongBits(this.saldo) ^ (Double.doubleToLongBits(this.saldo) >>> 32));
         return hash;
     }
 
@@ -233,15 +218,13 @@ public class Cliente {
         if (!Objects.equals(this.codigoPostal, other.codigoPostal)) {
             return false;
         }
-        if (!Objects.equals(this.estado, other.estado)) {
-            return false;
-        }
-        return Objects.equals(this.tipo, other.tipo);
+        return Objects.equals(this.estado, other.estado);
     }
 
     @Override
     public String toString() {
-        return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", email=" + email + ", direccion=" + direccion + ", localidad=" + localidad + ", codigoPostal=" + codigoPostal + ", estado=" + estado + ", saldo=" + saldo + ", tipo=" + tipo + '}';
+        return "Cliente{" + "DNI=" + DNI + ", nombre=" + nombre + ", alias=" + alias + ", email=" + email + ", direccion=" + direccion + ", localidad=" + localidad + ", codigoPostal=" + codigoPostal + ", estado=" + estado + ", saldo=" + saldo + '}';
     }
 
+    
 }

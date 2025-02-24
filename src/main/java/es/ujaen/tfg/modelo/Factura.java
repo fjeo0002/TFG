@@ -21,7 +21,6 @@ import java.util.Objects;
 public class Factura {
 
     private String id;
-    private String letra;
     private int numero;
     private LocalDate fecha;
     private Boolean pagado;
@@ -32,9 +31,8 @@ public class Factura {
     public Factura() {
     }
 
-    public Factura(String id, String letra, int numero, LocalDate fecha, Boolean pagado, Boolean facturado, double monto, String clienteDNI) {
+    public Factura(String id, int numero, LocalDate fecha, Boolean pagado, Boolean facturado, double monto, String clienteDNI) {
         this.id = id;
-        this.letra = letra;
         this.numero = numero;
         this.fecha = fecha;
         this.pagado = pagado;
@@ -43,9 +41,8 @@ public class Factura {
         this.monto = redondearDosDecimales(monto);
     }
 
-    public Factura(String id, String letra, String numero, String fecha, Boolean pagado, Boolean facturado, String monto, String clienteDNI) {
+    public Factura(String id, String numero, String fecha, Boolean pagado, Boolean facturado, String monto, String clienteDNI) {
         this.id = id;
-        this.letra = letra;
         this.numero = Integer.parseInt(numero);
         this.fecha = convertirStringAFecha(fecha);
         this.pagado = pagado;
@@ -56,7 +53,6 @@ public class Factura {
 
     public Factura(Factura f) {
         this.id = f.id;
-        this.letra = f.letra;
         this.numero = f.numero;
         this.fecha = f.fecha;
         this.pagado = f.pagado;
@@ -71,14 +67,6 @@ public class Factura {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getLetra() {
-        return letra;
-    }
-
-    public void setLetra(String letra) {
-        this.letra = letra;
     }
 
     public int getNumero() {
@@ -192,11 +180,9 @@ public class Factura {
         return hash;
     }
 
-    
-
     @Override
     public String toString() {
-        return "Factura{" + "id=" + id + ", letra=" + letra + ", numero=" + numero + ", fecha=" + fecha + ", pagado=" + pagado + ", facturado=" + facturado + ", monto=" + monto + ", clienteDNI=" + clienteDNI + '}';
+        return "Factura{" + "id=" + id + ", numero=" + numero + ", fecha=" + fecha + ", pagado=" + pagado + ", facturado=" + facturado + ", monto=" + monto + ", clienteDNI=" + clienteDNI + '}';
     }
 
 }

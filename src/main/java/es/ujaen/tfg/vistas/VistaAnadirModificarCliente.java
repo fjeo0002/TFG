@@ -74,7 +74,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         initComponents();
         this.parent = (JFrame) parent;
         setLocationRelativeTo(null);
-        
+
         this.originalBorder = jTextFieldDNI.getBorder();
 
         this.clienteControlador = clienteControlador;
@@ -115,12 +115,6 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         this.jTextFieldLocalidad.setText(cliente.getLocalidad().trim());
         this.jTextFieldCodigoPostal.setText(cliente.getCodigoPostal().trim());
 
-        if (TIPOA.equals(cliente.getTipo())) {
-            this.jRadioButtonTipoA.setSelected(true);
-        } else {
-            this.jRadioButtonTipoB.setSelected(true);
-        }
-
         this.jTextFieldDNI.setForeground(NEGRO);
         this.jTextFieldNombre.setForeground(NEGRO);
         this.jTextFieldAlias.setForeground(NEGRO);
@@ -139,12 +133,12 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         this.campoCodigoPostalCorrecto = true;
         this.clienteModificado = new Cliente(cliente);
         this.clienteOriginal = new Cliente(cliente);
-        
+
         // Puede que no tenga ni alias ni email
-        if(cliente.getAlias().trim().isEmpty()){
+        if (cliente.getAlias().trim().isEmpty()) {
             agregarPlaceHolder(jTextFieldAlias, PLACEHOLDER_ALIAS_CLIENTE);
         }
-        if(cliente.getEmail().trim().isEmpty()){
+        if (cliente.getEmail().trim().isEmpty()) {
             agregarPlaceHolder(jTextFieldEmail, PLACEHOLDER_EMAIL_CLIENTE_OPCIONAL);
         }
     }
@@ -182,10 +176,6 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         jLabelCodigoPostal = new javax.swing.JLabel();
         jTextFieldCodigoPostal = new javax.swing.JTextField();
         jLabelAdvertenciaCodigoPostal = new javax.swing.JLabel();
-        jLabelTipo = new javax.swing.JLabel();
-        jPanelRadioButtons = new javax.swing.JPanel();
-        jRadioButtonTipoA = new javax.swing.JRadioButton();
-        jRadioButtonTipoB = new javax.swing.JRadioButton();
         jPanelPiePagina = new javax.swing.JPanel();
         jButtonCancelar = new javax.swing.JButton();
         jButtonAceptar = new javax.swing.JButton();
@@ -505,43 +495,6 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         jPanelCuerpo.add(jLabelAdvertenciaCodigoPostal, gridBagConstraints);
 
-        jLabelTipo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabelTipo.setText("Tipo");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jLabelTipo, gridBagConstraints);
-
-        buttonGroupTipo.add(jRadioButtonTipoA);
-        jRadioButtonTipoA.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jRadioButtonTipoA.setText("A");
-        jRadioButtonTipoA.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jRadioButtonTipoAMouseClicked(evt);
-            }
-        });
-        jPanelRadioButtons.add(jRadioButtonTipoA);
-
-        buttonGroupTipo.add(jRadioButtonTipoB);
-        jRadioButtonTipoB.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jRadioButtonTipoB.setText("B");
-        jRadioButtonTipoB.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jRadioButtonTipoBMouseClicked(evt);
-            }
-        });
-        jPanelRadioButtons.add(jRadioButtonTipoB);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 19;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanelCuerpo.add(jPanelRadioButtons, gridBagConstraints);
-
         jPanelPrincipal.add(jPanelCuerpo, java.awt.BorderLayout.CENTER);
 
         jPanelPiePagina.setName(""); // NOI18N
@@ -589,7 +542,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
 
     private void jButtonAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAceptarActionPerformed
         // TODO add your handling code here:
-        String DNI, nombre, alias, email, direccion, localidad, codigoPostal, estado, saldo, tipo;
+        String DNI, nombre, alias, email, direccion, localidad, codigoPostal, estado, saldo;
 
         DNI = jTextFieldDNI.getText().trim();
         nombre = jTextFieldNombre.getText().trim();
@@ -606,7 +559,6 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         codigoPostal = jTextFieldCodigoPostal.getText().trim();
         estado = AL_DIA;
         saldo = "0,00";
-        tipo = jRadioButtonTipoA.isSelected() ? TIPOA : TIPOB;
 
         if (!esEdicion) {
             clienteOriginal = new Cliente(
@@ -618,8 +570,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
                     localidad,
                     codigoPostal,
                     estado,
-                    saldo,
-                    tipo
+                    saldo
             );
 
             boolean clienteRepetido = clienteControlador.clienteRepetido(clienteOriginal);
@@ -636,10 +587,9 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
             clienteModificado.setDireccion(direccion);
             clienteModificado.setLocalidad(localidad);
             clienteModificado.setCodigoPostal(codigoPostal);
-            clienteModificado.setTipo(tipo);
 
             //if (!clienteOriginal.equals(clienteModificado)) {
-                clienteControlador.actualizar(clienteOriginal, clienteModificado);
+            clienteControlador.actualizar(clienteOriginal, clienteModificado);
             //}
 
         }
@@ -774,16 +724,6 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldCodigoPostalKeyReleased
 
-    private void jRadioButtonTipoAMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButtonTipoAMouseClicked
-        // TODO add your handling code here:
-        habilitarBotonAceptar();
-    }//GEN-LAST:event_jRadioButtonTipoAMouseClicked
-
-    private void jRadioButtonTipoBMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButtonTipoBMouseClicked
-        // TODO add your handling code here:
-        habilitarBotonAceptar();
-    }//GEN-LAST:event_jRadioButtonTipoBMouseClicked
-
     private void habilitarBotonAceptar() {
         if (campoDNICorrecto) {
             if (campoNombreCorrecto) {
@@ -791,10 +731,8 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
                     if (!jTextFieldDireccion.getText().trim().equals(PLACEHOLDER_DIRECCION_CLIENTE) && !jTextFieldDireccion.getText().trim().isEmpty()) {
                         if (!jTextFieldLocalidad.getText().trim().equals(PLACEHOLDER_LOCALIDAD_CLIENTE) && !jTextFieldLocalidad.getText().trim().isEmpty()) {
                             if (campoCodigoPostalCorrecto) {
-                                if (jRadioButtonTipoA.isSelected() || jRadioButtonTipoB.isSelected()) {
-                                    jButtonAceptar.setEnabled(true);
-                                    return;
-                                }
+                                jButtonAceptar.setEnabled(true);
+                                return;
                             }
                         }
                     }
@@ -820,15 +758,11 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
     private javax.swing.JLabel jLabelEmail;
     private javax.swing.JLabel jLabelLocalidad;
     private javax.swing.JLabel jLabelNombre;
-    private javax.swing.JLabel jLabelTipo;
     private javax.swing.JLabel jLabelTitulo;
     private javax.swing.JPanel jPanelCabecera;
     private javax.swing.JPanel jPanelCuerpo;
     private javax.swing.JPanel jPanelPiePagina;
     private javax.swing.JPanel jPanelPrincipal;
-    private javax.swing.JPanel jPanelRadioButtons;
-    private javax.swing.JRadioButton jRadioButtonTipoA;
-    private javax.swing.JRadioButton jRadioButtonTipoB;
     private javax.swing.JTextField jTextFieldAlias;
     private javax.swing.JTextField jTextFieldCodigoPostal;
     private javax.swing.JTextField jTextFieldDNI;

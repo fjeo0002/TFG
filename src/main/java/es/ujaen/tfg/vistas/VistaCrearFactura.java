@@ -100,7 +100,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     public VistaCrearFactura(JFrame parent, ClienteControlador clienteControlador, LocalControlador localControlador, FacturaControlador facturaControlador, AnticipoControlador anticipoControlador, PreferenciasControlador preferenciasControlador, Usuario usuario) {
         initComponents();
         setLocationRelativeTo(null);
-        
+
         this.parent = parent;
 
         this.clienteControlador = clienteControlador;
@@ -538,7 +538,6 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
     private void jButtonGenerarFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenerarFacturaActionPerformed
         // TODO add your handling code here:
         String ID;
-        String letra;
         int numero;
         LocalDate fecha;
         boolean pagado, facturado;
@@ -558,15 +557,12 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         clienteOriginal = clienteBuscado;
         clienteDNI = clienteOriginal.getDNI();
 
-        letra = clienteOriginal.getTipo();
+        numero = facturaControlador.siguienteNumeroFacturaLetraAnio(fecha);
 
-        numero = facturaControlador.siguienteNumeroFacturaLetraAnio(letra, fecha);
-
-        ID = facturaControlador.generarIdFactura(letra, numero, fecha, clienteDNI);
+        ID = facturaControlador.generarIdFactura(numero, fecha, clienteDNI);
 
         Factura factura = new Factura(
                 ID,
-                letra,
                 numero,
                 fecha,
                 pagado,
@@ -653,7 +649,7 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
 
                 Factura facturaNumerada = new Factura(ultimaFacturaNoNumerada);
 
-                ID = facturaControlador.generarIdFactura(letra, numero, fecha, clienteDNI);
+                ID = facturaControlador.generarIdFactura(numero, fecha, clienteDNI);
                 facturaNumerada.setId(ID);
                 facturaNumerada.setFacturado(facturado);
                 facturaNumerada.setNumero(numero);
@@ -743,13 +739,9 @@ public class VistaCrearFactura extends javax.swing.JFrame implements Observador 
         double subtotalDouble;
 
         // Calculamos Subtotal según el tipo de Cliente
-        if (TIPOA.equals(clienteBuscado.getTipo())) {
-            subtotalDouble = ((precioUnitarioDouble * IVADouble)
-                    - (precioUnitarioDouble * retencionDouble)
-                    + precioUnitarioDouble) * Integer.parseInt(cantidad);
-        } else {
-            subtotalDouble = precioUnitarioDouble * Integer.parseInt(cantidad);
-        }
+        subtotalDouble = ((precioUnitarioDouble * IVADouble)
+                - (precioUnitarioDouble * retencionDouble)
+                + precioUnitarioDouble) * Integer.parseInt(cantidad);
 
         String subtotal = convertirDoubleAString(subtotalDouble) + EURO;
 

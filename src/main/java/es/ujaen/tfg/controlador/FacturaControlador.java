@@ -207,7 +207,7 @@ public class FacturaControlador implements Observable {
 
             // Datos de la Factura
             Map<String, Object> factura = new HashMap<>();
-            factura.put("numero", c.getTipo() + "/" + f.getNumero());
+            factura.put("numero", f.getNumero());
             factura.put("fecha", f.getFechaString());
             factura.put("fechaValor", f.getFechaString());
 
@@ -230,25 +230,13 @@ public class FacturaControlador implements Observable {
                 double sumarIVA = precio * IVADouble;
                 double restarRetencion = precio * retencionDouble;
 
-                // Calculamos Subtotal según el tipo de Cliente
-                if (TIPOA.equals(c.getTipo())) {
-                    subtotal = (sumarIVA - restarRetencion + precio) * cantidad;
-                } else {
-                    subtotal = l.getPrecio() * cantidad;
-                }
+                subtotal = (sumarIVA - restarRetencion + precio) * cantidad;
 
                 total += subtotal;
                 baseImponible += precio;
-                
-                if (TIPOA.equals(c.getTipo())) {
-                    importeIVA = sumarIVA;
-                    importeRetencion = restarRetencion;
-                } else {
-                    IVA = 0;
-                    retencion = 0;
-                    importeIVA = 0;
-                    importeRetencion = 0;
-                }
+
+                importeIVA = sumarIVA;
+                importeRetencion = restarRetencion;
 
                 articulos.add(Map.of("cantidad", cantidad,
                         "descripcion", l.getNombre(),
@@ -286,7 +274,7 @@ public class FacturaControlador implements Observable {
         return writer;
     }
 
-    public String generarIdFactura(String letra, int numero, LocalDate fecha, String clienteDNI) {
+    public String generarIdFactura(int numero, LocalDate fecha, String clienteDNI) {
         // Crear una clave única combinando los campos 'letra', 'numero', 'fecha' y 'DNI'
         int numeroMes = fecha.getMonthValue();
         Mes mes = Mes.porNumero(numeroMes);
@@ -295,7 +283,7 @@ public class FacturaControlador implements Observable {
         int anio = fecha.getYear();
 
         //String txt = letra + "-" + anio + "-" + nombreMes + "-" + numero + "-" + clienteDNI;
-        String txt = letra + "-" + anio + "-" + nombreMes + "-" + clienteDNI;
+        String txt = anio + "-" + nombreMes + "-" + clienteDNI;
         return txt;
     }
 
@@ -343,25 +331,11 @@ public class FacturaControlador implements Observable {
         return null;
     }
 
-    public List<Factura> facturasLetra(String letra) {
+    public List<Factura> facturasAnio(LocalDate fecha) {
         List<Factura> facturas = leerTodos();
         if (facturas != null) {
-            List<Factura> facturasLetra = new ArrayList<>();
-            for (Factura factura : facturas) {
-                if (factura.getLetra().equals(letra)) {
-                    facturasLetra.add(factura);
-                }
-            }
-            return facturasLetra;
-        }
-        return null;
-    }
-
-    public List<Factura> facturasLetraAnio(String letra, LocalDate fecha) {
-        List<Factura> facturasLetra = facturasLetra(letra);
-        if (facturasLetra != null) {
             List<Factura> facturasLetraAnio = new ArrayList<>();
-            for (Factura factura : facturasLetra) {
+            for (Factura factura : facturas) {
                 if (factura.getFecha().getYear() == fecha.getYear()) {
                     facturasLetraAnio.add(factura);
                 }
@@ -371,12 +345,12 @@ public class FacturaControlador implements Observable {
         return null;
     }
 
-    public int siguienteNumeroFacturaLetraAnio(String letra, LocalDate fecha) {
+    public int siguienteNumeroFacturaLetraAnio(LocalDate fecha) {
         int ultimoNumeroFactura = 0;
-        List<Factura> facturasLetraAnio = facturasLetraAnio(letra, fecha);
-        if (facturasLetraAnio != null) {
-            if (!facturasLetraAnio.isEmpty()) {
-                for (Factura factura : facturasLetraAnio) {
+        List<Factura> facturasAnio = facturasAnio(fecha);
+        if (facturasAnio != null) {
+            if (!facturasAnio.isEmpty()) {
+                for (Factura factura : facturasAnio) {
                     if (factura.getNumero() > ultimoNumeroFactura) {
                         ultimoNumeroFactura = factura.getNumero();
                     }
