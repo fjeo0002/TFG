@@ -27,7 +27,6 @@ import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.PLACEHOLDER_TELEFONO;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_CODIGO_POSTAL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_CONTRASENA;
-import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_TELEFONO;
@@ -44,6 +43,7 @@ import static es.ujaen.tfg.utils.Utils.TITULO_USUARIO_YA_REGISTRADO;
 import static es.ujaen.tfg.utils.Utils.MENSAJE_USUARIO_YA_REGISTRADO;
 import static es.ujaen.tfg.utils.Utils.TITULO_ERROR_FIREBASE;
 import static es.ujaen.tfg.utils.Utils.TITULO_USUARIO_REGISTRADO;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CIF_CLIENTE;
 
 /**
  *
@@ -614,7 +614,7 @@ public class VistaRegistrarse extends javax.swing.JFrame {
                 jLabelAdvertenciaDNI,
                 ERROR_DNI_CLIENTE,
                 originalBorder,
-                texto -> !texto.isEmpty() && texto.matches(VALIDACION_DNI_CLIENTE)
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_DNI_CIF_CLIENTE)
         );
         habilitarBotonRegistrarse();
     }//GEN-LAST:event_jTextFieldDNIKeyReleased

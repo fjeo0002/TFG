@@ -27,7 +27,7 @@ import static es.ujaen.tfg.utils.Utils.TITULO_VISTA_ANADIR_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.TITULO_VISTA_MODIFICAR_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VACIO;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_CODIGO_POSTAL_CLIENTE;
-import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CIF_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_EMAIL_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
@@ -664,7 +664,7 @@ public class VistaAnadirModificarCliente extends javax.swing.JDialog {
                 jLabelAdvertenciaDNI,
                 ERROR_DNI_CLIENTE,
                 originalBorder,
-                texto -> !texto.isEmpty() && texto.matches(VALIDACION_DNI_CLIENTE)
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_DNI_CIF_CLIENTE)
         );
         habilitarBotonAceptar();
     }//GEN-LAST:event_jTextFieldDNIKeyReleased
