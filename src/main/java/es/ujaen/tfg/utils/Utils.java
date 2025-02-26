@@ -197,7 +197,7 @@ public class Utils {
     public static final String PLACEHOLDER_TELEFONO = "9 dígitos sin espacios";
 
 // ----------------------------------------VALIDACIONES----------------------------------------
-    public static final String VALIDACION_DNI_CLIENTE = "\\d{8}[A-Z]";
+    public static final String VALIDACION_DNI_CIF_CLIENTE = "(\\d{8}[A-Z])|([A-Z]\\d{8})";
     public static final String VALIDACION_NOMBRE_CLIENTE = "[a-zA-ZÁÉÍÓÚáéíóúÑñ\\s'-]+";
     public static final String VALIDACION_EMAIL_CLIENTE = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     public static final String VALIDACION_CODIGO_POSTAL_CLIENTE = "^\\d{5}$";

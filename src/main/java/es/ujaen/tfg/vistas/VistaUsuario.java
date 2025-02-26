@@ -26,7 +26,7 @@ import static es.ujaen.tfg.utils.Utils.TITULO_CONFIRMACION_ELIMINACION_USUARIO;
 import static es.ujaen.tfg.utils.Utils.TITULO_ELIMINACION_USUARIO;
 import static es.ujaen.tfg.utils.Utils.TITULO_USUARIO_MODIFICADO;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_CODIGO_POSTAL_CLIENTE;
-import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CLIENTE;
+import static es.ujaen.tfg.utils.Utils.VALIDACION_DNI_CIF_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_NOMBRE_CLIENTE;
 import static es.ujaen.tfg.utils.Utils.VALIDACION_TELEFONO;
 import static es.ujaen.tfg.utils.Utils.agregarPlaceHolder;
@@ -528,7 +528,7 @@ public class VistaUsuario extends javax.swing.JFrame {
                 jLabelAdvertenciaDNI,
                 ERROR_DNI_CLIENTE,
                 originalBorder,
-                texto -> !texto.isEmpty() && texto.matches(VALIDACION_DNI_CLIENTE)
+                texto -> !texto.isEmpty() && texto.matches(VALIDACION_DNI_CIF_CLIENTE)
         );
         habilitarBotonRegistrarse();
     }//GEN-LAST:event_jTextFieldDNIKeyReleased
